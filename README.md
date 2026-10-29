@@ -30,6 +30,7 @@ Python · FastAPI · SQLite + SQLAlchemy · scikit-learn · HTML/CSS/JavaScript 
 ```
 billbuddy/
   db.py            # database setup (SQLite + SQLAlchemy)
+  data/            # sample data generator
   expenses/        # groups, members and expenses
   settlement/      # splitting and debt settlement
   api/             # REST API for the frontend
@@ -40,7 +41,9 @@ billbuddy/
     recurring/     # recurring-cost detection
     anomaly/       # duplicates and outliers
 frontend/          # the PWA
-data/              # sample data and data generator (real data stays in data/private/, git-ignored)
+data/
+  sample/          # generated sample data (expenses.csv)
+  private/         # your real database – git-ignored, never committed
 tests/             # pytest tests
 docs/              # project plan and CRISP-DM documentation
 ```
