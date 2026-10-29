@@ -15,8 +15,8 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from billbuddy.expenses.models import Expense, ExpenseShare, RecurringRule, SplitMethod
+from billbuddy.expenses.months import MONTH_WORDS
 from billbuddy.expenses.service import ValidationError, get_expense
-from billbuddy.ml.recurring.model import MONTH_WORDS
 
 _MONTH_PATTERN = re.compile(r"\b(" + "|".join(sorted(MONTH_WORDS, key=len, reverse=True)) + r")\b", re.IGNORECASE)
 

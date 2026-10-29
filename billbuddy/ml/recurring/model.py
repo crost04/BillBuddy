@@ -16,40 +16,13 @@ import datetime as dt
 from dataclasses import dataclass, field
 from statistics import mean, median, pstdev
 
+from billbuddy.expenses.months import MONTH_WORDS
 from billbuddy.ml.categorizer.preprocessing import clean_description
 
 MIN_COUNT = 3
 MONTHLY_GAP_DAYS = (26, 35)
 MAX_GAP_STD_DAYS = 5
 MAX_AMOUNT_CV = 0.15
-
-MONTH_WORDS = {
-    "januar",
-    "februar",
-    "märz",
-    "maerz",
-    "april",
-    "mai",
-    "juni",
-    "juli",
-    "august",
-    "september",
-    "oktober",
-    "november",
-    "dezember",
-    "jan",
-    "feb",
-    "mär",
-    "apr",
-    "jun",
-    "jul",
-    "aug",
-    "sep",
-    "sept",
-    "okt",
-    "nov",
-    "dez",
-}
 
 
 def description_key(description: str) -> str:
