@@ -57,11 +57,7 @@ def create_payment(
 def list_payments(session: Session, group_id: int) -> list[Payment]:
     """Payments of a group, newest first."""
     get_group(session, group_id)
-    query = (
-        select(Payment)
-        .where(Payment.group_id == group_id)
-        .order_by(Payment.date.desc(), Payment.id.desc())
-    )
+    query = select(Payment).where(Payment.group_id == group_id).order_by(Payment.date.desc(), Payment.id.desc())
     return list(session.scalars(query))
 
 

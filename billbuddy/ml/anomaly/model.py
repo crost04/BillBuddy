@@ -67,7 +67,7 @@ def find_duplicates(entries: list[Entry]) -> list[tuple[Entry, Entry]]:
     ordered = sorted(entries, key=lambda e: (e.date, e.expense_id or 0))
     pairs = []
     for i, a in enumerate(ordered):
-        for b in ordered[i + 1:]:
+        for b in ordered[i + 1 :]:
             if (b.date - a.date).days > MAX_DUPLICATE_DAYS:
                 break
             if is_duplicate_pair(a, b):

@@ -10,7 +10,7 @@ import re
 from statistics import mean
 
 from billbuddy.db import PROJECT_ROOT
-from billbuddy.ml.receipt_ocr.parser import LINE_AMOUNT, clean_line, parse_receipt
+from billbuddy.ml.receipt_ocr.parser import clean_line, parse_receipt
 from billbuddy.ml.receipt_ocr.synthetic import generate_receipt, ocr_noise
 
 REPORT_PATH = PROJECT_ROOT / "docs" / "receipt-report.md"
@@ -63,16 +63,18 @@ def evaluate(level: float) -> dict:
         receipt = generate_receipt(rng, TODAY)
         text = ocr_noise(receipt.text, level, rng)
         parsed = parse_receipt(text, TODAY)
-        results.append({
-            "store": parsed.store == receipt.store,
-            "store_baseline": baseline_store_first_line(text) == receipt.store,
-            "date": parsed.date == receipt.date,
-            "total": parsed.total_cents == receipt.total_cents,
-            "total_baseline": baseline_total_largest(text) == receipt.total_cents,
-            "items_f1": items_f1(parsed.items, receipt.items),
-            "sum_matches": parsed.items_match_total,
-            "sum_matches_correct": parsed.items_match_total and parsed.total_cents == receipt.total_cents,
-        })
+        results.append(
+            {
+                "store": parsed.store == receipt.store,
+                "store_baseline": baseline_store_first_line(text) == receipt.store,
+                "date": parsed.date == receipt.date,
+                "total": parsed.total_cents == receipt.total_cents,
+                "total_baseline": baseline_total_largest(text) == receipt.total_cents,
+                "items_f1": items_f1(parsed.items, receipt.items),
+                "sum_matches": parsed.items_match_total,
+                "sum_matches_correct": parsed.items_match_total and parsed.total_cents == receipt.total_cents,
+            }
+        )
     return {key: mean(r[key] for r in results) for key in results[0]}
 
 
@@ -92,8 +94,8 @@ def main() -> None:
         "",
         "No real receipts are available yet (cold start). `synthetic.py` generates receipts in the layouts of "
         "German shop types (Rewe/Edeka/dm style, Lidl/Rossmann style, Aldi/Penny style, bakery) with quantity lines "
-        "(\"2 Stk x 0,59\"), deposit, discounts, cash payment with change, VAT lines and two date formats. "
-        "`ocr_noise` then simulates typical text-recognition mistakes: confused characters (0↔O, 1↔l, 5↔S, \",\"→\".\"), "
+        '("2 Stk x 0,59"), deposit, discounts, cash payment with change, VAT lines and two date formats. '
+        '`ocr_noise` then simulates typical text-recognition mistakes: confused characters (0↔O, 1↔l, 5↔S, ","→"."), '
         "missing or extra spaces and lost lines. Noise level = probability per character.",
         "",
         "Example (noise 5 %):",
@@ -107,8 +109,14 @@ def main() -> None:
         table(
             ["Noise", "Store", "Date", "Total", "Items (F1)", "Items add up to the total"],
             [
-                [percent(level), percent(s["store"]), percent(s["date"]), percent(s["total"]),
-                 percent(s["items_f1"]), percent(s["sum_matches"])]
+                [
+                    percent(level),
+                    percent(s["store"]),
+                    percent(s["date"]),
+                    percent(s["total"]),
+                    percent(s["items_f1"]),
+                    percent(s["sum_matches"]),
+                ]
                 for level, s in scores.items()
             ],
         ),
@@ -119,16 +127,21 @@ def main() -> None:
         "",
         "## 3. Iteration: what the first evaluation changed",
         "",
-        "The first parser version broke down with noise: OCR split \"SUMME\" into \"S UMME\" or turned it into "
-        "\"SUMMC\", so the total line was not found, and dates like \"28.1O.2O26\" were not repaired. Improvements: "
+        'The first parser version broke down with noise: OCR split "SUMME" into "S UMME" or turned it into '
+        '"SUMMC", so the total line was not found, and dates like "28.1O.2O26" were not repaired. Improvements: '
         "keywords are compared without spaces and with one wrong letter allowed; date-shaped text gets the same "
         "digit repair as amounts; shop names are compared with confusable characters unified.",
         "",
         table(
             ["Noise", "Total – first version", "Total – now", "Date – first version", "Date – now"],
             [
-                [percent(level), f"{FIRST_VERSION[level][0]:.1f} %", percent(scores[level]["total"]),
-                 f"{FIRST_VERSION[level][1]:.1f} %", percent(scores[level]["date"])]
+                [
+                    percent(level),
+                    f"{FIRST_VERSION[level][0]:.1f} %",
+                    percent(scores[level]["total"]),
+                    f"{FIRST_VERSION[level][1]:.1f} %",
+                    percent(scores[level]["date"]),
+                ]
                 for level in FIRST_VERSION
             ],
         ),
@@ -136,17 +149,27 @@ def main() -> None:
         "## 4. Comparison with naive approaches",
         "",
         table(
-            ["Noise", "Total: largest amount", "Total: keyword rules (chosen)", "Store: first line",
-             "Store: known shops (chosen)"],
             [
-                [percent(level), percent(s["total_baseline"]), percent(s["total"]),
-                 percent(s["store_baseline"]), percent(s["store"])]
+                "Noise",
+                "Total: largest amount",
+                "Total: keyword rules (chosen)",
+                "Store: first line",
+                "Store: known shops (chosen)",
+            ],
+            [
+                [
+                    percent(level),
+                    percent(s["total_baseline"]),
+                    percent(s["total"]),
+                    percent(s["store_baseline"]),
+                    percent(s["store"]),
+                ]
                 for level, s in scores.items()
             ],
         ),
         "",
-        "- \"Largest amount\" fails whenever the customer paid cash: the money given is larger than the total.",
-        "- \"First line\" fails for headers like \"REWE Markt GmbH\" or \"dm-drogerie markt\"; matching known shop "
+        '- "Largest amount" fails whenever the customer paid cash: the money given is larger than the total.',
+        '- "First line" fails for headers like "REWE Markt GmbH" or "dm-drogerie markt"; matching known shop '
         "names finds the shop also in noisy text.",
         "",
         "## 5. Built-in plausibility check",
@@ -154,9 +177,13 @@ def main() -> None:
         "If the items add up to the total, the scan is very likely complete. Share of receipts where this check "
         "passed **and** the total was right:",
         "",
-        table(["Noise", "Check passed", "Check passed and total right"],
-              [[percent(level), percent(s["sum_matches"]), percent(s["sum_matches_correct"])]
-               for level, s in scores.items()]),
+        table(
+            ["Noise", "Check passed", "Check passed and total right"],
+            [
+                [percent(level), percent(s["sum_matches"]), percent(s["sum_matches_correct"])]
+                for level, s in scores.items()
+            ],
+        ),
         "",
         "When the check passes, the total is practically always right – so the app can tell the user whether "
         "to double-check the scan.",

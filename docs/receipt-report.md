@@ -34,10 +34,10 @@ Datum: 28.10.2026 Uhrzeit: 20:10
 | Noise | Store | Date | Total | Items (F1) | Items add up to the total |
 |---|---|---|---|---|---|
 | 0.0 % | 100.0 % | 100.0 % | 100.0 % | 100.0 % | 100.0 % |
-| 1.0 % | 95.2 % | 98.2 % | 98.8 % | 99.7 % | 96.0 % |
-| 3.0 % | 91.5 % | 93.0 % | 95.8 % | 98.4 % | 81.8 % |
-| 5.0 % | 86.8 % | 86.8 % | 94.5 % | 97.5 % | 74.5 % |
-| 10.0 % | 77.8 % | 75.2 % | 87.8 % | 93.8 % | 50.7 % |
+| 1.0 % | 95.2 % | 98.2 % | 100.0 % | 99.7 % | 97.2 % |
+| 3.0 % | 91.5 % | 93.0 % | 97.2 % | 98.5 % | 83.2 % |
+| 5.0 % | 86.8 % | 86.8 % | 97.8 % | 97.6 % | 76.5 % |
+| 10.0 % | 77.8 % | 75.2 % | 91.5 % | 94.0 % | 53.0 % |
 
 Without noise the parser is almost perfect. With growing noise the store and the date suffer first: a single wrong character breaks a date, and a lost header line loses the store. The total holds up best because its keyword is matched tolerantly (see section 3).
 
@@ -47,20 +47,20 @@ The first parser version broke down with noise: OCR split "SUMME" into "S UMME" 
 
 | Noise | Total – first version | Total – now | Date – first version | Date – now |
 |---|---|---|---|---|
-| 1.0 % | 94.5 % | 98.8 % | 98.2 % | 98.2 % |
-| 3.0 % | 84.8 % | 95.8 % | 91.5 % | 93.0 % |
-| 5.0 % | 79.0 % | 94.5 % | 83.0 % | 86.8 % |
-| 10.0 % | 62.5 % | 87.8 % | 69.8 % | 75.2 % |
+| 1.0 % | 94.5 % | 100.0 % | 98.2 % | 98.2 % |
+| 3.0 % | 84.8 % | 97.2 % | 91.5 % | 93.0 % |
+| 5.0 % | 79.0 % | 97.8 % | 83.0 % | 86.8 % |
+| 10.0 % | 62.5 % | 91.5 % | 69.8 % | 75.2 % |
 
 ## 4. Comparison with naive approaches
 
 | Noise | Total: largest amount | Total: keyword rules (chosen) | Store: first line | Store: known shops (chosen) |
 |---|---|---|---|---|
 | 0.0 % | 28.7 % | 100.0 % | 50.0 % | 100.0 % |
-| 1.0 % | 30.2 % | 98.8 % | 46.5 % | 95.2 % |
-| 3.0 % | 31.5 % | 95.8 % | 47.0 % | 91.5 % |
-| 5.0 % | 35.0 % | 94.5 % | 40.8 % | 86.8 % |
-| 10.0 % | 38.0 % | 87.8 % | 35.0 % | 77.8 % |
+| 1.0 % | 30.2 % | 100.0 % | 46.5 % | 95.2 % |
+| 3.0 % | 31.5 % | 97.2 % | 47.0 % | 91.5 % |
+| 5.0 % | 35.0 % | 97.8 % | 40.8 % | 86.8 % |
+| 10.0 % | 38.0 % | 91.5 % | 35.0 % | 77.8 % |
 
 - "Largest amount" fails whenever the customer paid cash: the money given is larger than the total.
 - "First line" fails for headers like "REWE Markt GmbH" or "dm-drogerie markt"; matching known shop names finds the shop also in noisy text.
@@ -72,10 +72,10 @@ If the items add up to the total, the scan is very likely complete. Share of rec
 | Noise | Check passed | Check passed and total right |
 |---|---|---|
 | 0.0 % | 100.0 % | 100.0 % |
-| 1.0 % | 96.0 % | 96.0 % |
-| 3.0 % | 81.8 % | 81.8 % |
-| 5.0 % | 74.5 % | 74.5 % |
-| 10.0 % | 50.7 % | 50.7 % |
+| 1.0 % | 97.2 % | 97.2 % |
+| 3.0 % | 83.2 % | 83.2 % |
+| 5.0 % | 76.5 % | 76.5 % |
+| 10.0 % | 53.0 % | 53.0 % |
 
 When the check passes, the total is practically always right – so the app can tell the user whether to double-check the scan.
 

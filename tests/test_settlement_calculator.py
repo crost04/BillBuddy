@@ -88,8 +88,7 @@ def test_balances_always_add_up_to_zero(seed):
     rng = random.Random(seed)
     members = [ANNA, BEN, CEM, DIA]
     expenses = [
-        expense(rng.choice(members), rng.randint(1, 50_000), rng.sample(members, rng.randint(1, 4)))
-        for _ in range(30)
+        expense(rng.choice(members), rng.randint(1, 50_000), rng.sample(members, rng.randint(1, 4))) for _ in range(30)
     ]
     assert sum(compute_balances(members, expenses, []).values()) == 0
 
@@ -115,8 +114,7 @@ def test_transfers_settle_everything_with_at_most_n_minus_1(seed):
     rng = random.Random(seed)
     members = [ANNA, BEN, CEM, DIA]
     expenses = [
-        expense(rng.choice(members), rng.randint(1, 50_000), rng.sample(members, rng.randint(1, 4)))
-        for _ in range(30)
+        expense(rng.choice(members), rng.randint(1, 50_000), rng.sample(members, rng.randint(1, 4))) for _ in range(30)
     ]
     balances = compute_balances(members, expenses, [])
     transfers = minimal_transfers(balances)

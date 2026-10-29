@@ -83,9 +83,7 @@ def test_expense_for_a_subset_of_members(session, flat):
 
 def test_percent_split(session, flat):
     group, anna, ben, _ = flat
-    data = expense_input(
-        anna, [anna, ben], split_method=SplitMethod.PERCENT, percents={anna.id: 70, ben.id: 30}
-    )
+    data = expense_input(anna, [anna, ben], split_method=SplitMethod.PERCENT, percents={anna.id: 70, ben.id: 30})
     expense = service.create_expense(session, group.id, data)
     assert shares_of(expense) == {"Anna": 70, "Ben": 30}
 
@@ -184,9 +182,7 @@ def test_update_expense_replaces_values_and_shares(session, flat):
 def test_list_expenses_newest_first_and_by_date_range(session, flat):
     group, anna, ben, _ = flat
     for day in (1, 15, 31):
-        service.create_expense(
-            session, group.id, expense_input(anna, [anna, ben], date=dt.date(2026, 10, day))
-        )
+        service.create_expense(session, group.id, expense_input(anna, [anna, ben], date=dt.date(2026, 10, day)))
     service.create_expense(session, group.id, expense_input(anna, [anna], date=dt.date(2026, 11, 2)))
 
     all_dates = [e.date.day for e in service.list_expenses(session, group.id)]

@@ -53,7 +53,8 @@ def test_small_date_shifts_and_price_changes_are_allowed():
     days = [1, 3, 1, 2, 1, 4, 1]
     amounts = [8500, 8500, 8500, 8500, 8900, 8900, 8900]
     items = [
-        Item(None, dt.date(2026, m, d), "Stadtwerke Strom", a) for m, d, a in zip(range(4, 11), days, amounts)
+        Item(None, dt.date(2026, m, d), "Stadtwerke Strom", a)
+        for m, d, a in zip(range(4, 11), days, amounts, strict=True)
     ]
     assert len(find_recurring(items, TODAY)) == 1
 
@@ -66,7 +67,7 @@ def test_weekly_groceries_are_not_fixed_costs():
 
 def test_monthly_but_very_different_amounts_are_not_fixed_costs():
     amounts = [2000, 8000, 3500, 12000, 2500]
-    items = [Item(None, dt.date(2026, m, 15), "Amazon", a) for m, a in zip(range(6, 11), amounts)]
+    items = [Item(None, dt.date(2026, m, 15), "Amazon", a) for m, a in zip(range(6, 11), amounts, strict=True)]
     assert find_recurring(items, TODAY) == []
 
 

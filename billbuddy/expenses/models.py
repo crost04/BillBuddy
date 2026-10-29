@@ -36,18 +36,10 @@ class Group(Base):
     invite_code: Mapped[str] = mapped_column(String(32), unique=True, default=new_invite_code)
     created_at: Mapped[dt.datetime] = mapped_column(default=dt.datetime.now)
 
-    members: Mapped[list["Member"]] = relationship(
-        back_populates="group", cascade="all, delete-orphan"
-    )
-    expenses: Mapped[list["Expense"]] = relationship(
-        back_populates="group", cascade="all, delete-orphan"
-    )
-    payments: Mapped[list["Payment"]] = relationship(
-        back_populates="group", cascade="all, delete-orphan"
-    )
-    recurring_rules: Mapped[list["RecurringRule"]] = relationship(
-        back_populates="group", cascade="all, delete-orphan"
-    )
+    members: Mapped[list["Member"]] = relationship(back_populates="group", cascade="all, delete-orphan")
+    expenses: Mapped[list["Expense"]] = relationship(back_populates="group", cascade="all, delete-orphan")
+    payments: Mapped[list["Payment"]] = relationship(back_populates="group", cascade="all, delete-orphan")
+    recurring_rules: Mapped[list["RecurringRule"]] = relationship(back_populates="group", cascade="all, delete-orphan")
 
 
 class Member(Base):
@@ -101,9 +93,7 @@ class Expense(Base):
 
     group: Mapped[Group] = relationship(back_populates="expenses")
     payer: Mapped[Member] = relationship()
-    shares: Mapped[list["ExpenseShare"]] = relationship(
-        back_populates="expense", cascade="all, delete-orphan"
-    )
+    shares: Mapped[list["ExpenseShare"]] = relationship(back_populates="expense", cascade="all, delete-orphan")
 
     @property
     def amount(self) -> Decimal:
@@ -122,9 +112,7 @@ class ExpenseShare(Base):
     __tablename__ = "expense_shares"
     __table_args__ = (
         UniqueConstraint("expense_id", "member_id", name="one_share_per_member"),
-        CheckConstraint(
-            "percent IS NULL OR (percent > 0 AND percent <= 100)", name="percent_range"
-        ),
+        CheckConstraint("percent IS NULL OR (percent > 0 AND percent <= 100)", name="percent_range"),
     )
 
     id: Mapped[int] = mapped_column(primary_key=True)

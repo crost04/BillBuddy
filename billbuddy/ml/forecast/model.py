@@ -81,7 +81,7 @@ def _forecast(records, category, month, day, history, is_current, all_categories
         return result
 
     # What was spent after `day` in each history month
-    rests = [total - spent_until(selected, h, day) for h, total in zip(history, totals)]
+    rests = [total - spent_until(selected, h, day) for h, total in zip(history, totals, strict=True)]
     typical, spread = median(rests), pstdev(rests)
     result.forecast_cents = spent + round(typical)
     result.low_cents = spent + round(max(typical - spread, 0))

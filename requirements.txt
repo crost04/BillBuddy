@@ -16,4 +16,7 @@ scikit-learn>=1.5
 pytest>=8.0
 httpx>=0.27  # required by FastAPI's TestClient
 
-# OCR (receipt scan) will be added later, see docs/project-plan.md
+# The receipt scan needs no Python package: the text recognition (Tesseract.js) runs on the phone
+
+# Code quality (linter and formatter, see pyproject.toml)
+ruff>=0.6

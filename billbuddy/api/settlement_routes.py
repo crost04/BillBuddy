@@ -26,8 +26,7 @@ def get_settlement(group_id: int, user: CurrentUser, session: SessionDep):
     settlement = service.get_settlement(session, group_id)
     return SettlementOut(
         balances=[
-            BalanceOut(member_id=member_id, balance=cents / 100)
-            for member_id, cents in settlement.balances.items()
+            BalanceOut(member_id=member_id, balance=cents / 100) for member_id, cents in settlement.balances.items()
         ],
         transfers=[
             TransferOut(

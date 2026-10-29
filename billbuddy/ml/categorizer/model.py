@@ -36,18 +36,22 @@ def build_pipeline(use_amount: bool = False, c: float = 10.0) -> Pipeline:
     if use_amount:
         log_amount = Pipeline([("log", FunctionTransformer(np.log1p)), ("scale", StandardScaler())])
         features.append(("amount", log_amount, ["amount"]))
-    return Pipeline([
-        ("features", ColumnTransformer(features)),
-        # class_weight="balanced": rare categories (e.g. Travel) count as much as frequent ones
-        ("classifier", LogisticRegression(C=c, class_weight="balanced", max_iter=2000)),
-    ])
+    return Pipeline(
+        [
+            ("features", ColumnTransformer(features)),
+            # class_weight="balanced": rare categories (e.g. Travel) count as much as frequent ones
+            ("classifier", LogisticRegression(C=c, class_weight="balanced", max_iter=2000)),
+        ]
+    )
 
 
 def to_frame(descriptions, amounts) -> pd.DataFrame:
-    return pd.DataFrame({
-        "text": [clean_description(d) for d in descriptions],
-        "amount": [float(a) for a in amounts],
-    })
+    return pd.DataFrame(
+        {
+            "text": [clean_description(d) for d in descriptions],
+            "amount": [float(a) for a in amounts],
+        }
+    )
 
 
 @dataclass

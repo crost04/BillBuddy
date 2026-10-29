@@ -11,7 +11,6 @@ import csv
 import datetime as dt
 from statistics import mean, median, pstdev
 
-import numpy as np
 from sklearn.linear_model import LinearRegression
 
 from billbuddy.db import PROJECT_ROOT
@@ -62,7 +61,9 @@ def main() -> None:
 
     # --- Data understanding ---
     values = list(totals.values())
-    by_category = {c: [spent_until([r for r in records if r.category == c], m, 31) for m in complete] for c in categories}
+    by_category = {
+        c: [spent_until([r for r in records if r.category == c], m, 31) for m in complete] for c in categories
+    }
     profile = [mean(spent_until(records, m, d) / totals[m] for m in complete) for d in (1, *CHECK_DAYS)]
     seasonal = {}
     for m in complete:
@@ -90,7 +91,7 @@ def main() -> None:
         "",
         table(["Day 1", *[f"Day {d}" for d in CHECK_DAYS]], [[percent(p) for p in profile]]),
         "",
-        "A third is gone on the 1st (rent). Extrapolating \"spent so far / day × days\" therefore overshoots badly "
+        'A third is gone on the 1st (rent). Extrapolating "spent so far / day × days" therefore overshoots badly '
         "at the start of a month.",
         "",
         "Seasonality – mean total per calendar month:",
@@ -113,21 +114,26 @@ def main() -> None:
             for kind in [None, *categories]:
                 selected = records if kind is None else [r for r in records if r.category == kind]
                 hist_totals = [spent_until(selected, h, 31) for h in history]
-                rests = [t - spent_until(selected, h, day) for h, t in zip(history, hist_totals)]
+                rests = [t - spent_until(selected, h, day) for h, t in zip(history, hist_totals, strict=True)]
                 spent = spent_until(selected, month, day)
                 chosen = rows.get(kind)
-                snapshots.append({
-                    "month": month, "day": day, "kind": kind,
-                    "actual": spent_until(selected, month, 31),
-                    "spent": spent, "mean_rest": mean(rests),
-                    "chosen": chosen.forecast_cents if chosen else spent,
-                    "low": chosen.low_cents if chosen else spent,
-                    "high": chosen.high_cents if chosen else spent,
-                    "Extrapolation (spent / day × days)": spent / day * 30.4,
-                    "Mean of previous months": mean(hist_totals),
-                    "Last month": hist_totals[-1],
-                    "Spent + mean rest": spent + mean(rests),
-                })
+                snapshots.append(
+                    {
+                        "month": month,
+                        "day": day,
+                        "kind": kind,
+                        "actual": spent_until(selected, month, 31),
+                        "spent": spent,
+                        "mean_rest": mean(rests),
+                        "chosen": chosen.forecast_cents if chosen else spent,
+                        "low": chosen.low_cents if chosen else spent,
+                        "high": chosen.high_cents if chosen else spent,
+                        "Extrapolation (spent / day × days)": spent / day * 30.4,
+                        "Mean of previous months": mean(hist_totals),
+                        "Last month": hist_totals[-1],
+                        "Spent + mean rest": spent + mean(rests),
+                    }
+                )
 
     # Linear regression, trained only on earlier months (no look into the future)
     for s in snapshots:
@@ -176,7 +182,7 @@ def main() -> None:
         "- Extrapolation is by far the worst at the start of the month (rent on the 1st).",
         "- The mean of previous months ignores what already happened this month.",
         "- The linear regression has too few examples (one per month) and learns noise.",
-        "- \"Spent + rest\" uses both: what is known about this month and the typical rest. "
+        '- "Spent + rest" uses both: what is known about this month and the typical rest. '
         "The median is more robust than the mean against single unusual months (holidays, big purchases).",
     ]
 
@@ -193,7 +199,8 @@ def main() -> None:
         "The app shows a range of ± one standard deviation of the rest. Share of cases in which the real "
         "month total was inside the range:",
         "",
-        f"- Total: {percent(coverage(all_totals))} (average width {euros(mean(s['high'] - s['low'] for s in all_totals))})",
+        f"- Total: {percent(coverage(all_totals))} "
+        f"(average width {euros(mean(s['high'] - s['low'] for s in all_totals))})",
         f"- Per category: {percent(coverage(category_rows))}",
         "",
         "So the real result lands inside the range in roughly two out of three cases – which is what "

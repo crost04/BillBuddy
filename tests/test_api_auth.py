@@ -10,7 +10,9 @@ from tests.conftest import PASSWORD
 def ben_client(app, client):
     """A second browser, logged in as Ben (Anna's browser stays logged in too)."""
     with TestClient(app) as ben:
-        response = ben.post("/api/auth/register", json={"email": "ben@example.com", "name": "Ben", "password": PASSWORD})
+        response = ben.post(
+            "/api/auth/register", json={"email": "ben@example.com", "name": "Ben", "password": PASSWORD}
+        )
         assert response.status_code == 201
         yield ben
 

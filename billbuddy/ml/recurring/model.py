@@ -24,9 +24,31 @@ MAX_GAP_STD_DAYS = 5
 MAX_AMOUNT_CV = 0.15
 
 MONTH_WORDS = {
-    "januar", "februar", "märz", "maerz", "april", "mai", "juni", "juli", "august",
-    "september", "oktober", "november", "dezember",
-    "jan", "feb", "mär", "apr", "jun", "jul", "aug", "sep", "sept", "okt", "nov", "dez",
+    "januar",
+    "februar",
+    "märz",
+    "maerz",
+    "april",
+    "mai",
+    "juni",
+    "juli",
+    "august",
+    "september",
+    "oktober",
+    "november",
+    "dezember",
+    "jan",
+    "feb",
+    "mär",
+    "apr",
+    "jun",
+    "jul",
+    "aug",
+    "sep",
+    "sept",
+    "okt",
+    "nov",
+    "dez",
 }
 
 
@@ -81,7 +103,7 @@ def is_recurring(series: list[Item]) -> bool:
     """Apply the rules to the payments of one description (sorted by date)."""
     if len(series) < MIN_COUNT:
         return False
-    gaps = [(b.date - a.date).days for a, b in zip(series, series[1:])]
+    gaps = [(b.date - a.date).days for a, b in zip(series, series[1:], strict=False)]
     amounts = [i.amount_cents for i in series]
     low, high = MONTHLY_GAP_DAYS
     return (
@@ -92,7 +114,7 @@ def is_recurring(series: list[Item]) -> bool:
 
 
 def _describe(key: str, series: list[Item], today: dt.date) -> RecurringSeries:
-    gaps = [(b.date - a.date).days for a, b in zip(series, series[1:])]
+    gaps = [(b.date - a.date).days for a, b in zip(series, series[1:], strict=False)]
     interval = median(gaps)
     day = round(median(i.date.day for i in series))
     last = series[-1].date

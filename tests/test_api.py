@@ -122,9 +122,7 @@ def test_settlement_and_payments(client, group):
         {"member_id": anna["id"], "balance": 30.0},
         {"member_id": ben["id"], "balance": -30.0},
     ]
-    assert settlement["transfers"] == [
-        {"from_member_id": ben["id"], "to_member_id": anna["id"], "amount": 30.0}
-    ]
+    assert settlement["transfers"] == [{"from_member_id": ben["id"], "to_member_id": anna["id"], "amount": 30.0}]
 
     # Ben pays Anna back
     body = {"from_member_id": ben["id"], "to_member_id": anna["id"], "amount": 30, "date": "2026-10-30"}

@@ -31,18 +31,105 @@ DEMO_PASSWORD = "demo-password"
 
 # category: (expected purchases per month, median amount in €, spread, merchants)
 VARIABLE_COSTS = {
-    "Groceries": (12, 38.0, 0.5, ["Rewe", "Edeka", "Aldi Süd", "Aldi Nord", "Lidl", "Penny", "Netto", "Kaufland",
-                                  "Norma", "Tegut", "Globus", "Alnatura", "Denns Biomarkt", "Wochenmarkt", "Bäckerei", "Metzgerei"]),
-    "Household": (2, 18.0, 0.5, ["dm", "Rossmann", "Müller Drogerie", "Ikea", "Bauhaus", "Obi", "Hornbach", "Tedi", "Action"]),
-    "Restaurants": (4, 42.0, 0.5, ["Pizzeria", "Sushi Bar", "Döner", "Lieferando", "Wolt", "Uber Eats", "Café", "Burger King",
-                                   "McDonald's", "Subway", "Vapiano", "Biergarten", "Starbucks"]),
-    "Transport": (3, 55.0, 0.4, ["Aral", "Shell", "Esso", "Jet Tankstelle", "TotalEnergies", "DB Ticket", "Deutsche Bahn",
-                                 "Flixbus", "Uber", "Bolt", "Parkhaus", "Tier Scooter", "Share Now"]),
-    "Leisure": (2, 30.0, 0.6, ["Kino", "Cinemaxx", "Konzert", "Eventim", "Bowling", "Schwimmbad", "Museum", "Steam",
-                               "Playstation Store", "Kletterhalle"]),
-    "Shopping": (2, 50.0, 0.7, ["Amazon", "Zalando", "H&M", "Zara", "MediaMarkt", "Saturn", "Thalia", "Otto", "About You", "Decathlon"]),
+    "Groceries": (
+        12,
+        38.0,
+        0.5,
+        [
+            "Rewe",
+            "Edeka",
+            "Aldi Süd",
+            "Aldi Nord",
+            "Lidl",
+            "Penny",
+            "Netto",
+            "Kaufland",
+            "Norma",
+            "Tegut",
+            "Globus",
+            "Alnatura",
+            "Denns Biomarkt",
+            "Wochenmarkt",
+            "Bäckerei",
+            "Metzgerei",
+        ],
+    ),
+    "Household": (
+        2,
+        18.0,
+        0.5,
+        ["dm", "Rossmann", "Müller Drogerie", "Ikea", "Bauhaus", "Obi", "Hornbach", "Tedi", "Action"],
+    ),
+    "Restaurants": (
+        4,
+        42.0,
+        0.5,
+        [
+            "Pizzeria",
+            "Sushi Bar",
+            "Döner",
+            "Lieferando",
+            "Wolt",
+            "Uber Eats",
+            "Café",
+            "Burger King",
+            "McDonald's",
+            "Subway",
+            "Vapiano",
+            "Biergarten",
+            "Starbucks",
+        ],
+    ),
+    "Transport": (
+        3,
+        55.0,
+        0.4,
+        [
+            "Aral",
+            "Shell",
+            "Esso",
+            "Jet Tankstelle",
+            "TotalEnergies",
+            "DB Ticket",
+            "Deutsche Bahn",
+            "Flixbus",
+            "Uber",
+            "Bolt",
+            "Parkhaus",
+            "Tier Scooter",
+            "Share Now",
+        ],
+    ),
+    "Leisure": (
+        2,
+        30.0,
+        0.6,
+        [
+            "Kino",
+            "Cinemaxx",
+            "Konzert",
+            "Eventim",
+            "Bowling",
+            "Schwimmbad",
+            "Museum",
+            "Steam",
+            "Playstation Store",
+            "Kletterhalle",
+        ],
+    ),
+    "Shopping": (
+        2,
+        50.0,
+        0.7,
+        ["Amazon", "Zalando", "H&M", "Zara", "MediaMarkt", "Saturn", "Thalia", "Otto", "About You", "Decathlon"],
+    ),
     "Health": (1, 20.0, 0.6, ["Apotheke", "DocMorris", "Optiker", "Fielmann", "Zahnarzt", "Physiotherapie"]),
-    "Travel": (0.3, 250.0, 0.6, ["Booking.com", "Airbnb", "Lufthansa", "Ryanair", "Eurowings", "Hotel", "Ferienwohnung", "TUI"]),
+    "Travel": (
+        0.3,
+        250.0,
+        0.6,
+        ["Booking.com", "Airbnb", "Lufthansa", "Ryanair", "Eurowings", "Hotel", "Ferienwohnung", "TUI"],
+    ),
     "Other": (0.6, 25.0, 0.8, ["Geschenk", "Post", "DHL", "Friseur", "Spende", "Blumen"]),
 }
 
@@ -71,8 +158,20 @@ SEASONAL_FACTORS = {
 # More eating out and going out on Fridays and Saturdays
 WEEKEND_FACTORS = {"Restaurants": 1.8, "Leisure": 1.8}
 
-GERMAN_MONTHS = ["Januar", "Februar", "März", "April", "Mai", "Juni", "Juli",
-                 "August", "September", "Oktober", "November", "Dezember"]
+GERMAN_MONTHS = [
+    "Januar",
+    "Februar",
+    "März",
+    "April",
+    "Mai",
+    "Juni",
+    "Juli",
+    "August",
+    "September",
+    "Oktober",
+    "November",
+    "Dezember",
+]
 CITIES = ["Berlin", "Hamburg", "München", "Köln", "Nürnberg"]
 
 DUPLICATE_RATE = 0.02
@@ -145,7 +244,9 @@ def _variable_costs_on(day: dt.date, members, rng: random.Random) -> list[Sample
         merchant = rng.choice(merchants)
         description = _vary_description(merchant, amount_cents, rng)
         result.append(
-            SampleExpense(day, description, amount_cents, category, rng.choice(members), is_fixed=False, merchant=merchant)
+            SampleExpense(
+                day, description, amount_cents, category, rng.choice(members), is_fixed=False, merchant=merchant
+            )
         )
     return result
 

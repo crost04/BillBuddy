@@ -99,7 +99,10 @@ def test_anomalies_of_the_month(client, group):
     typo = add(client, group, "Edeka", 345, "2026-10-25", "Groceries")
 
     anomalies = client.get(f"/api/groups/{group['id']}/anomalies", params={"month": "2026-10"}).json()
-    assert [(a["kind"], a["expense"]["id"]) for a in anomalies] == [("outlier", typo["id"]), ("duplicate", second["id"])]
+    assert [(a["kind"], a["expense"]["id"]) for a in anomalies] == [
+        ("outlier", typo["id"]),
+        ("duplicate", second["id"]),
+    ]
     assert anomalies[1]["other"]["id"] == first["id"]
     assert anomalies[0]["ratio"] > 8
 

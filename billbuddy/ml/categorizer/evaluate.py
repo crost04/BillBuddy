@@ -85,18 +85,23 @@ def main() -> None:
         "",
         "## 1. Data understanding",
         "",
-        f"- {len(df)} expenses (without duplicates), {df.merchant.nunique()} different shops, "
-        f"{y.nunique()} categories",
+        f"- {len(df)} expenses (without duplicates), {df.merchant.nunique()} different shops, {y.nunique()} categories",
         f"- Description length: median {words.median():.0f} word(s), max {words.max()}",
-        f"- {percent(with_digits)} of the descriptions contain digits (amounts like \"34,50\"), "
+        f'- {percent(with_digits)} of the descriptions contain digits (amounts like "34,50"), '
         f"{percent(capitals_only)} are written in capitals only → cleaning needed",
         f"- Imbalanced classes: the largest category has {counts.max()} rows, the smallest {counts.min()}",
         "",
         table(
             ["Category", "Rows", "Share", "Median amount", "Min", "Max"],
             [
-                [cat, n, percent(n / len(df)), f"{df.amount[y == cat].median():.2f} €",
-                 f"{df.amount[y == cat].min():.2f} €", f"{df.amount[y == cat].max():.2f} €"]
+                [
+                    cat,
+                    n,
+                    percent(n / len(df)),
+                    f"{df.amount[y == cat].median():.2f} €",
+                    f"{df.amount[y == cat].min():.2f} €",
+                    f"{df.amount[y == cat].max():.2f} €",
+                ]
                 for cat, n in counts.items()
             ],
         ),
@@ -106,11 +111,13 @@ def main() -> None:
     rows = []
     for name, model in candidates().items():
         scores = cross_validate(model, X, y, cv=stratified, scoring=["accuracy", "f1_macro"])
-        rows.append([
-            name,
-            f"{percent(scores['test_accuracy'].mean())} ± {percent(scores['test_accuracy'].std())}",
-            f"{percent(scores['test_f1_macro'].mean())} ± {percent(scores['test_f1_macro'].std())}",
-        ])
+        rows.append(
+            [
+                name,
+                f"{percent(scores['test_accuracy'].mean())} ± {percent(scores['test_accuracy'].std())}",
+                f"{percent(scores['test_f1_macro'].mean())} ± {percent(scores['test_f1_macro'].std())}",
+            ]
+        )
     report += [
         "",
         "## 2. Model comparison",
@@ -140,14 +147,21 @@ def main() -> None:
         table(
             ["Model", "Accuracy", "Macro F1"],
             [
-                ["Text only (chosen)", percent(unseen["test_accuracy"].mean()), percent(unseen["test_f1_macro"].mean())],
-                ["Text + amount", percent(unseen_amount["test_accuracy"].mean()),
-                 percent(unseen_amount["test_f1_macro"].mean())],
+                [
+                    "Text only (chosen)",
+                    percent(unseen["test_accuracy"].mean()),
+                    percent(unseen["test_f1_macro"].mean()),
+                ],
+                [
+                    "Text + amount",
+                    percent(unseen_amount["test_accuracy"].mean()),
+                    percent(unseen_amount["test_f1_macro"].mean()),
+                ],
             ],
         ),
         "",
-        "Unknown shops are much harder: the model can only use similar spellings (\"Kletterwald\" ~ "
-        "\"Kletterhalle\"). The amount does not help here either. This is why learning from the user's own "
+        'Unknown shops are much harder: the model can only use similar spellings ("Kletterwald" ~ '
+        '"Kletterhalle"). The amount does not help here either. This is why learning from the user\'s own '
         "categories matters, and why the app makes no suggestion when it is unsure.",
     ]
 
@@ -156,12 +170,7 @@ def main() -> None:
     classes = np.array(sorted(y.unique()))
     predicted = classes[probabilities.argmax(axis=1)]
     per_class = classification_report(y, predicted, output_dict=True, zero_division=0)
-    confusions = (
-        pd.DataFrame({"true": y, "predicted": predicted})
-        .query("true != predicted")
-        .value_counts()
-        .head(8)
-    )
+    confusions = pd.DataFrame({"true": y, "predicted": predicted}).query("true != predicted").value_counts().head(8)
     report += [
         "",
         "## 4. Results per category (chosen model)",
@@ -169,8 +178,13 @@ def main() -> None:
         table(
             ["Category", "Precision", "Recall", "F1", "Rows"],
             [
-                [cat, percent(per_class[cat]["precision"]), percent(per_class[cat]["recall"]),
-                 percent(per_class[cat]["f1-score"]), int(per_class[cat]["support"])]
+                [
+                    cat,
+                    percent(per_class[cat]["precision"]),
+                    percent(per_class[cat]["recall"]),
+                    percent(per_class[cat]["f1-score"]),
+                    int(per_class[cat]["support"]),
+                ]
                 for cat in counts.index
             ],
         ),
@@ -209,8 +223,13 @@ def main() -> None:
         "means fewer but more reliable suggestions. Known shops: as in section 2; unseen shops: as in section 3.",
         "",
         table(
-            ["Threshold", "Known shops: with suggestion", "Known shops: correct",
-             "Unseen shops: with suggestion", "Unseen shops: correct"],
+            [
+                "Threshold",
+                "Known shops: with suggestion",
+                "Known shops: correct",
+                "Unseen shops: with suggestion",
+                "Unseen shops: correct",
+            ],
             rows,
         ),
         "",

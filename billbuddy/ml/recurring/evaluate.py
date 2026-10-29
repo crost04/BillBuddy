@@ -20,7 +20,13 @@ REPORT_PATH = PROJECT_ROOT / "docs" / "recurring-report.md"
 def load() -> list[Item]:
     with SAMPLE_CSV.open(encoding="utf-8") as file:
         return [
-            Item(None, dt.date.fromisoformat(r["date"]), r["description"], int(r["amount_cents"]), r["is_fixed"] == "True")
+            Item(
+                None,
+                dt.date.fromisoformat(r["date"]),
+                r["description"],
+                int(r["amount_cents"]),
+                r["is_fixed"] == "True",
+            )
             for r in csv.DictReader(file)
         ]
 
@@ -33,7 +39,10 @@ def realistic(items: list[Item]) -> list[Item]:
         if item.is_fixed:
             shift = {5: 2, 6: 1}.get(item.date.weekday(), 0)
             amount = item.amount_cents
-            if item.date >= dt.date(2026, 1, 1) and description_key(item.description) in {"stadtwerke strom", "netflix"}:
+            if item.date >= dt.date(2026, 1, 1) and description_key(item.description) in {
+                "stadtwerke strom",
+                "netflix",
+            }:
                 amount = round(amount * 1.08)
             item = dataclasses.replace(item, date=item.date + dt.timedelta(days=shift), amount_cents=amount)
         result.append(item)
@@ -51,8 +60,14 @@ def series_by_key(items: list[Item]) -> dict[str, list[Item]]:
     return groups
 
 
+def amount_variation(series) -> float:
+    """Coefficient of variation of the amounts (standard deviation / mean)."""
+    amounts = [i.amount_cents for i in series]
+    return pstdev(amounts) / mean(amounts)
+
+
 def gaps(series):
-    return [(b.date - a.date).days for a, b in zip(series, series[1:])]
+    return [(b.date - a.date).days for a, b in zip(series, series[1:], strict=False)]
 
 
 RULES = {
@@ -111,18 +126,21 @@ def main() -> None:
         "## 1. Data understanding",
         "",
         f"- {len(items)} expenses → {len(groups)} different descriptions after cleaning "
-        f"(\"Miete Oktober\" and \"MIETE November\" become \"miete\").",
+        f'("Miete Oktober" and "MIETE November" become "miete").',
         f"- {len(fixed)} of them are fixed costs, {len(variable)} are variable; "
-        f"{len(frequent_variable)} variable descriptions also appear at least 3 times (e.g. \"rewe\").",
+        f'{len(frequent_variable)} variable descriptions also appear at least 3 times (e.g. "rewe").',
         "",
         "What separates them (median over the descriptions with at least 3 expenses):",
         "",
         table(
             ["", "Median gap (days)", "Std of the gaps (days)", "Coefficient of variation of the amount"],
             [
-                [name, f"{median(median(gaps(s)) for s in g.values()):.0f}",
-                 f"{median(pstdev(gaps(s)) for s in g.values()):.1f}",
-                 f"{median(pstdev([i.amount_cents for i in s]) / mean([i.amount_cents for i in s]) for s in g.values()):.2f}"]
+                [
+                    name,
+                    f"{median(median(gaps(s)) for s in g.values()):.0f}",
+                    f"{median(pstdev(gaps(s)) for s in g.values()):.1f}",
+                    f"{median(amount_variation(s) for s in g.values()):.2f}",
+                ]
                 for name, g in [("Fixed costs", fixed), ("Variable, frequent", frequent_variable)]
             ],
         ),
@@ -137,7 +155,7 @@ def main() -> None:
         comparison(groups),
         "",
         "- Counting alone flags every shop that is visited often.",
-        "- The monthly gap removes weekly shopping, the regularity removes shops visited \"about monthly\".",
+        '- The monthly gap removes weekly shopping, the regularity removes shops visited "about monthly".',
         "- The amount rule changes nothing on the sample data (already 100 %). It is kept for real cases the "
         "generator does not produce, e.g. a monthly online order with very different amounts (covered by a unit test).",
         "- 100 % is optimistic: the sample data is tidier than real data. The real test is in daily use.",

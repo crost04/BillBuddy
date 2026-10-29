@@ -122,7 +122,7 @@ sample data it is off by 9.6 % on average (simple extrapolation: 69.5 %). Detail
 image never leaves the device), the server parses the recognized text into store, date, total and items
 and suggests a category. Items can be assigned to single people; the app turns that into the split.
 The phone tries several reading settings and keeps the most plausible result (do the items add up to the
-total?). With simulated OCR noise (5 %) the parser finds the total in 94.5 % of the receipts; on
+total?). With simulated OCR noise (5 %) the parser finds the total in 97.8 % of the receipts; on
 simulated phone photos the whole chain found it in 5 of 6. [Evaluation report](docs/receipt-report.md)
 
 ## How settlement works

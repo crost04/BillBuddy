@@ -56,8 +56,15 @@ def test_add_month(date, day, expected):
 def test_rule_is_a_copy_of_the_expense(session, home):
     group, anna, ben = home
     rent = add(
-        session, group, anna, "Miete Oktober", 95000, dt.date(2026, 10, 1),
-        category="Rent", split_method=SplitMethod.PERCENT, percents={anna.id: 60, ben.id: 40},
+        session,
+        group,
+        anna,
+        "Miete Oktober",
+        95000,
+        dt.date(2026, 10, 1),
+        category="Rent",
+        split_method=SplitMethod.PERCENT,
+        percents={anna.id: 60, ben.id: 40},
     )
 
     rule = recurring_rules.create_from_expense(session, group.id, rent.id)

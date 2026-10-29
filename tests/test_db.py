@@ -53,10 +53,13 @@ def test_migrations_keep_existing_data():
             text("INSERT INTO groups (name, invite_code, created_at) VALUES ('Home', 'abc', '2026-10-29')")
         )
         connection.execute(text("INSERT INTO members (group_id, name) VALUES (1, 'Anna')"))
-        connection.execute(text(
-            "INSERT INTO expenses (group_id, payer_id, amount_cents, date, description, is_fixed, split_method, created_at) "
-            "VALUES (1, 1, 3450, '2026-10-29', 'Rewe', 0, 'EQUAL', '2026-10-29')"
-        ))
+        connection.execute(
+            text(
+                "INSERT INTO expenses "
+                "(group_id, payer_id, amount_cents, date, description, is_fixed, split_method, created_at) "
+                "VALUES (1, 1, 3450, '2026-10-29', 'Rewe', 0, 'EQUAL', '2026-10-29')"
+            )
+        )
 
     init_db(engine)
 

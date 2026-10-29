@@ -32,9 +32,32 @@ QUANTITY = re.compile(r"^\s*\d+([.,]\d+)?\s*(x|stk|st\b|kg)|\bx\s*\d+[.,]\d{2}\b
 TOTAL_WORDS = ["zu zahlen", "summe", "gesamtbetrag", "gesamt", "endbetrag", "total", "zahlbetrag", "betrag"]
 # Lines below the items that are no items
 NOT_ITEM_WORDS = [
-    "summe", "gesamt", "zu zahlen", "total", "betrag", "mwst", "ust", "netto", "brutto", "steuer",
-    "gegeben", "rückgeld", "rueckgeld", "wechselgeld", "bar", "ec-cash", "girocard", "kartenzahlung",
-    "visa", "mastercard", "zahlung", "datum", "uhrzeit", "kasse", "bon-nr", "beleg",
+    "summe",
+    "gesamt",
+    "zu zahlen",
+    "total",
+    "betrag",
+    "mwst",
+    "ust",
+    "netto",
+    "brutto",
+    "steuer",
+    "gegeben",
+    "rückgeld",
+    "rueckgeld",
+    "wechselgeld",
+    "bar",
+    "ec-cash",
+    "girocard",
+    "kartenzahlung",
+    "visa",
+    "mastercard",
+    "zahlung",
+    "datum",
+    "uhrzeit",
+    "kasse",
+    "bon-nr",
+    "beleg",
 ]
 
 KNOWN_STORES = sorted(
@@ -44,9 +67,32 @@ KNOWN_STORES = sorted(
 )
 # Kinds of shops, not brands: "BÄCKEREI MÜLLER" should stay "Bäckerei Müller"
 GENERIC_SHOPS = {
-    "Bäckerei", "Metzgerei", "Wochenmarkt", "Pizzeria", "Café", "Döner", "Sushi Bar", "Biergarten", "Kino",
-    "Konzert", "Bowling", "Schwimmbad", "Museum", "Kletterhalle", "Apotheke", "Optiker", "Zahnarzt",
-    "Physiotherapie", "Hotel", "Ferienwohnung", "Geschenk", "Post", "Friseur", "Spende", "Blumen", "Parkhaus",
+    "Bäckerei",
+    "Metzgerei",
+    "Wochenmarkt",
+    "Pizzeria",
+    "Café",
+    "Döner",
+    "Sushi Bar",
+    "Biergarten",
+    "Kino",
+    "Konzert",
+    "Bowling",
+    "Schwimmbad",
+    "Museum",
+    "Kletterhalle",
+    "Apotheke",
+    "Optiker",
+    "Zahnarzt",
+    "Physiotherapie",
+    "Hotel",
+    "Ferienwohnung",
+    "Geschenk",
+    "Post",
+    "Friseur",
+    "Spende",
+    "Blumen",
+    "Parkhaus",
 }
 
 
@@ -87,6 +133,7 @@ def parse_receipt(text: str, today: dt.date) -> Receipt:
 
 def clean_line(line: str) -> str:
     """Repair typical OCR mistakes in numbers and collapse spaces."""
+
     # Letters that OCR confuses with digits, but only inside number-like tokens ("1,2O" -> "1,20")
     def fix_token(match: re.Match) -> str:
         token = match.group(0)
@@ -229,7 +276,7 @@ def _sounds_like(line: str, keyword: str) -> bool:
     if len(target) < 5:
         return False
     size = len(target)
-    windows = {letters[i:i + n] for n in (size - 1, size, size + 1) for i in range(len(letters) - n + 1)}
+    windows = {letters[i : i + n] for n in (size - 1, size, size + 1) for i in range(len(letters) - n + 1)}
     return any(_within_one_edit(window, target) for window in windows)
 
 
@@ -237,9 +284,9 @@ def _within_one_edit(a: str, b: str) -> bool:
     if abs(len(a) - len(b)) > 1:
         return False
     if len(a) == len(b):
-        return sum(x != y for x, y in zip(a, b)) <= 1
+        return sum(x != y for x, y in zip(a, b, strict=True)) <= 1
     short, long = sorted((a, b), key=len)
-    return any(long[:i] + long[i + 1:] == short for i in range(len(long)))
+    return any(long[:i] + long[i + 1 :] == short for i in range(len(long)))
 
 
 def _amount_at_end(line: str) -> int | None:

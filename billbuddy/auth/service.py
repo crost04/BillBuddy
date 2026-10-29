@@ -66,9 +66,7 @@ def user_for_token(session: Session, token: str | None) -> User:
         raise AuthError("Not logged in")
     # joinedload: session and user in one query (this runs for every request)
     query = (
-        select(AuthSession)
-        .options(joinedload(AuthSession.user))
-        .where(AuthSession.token_hash == _hash_token(token))
+        select(AuthSession).options(joinedload(AuthSession.user)).where(AuthSession.token_hash == _hash_token(token))
     )
     auth_session = session.scalar(query)
     if auth_session is None or auth_session.expires_at < dt.datetime.now():

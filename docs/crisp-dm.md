@@ -269,11 +269,12 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
   the total) is shared; the result becomes a percentage split, exact to the cent.
 
 ### Evaluation
-- Without noise everything is right; at 5 % noise: total 94.5 %, items F1 97.5 %, store 86.8 %,
+- Without noise everything is right; at 5 % noise: total 97.8 %, items F1 97.6 %, store 86.8 %,
   date 86.8 %.
 - **Iteration:** the first parser version found the total in only 79.0 % of the receipts at 5 % noise,
   because OCR split "SUMME" into "S UMME". Tolerant keyword matching (spaces ignored, one wrong letter
-  allowed) and digit repair in dates raised it to 94.5 %.
+  allowed) and digit repair in dates raised it to 94.5 %; taking the total from the payment line when
+  the total line is lost (card payment = total, cash = given minus change) raised it to 97.8 %.
 - Naive approaches are much worse: "largest amount = total" 29–38 % (fails with cash payments),
   "first line = store" 35–50 %.
 - When the plausibility check passes, the total was right in every case – so the app can say

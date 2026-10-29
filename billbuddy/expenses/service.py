@@ -70,9 +70,7 @@ def delete_group(session: Session, group_id: int) -> None:
     session.commit()
 
 
-def add_member(
-    session: Session, group_id: int, name: str, monthly_income_cents: int | None = None
-) -> Member:
+def add_member(session: Session, group_id: int, name: str, monthly_income_cents: int | None = None) -> Member:
     group = get_group(session, group_id)
     if any(m.name == name for m in group.members):
         raise ValidationError(f"There is already a member called {name!r}")
@@ -82,9 +80,7 @@ def add_member(
     return member
 
 
-def update_member(
-    session: Session, member_id: int, name: str, monthly_income_cents: int | None
-) -> Member:
+def update_member(session: Session, member_id: int, name: str, monthly_income_cents: int | None) -> Member:
     member = _get(session, Member, member_id)
     if any(m.name == name and m.id != member_id for m in member.group.members):
         raise ValidationError(f"There is already a member called {name!r}")

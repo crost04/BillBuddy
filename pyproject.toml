@@ -1,0 +1,18 @@
+# Settings for the code-quality tool ruff (linter and formatter).
+# Run locally: ruff check .   and   ruff format .
+[tool.ruff]
+line-length = 120
+target-version = "py311"
+extend-exclude = ["migrations/versions"]
+
+[tool.ruff.lint]
+# E/W: style errors, F: real bugs (unused imports, undefined names), I: sorted imports,
+# B: likely bugs (bugbear), UP: modern Python syntax
+select = ["E", "W", "F", "I", "B", "UP"]
+# UP042 suggests enum.StrEnum for SplitMethod; that would change str(SplitMethod.EQUAL), so we keep str + Enum
+ignore = ["UP042"]
+
+[tool.ruff.lint.per-file-ignores]
+# The sample data tables are easier to read with long lines
+"billbuddy/data/generator.py" = ["E501"]
+"billbuddy/ml/receipt_ocr/synthetic.py" = ["E501"]

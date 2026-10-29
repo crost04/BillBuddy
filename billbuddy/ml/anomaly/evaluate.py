@@ -90,7 +90,7 @@ def flag_isolation_forest(amounts):
     logs = np.log(np.array(amounts, dtype=float)).reshape(-1, 1)
     labels = IsolationForest(contamination="auto", random_state=SEED).fit_predict(logs)
     center = median(amounts)
-    return [label == -1 and a > center for label, a in zip(labels, amounts)]  # only high amounts
+    return [label == -1 and a > center for label, a in zip(labels, amounts, strict=True)]  # only high amounts
 
 
 def flag_robust_z(amounts, threshold=3.5):
@@ -122,7 +122,7 @@ OUTLIER_METHODS = {
 def evaluate_outliers(rows: list[Row], method) -> list:
     tp = fp = fn = 0
     for group in by_category(rows).values():
-        for r, flagged in zip(group, method(group)):
+        for r, flagged in zip(group, method(group), strict=True):
             tp += flagged and r.is_outlier
             fp += flagged and not r.is_outlier
             fn += r.is_outlier and not flagged
@@ -138,9 +138,17 @@ def realistic_duplicates(rows: list[Row]) -> list[Row]:
     result = []
     for r in rows:
         if r.is_duplicate:
-            text = rng.choice([r.entry.description.upper(), r.entry.description.lower(),
-                               f"{r.entry.description} Kartenzahlung", r.entry.description])
-            entry = dataclasses.replace(r.entry, description=text, date=r.entry.date + dt.timedelta(days=rng.choice([0, 1])))
+            text = rng.choice(
+                [
+                    r.entry.description.upper(),
+                    r.entry.description.lower(),
+                    f"{r.entry.description} Kartenzahlung",
+                    r.entry.description,
+                ]
+            )
+            entry = dataclasses.replace(
+                r.entry, description=text, date=r.entry.date + dt.timedelta(days=rng.choice([0, 1]))
+            )
             r = dataclasses.replace(r, entry=entry)
         result.append(r)
     return result
@@ -161,7 +169,7 @@ def evaluate_duplicates(rows: list[Row], same) -> list:
     ordered = sorted(rows, key=lambda r: r.entry.date)
     found_pairs = []
     for i, a in enumerate(ordered):
-        for b in ordered[i + 1:]:
+        for b in ordered[i + 1 :]:
             if (b.entry.date - a.entry.date).days > 1:
                 break
             if same(a.entry, b.entry):
@@ -209,7 +217,10 @@ def main() -> None:
         "Each category is checked separately (a 300 € grocery bill is unusual, a 300 € hotel is not); "
         f"categories with fewer than {model.MIN_HISTORY} expenses are skipped.",
         "",
-        table(headers, [[name, *evaluate_outliers(without_duplicates, method)] for name, method in OUTLIER_METHODS.items()]),
+        table(
+            headers,
+            [[name, *evaluate_outliers(without_duplicates, method)] for name, method in OUTLIER_METHODS.items()],
+        ),
         "",
         "- Mean and standard deviation are pulled up by the outliers themselves (masking), so they miss some "
         "and still raise false alarms.",
@@ -230,8 +241,12 @@ def main() -> None:
     original = model.IQR_FACTOR
     for factor in (1.0, 1.5, 2.0, 3.0):
         model.IQR_FACTOR = factor
-        rows_for_threshold.append([f"{factor}" + (" (used)" if factor == original else ""),
-                                   *evaluate_outliers(without_duplicates, flag_chosen)])
+        rows_for_threshold.append(
+            [
+                f"{factor}" + (" (used)" if factor == original else ""),
+                *evaluate_outliers(without_duplicates, flag_chosen),
+            ]
+        )
     model.IQR_FACTOR = original
     report += [
         table(["Factor k in Q3 + k · IQR", *headers[1:]], rows_for_threshold),
@@ -242,7 +257,7 @@ def main() -> None:
         "## 4. Duplicates – method comparison",
         "",
         "Evaluated per pair. Left: the duplicates exactly as generated (identical copies). Right: more "
-        "realistic – the second person writes the purchase differently (\"REWE\", \"rewe Kartenzahlung\") "
+        'realistic – the second person writes the purchase differently ("REWE", "rewe Kartenzahlung") '
         "and maybe one day later.",
         "",
         "Identical copies:",
@@ -251,8 +266,13 @@ def main() -> None:
         "",
         "Realistic duplicates:",
         "",
-        table(headers, [[name, *evaluate_duplicates(realistic_duplicates(rows), same)]
-                        for name, same in DUPLICATE_METHODS.items()]),
+        table(
+            headers,
+            [
+                [name, *evaluate_duplicates(realistic_duplicates(rows), same)]
+                for name, same in DUPLICATE_METHODS.items()
+            ],
+        ),
         "",
         "- An exact comparison misses duplicates as soon as the spelling or the date differs.",
         "- Ignoring the description works just as well here – but only because the generated amounts have random "
