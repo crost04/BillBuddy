@@ -137,24 +137,91 @@ Full numbers: [forecast-report.md](forecast-report.md) (regenerate with
   full year of data exists.
 
 ## 3. Recurring-cost detection (`ml/recurring`)
-| Phase | What we did / decided |
-|-------|-----------------------|
-| Business Understanding | _TBD_ |
-| Data Understanding | _TBD_ |
-| Data Preparation | _TBD_ |
-| Modeling | _TBD_ |
-| Evaluation | _TBD_ |
-| Deployment | _TBD_ |
+Full numbers: [recurring-report.md](recurring-report.md) (regenerate with
+`python -m billbuddy.ml.recurring.evaluate`).
+
+### Business Understanding
+- **Problem:** people forget to mark fixed costs, and they lose track of subscriptions.
+- **Goal:** recognize expenses that come back every month, suggest marking them as fixed costs and
+  show when the next payment is due.
+- **Success criteria:** high precision (a false suggestion annoys), all fixed costs found after a few
+  months.
+
+### Data Understanding
+- 940 sample expenses → 191 different descriptions after cleaning; 10 fixed costs.
+- 71 variable descriptions also appear at least 3 times (e.g. "rewe") – counting alone is not enough.
+- Fixed costs: gap ~31 days with almost no variation (std 0.9 days) and a constant amount;
+  frequent variable expenses: irregular gaps (std 64 days) and changing amounts (CV 0.47).
+
+### Data Preparation
+- Descriptions cleaned like for the categorizer, plus month names removed
+  ("Miete Oktober" = "MIETE November" = "miete"), so every payment of a series gets the same key.
+- Per key: sorted dates → gaps in days; amounts → coefficient of variation.
+
+### Modeling
+- Statistical rules instead of a trained model – the data separates clearly, and rules are easy to
+  explain and need no training data: at least 3 times, median gap 26–35 days, gap standard deviation
+  ≤ 5 days, amount variation ≤ 15 %.
+- A series counts as cancelled if more than one payment is missing.
+
+### Evaluation
+- Ablation (adding one rule at a time): counting alone 12 % precision; + monthly gap 56 %;
+  + regular gaps **100 % precision and recall**.
+- The amount rule changes nothing on the sample data; it is kept for real cases the generator does not
+  produce (a monthly online order with very different amounts – covered by a unit test).
+- Robust against messier data: weekend shifts and price increases (+8 %) change nothing.
+- A fixed cost is recognized after 3 payments, i.e. in the third month.
+- 100 % is optimistic because the sample data is tidy; the real test is daily use.
+
+### Deployment
+- The overview screen lists the recognized fixed costs with amount, day and next payment; with one tap
+  all payments of a series are marked as fixed costs.
+- Calculated on the fly from the group's expenses (no stored model).
+- Next steps: quarterly and yearly payments (need more than a year of data).
 
 ## 4. Anomaly detection (`ml/anomaly`)
-| Phase | What we did / decided |
-|-------|-----------------------|
-| Business Understanding | _TBD_ |
-| Data Understanding | _TBD_ |
-| Data Preparation | _TBD_ |
-| Modeling | _TBD_ |
-| Evaluation | _TBD_ |
-| Deployment | _TBD_ |
+Full numbers: [anomaly-report.md](anomaly-report.md) (regenerate with
+`python -m billbuddy.ml.anomaly.evaluate`).
+
+### Business Understanding
+- **Problem:** the same purchase is entered twice (both partners), or a typo turns 34.50 € into
+  345 € – both distort balances, overview and forecast.
+- **Goal:** warn **before saving** and list anomalies in the overview.
+- **Success criteria:** few false alarms (every alarm interrupts the user), most real anomalies found.
+
+### Data Understanding
+- The generator inserted 13 duplicates and 12 unusually high amounts (4–8 × normal) and marked them.
+- Amounts are skewed (many small, few large); on the log scale they are roughly symmetric.
+- 1 outlier is smaller than the largest normal expense of its category and 1 is in a category with
+  too little data (travel) – no amount-based method can find these two.
+
+### Data Preparation
+- Duplicates: descriptions cleaned (as for the categorizer), so "REWE Kartenzahlung" = "Rewe".
+- Outliers: each category separately (300 € for groceries is unusual, for a hotel it is not); log of
+  the amount; categories with fewer than 8 expenses are skipped.
+
+### Modeling
+- Duplicates: same cleaned description and same amount, at most one day apart.
+- Outliers – compared: z-score, IQR rule on euros, Isolation Forest (machine learning), robust
+  z-score (median/MAD) with 3.5 and 3.0, IQR rule on log amounts.
+- **Chosen: IQR rule on log amounts** (outlier if log amount > Q3 + 1.5 · IQR). We had first picked the
+  robust z-score with the literature value 3.5; the evaluation showed that it missed half of the
+  outliers, so we switched.
+
+### Evaluation
+- Outliers: IQR on log amounts 10 of 11 found, 1 false alarm (F1 91 %); robust z (3.5) only 6 of 11;
+  z-score with mean/standard deviation suffers from masking; IQR on euros 19 false alarms; Isolation
+  Forest with default settings 132 false alarms (it needs the share of outliers in advance).
+- Duplicates: realistic variants (other spelling, one day later) – exact comparison finds only 3 of 13,
+  the chosen method all 13 without false alarms.
+- Caution: method choice and evaluation use the same 11 outliers, so small differences are not
+  reliable; to be checked again with real data.
+
+### Deployment
+- When saving an expense, the app checks for duplicates and unusual amounts and asks
+  "Trotzdem speichern?" with an explanation (e.g. "9 × so viel wie üblich bei Lebensmitteln").
+- The overview lists anomalies of the month with a link to the expense.
+- Statistics are calculated on the fly from the group's expenses.
 
 ## 5. Receipt scan (`ml/receipt_ocr`)
 | Phase | What we did / decided |
