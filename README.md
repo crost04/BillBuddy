@@ -54,7 +54,16 @@ python3 -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
 pytest
+
+# Generate sample data and a demo database
+python -m billbuddy.data.generator --db data/sample/demo.db
+
+# Start the API on the demo database, then open http://127.0.0.1:8000/docs
+BILLBUDDY_DATABASE_URL=sqlite:///data/sample/demo.db uvicorn billbuddy.api.main:app --reload
 ```
+
+Without `BILLBUDDY_DATABASE_URL` the API uses your private database in `data/private/billbuddy.db`.
+PyCharm users find ready-made run configurations for all of these in `.run/`.
 
 ## Privacy
 Only generated sample data is part of this repository. Real expenses, databases and

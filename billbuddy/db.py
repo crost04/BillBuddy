@@ -11,6 +11,7 @@ from pathlib import Path
 from sqlalchemy import create_engine, event
 from sqlalchemy.engine import Engine
 from sqlalchemy.orm import DeclarativeBase, sessionmaker
+from sqlalchemy.pool import StaticPool
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DB_PATH = PROJECT_ROOT / "data" / "private" / "billbuddy.db"
@@ -30,7 +31,15 @@ def get_database_url() -> str:
 
 
 def make_engine(url: str | None = None) -> Engine:
-    return create_engine(url or get_database_url())
+    url = url or get_database_url()
+    if not url.startswith("sqlite"):
+        return create_engine(url)
+    # FastAPI handles requests in several threads; SQLite must allow that
+    kwargs = {"connect_args": {"check_same_thread": False}}
+    if url in ("sqlite://", "sqlite:///:memory:"):
+        # Share one connection, otherwise each connection gets its own empty in-memory database
+        kwargs["poolclass"] = StaticPool
+    return create_engine(url, **kwargs)
 
 
 @event.listens_for(Engine, "connect")
