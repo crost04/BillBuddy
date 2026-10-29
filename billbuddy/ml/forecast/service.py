@@ -4,21 +4,12 @@ No model is stored: the method only needs the expenses, so every new expense
 is part of the next forecast immediately.
 """
 
-import datetime as dt
-from zoneinfo import ZoneInfo
-
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from billbuddy.clock import today  # noqa: F401 (used by the API, replaced in tests)
 from billbuddy.expenses.models import Expense
 from billbuddy.ml.forecast.model import Record
-
-# "Today" in the users' time zone, not in the server's (which may be UTC)
-TIMEZONE = ZoneInfo("Europe/Berlin")
-
-
-def today() -> dt.date:
-    return dt.datetime.now(TIMEZONE).date()
 
 
 def group_records(session: Session, group_id: int) -> list[Record]:

@@ -204,3 +204,64 @@ class OverviewOut(BaseModel):
     members: list[MemberPaidOut]
     # Totals of the history months and the selected month, oldest first
     history: list[MonthTotalOut]
+
+
+# --- Recurring costs and anomalies ---
+
+
+class RecurringOut(BaseModel):
+    key: str
+    description: str
+    count: int
+    typical_amount: float
+    day_of_month: int
+    last_date: dt.date
+    next_date: dt.date
+    active: bool
+    already_fixed: bool
+
+
+class MarkFixedIn(BaseModel):
+    key: str = Field(min_length=1, max_length=200)
+
+
+class MarkFixedOut(BaseModel):
+    changed: int
+
+
+class CheckExpenseIn(BaseModel):
+    # Set when an existing expense is edited, so it is not compared with itself
+    expense_id: int | None = None
+    amount: Decimal = Field(gt=0, decimal_places=2, max_digits=10)
+    date: dt.date
+    description: str = Field(min_length=1, max_length=200)
+    category: str | None = None
+
+
+class SimilarExpenseOut(BaseModel):
+    id: int
+    description: str
+    amount: float
+    date: dt.date
+
+
+class OutlierOut(BaseModel):
+    is_outlier: bool
+    typical: float | None
+    ratio: float | None
+
+
+class CheckExpenseOut(BaseModel):
+    duplicates: list[SimilarExpenseOut]
+    outlier: OutlierOut
+
+
+class AnomalyOut(BaseModel):
+    kind: str  # "duplicate" or "outlier"
+    expense: SimilarExpenseOut
+    category: str | None
+    # duplicate: the earlier entry it looks like
+    other: SimilarExpenseOut | None = None
+    # outlier: typical amount in the category and how many times as much
+    typical: float | None = None
+    ratio: float | None = None

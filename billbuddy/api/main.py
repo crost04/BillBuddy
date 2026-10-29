@@ -14,7 +14,15 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 
 from billbuddy import __version__
-from billbuddy.api import auth_routes, categorizer_routes, expense_routes, forecast_routes, settlement_routes
+from billbuddy.api import (
+    anomaly_routes,
+    auth_routes,
+    categorizer_routes,
+    expense_routes,
+    forecast_routes,
+    recurring_routes,
+    settlement_routes,
+)
 from billbuddy.auth.limiter import LoginLimiter, TooManyAttemptsError
 from billbuddy.auth.service import AuthError
 from billbuddy.db import PROJECT_ROOT, init_db, make_engine, make_session_factory
@@ -58,6 +66,8 @@ def create_app(engine: Engine | None = None) -> FastAPI:
     app.include_router(settlement_routes.router)
     app.include_router(categorizer_routes.router)
     app.include_router(forecast_routes.router)
+    app.include_router(recurring_routes.router)
+    app.include_router(anomaly_routes.router)
     # The web app itself; mounted last so the /api routes above take priority
     app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
 
