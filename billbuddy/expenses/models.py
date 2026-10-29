@@ -34,6 +34,9 @@ class Group(Base):
     expenses: Mapped[list["Expense"]] = relationship(
         back_populates="group", cascade="all, delete-orphan"
     )
+    payments: Mapped[list["Payment"]] = relationship(
+        back_populates="group", cascade="all, delete-orphan"
+    )
 
 
 class Member(Base):
@@ -106,3 +109,29 @@ class ExpenseShare(Base):
 
     expense: Mapped[Expense] = relationship(back_populates="shares")
     member: Mapped[Member] = relationship()
+
+
+class Payment(Base):
+    """Money one member transfers to another to settle debts (e.g. via PayPal)."""
+
+    __tablename__ = "payments"
+    __table_args__ = (
+        CheckConstraint("amount_cents > 0", name="payment_amount_positive"),
+        CheckConstraint("from_member_id != to_member_id", name="payment_between_two_members"),
+    )
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    group_id: Mapped[int] = mapped_column(ForeignKey("groups.id", ondelete="CASCADE"))
+    from_member_id: Mapped[int] = mapped_column(ForeignKey("members.id", ondelete="RESTRICT"))
+    to_member_id: Mapped[int] = mapped_column(ForeignKey("members.id", ondelete="RESTRICT"))
+    amount_cents: Mapped[int]
+    date: Mapped[dt.date]
+    created_at: Mapped[dt.datetime] = mapped_column(default=dt.datetime.now)
+
+    group: Mapped[Group] = relationship(back_populates="payments")
+    from_member: Mapped[Member] = relationship(foreign_keys=[from_member_id])
+    to_member: Mapped[Member] = relationship(foreign_keys=[to_member_id])
+
+    @property
+    def amount(self) -> Decimal:
+        return Decimal(self.amount_cents) / 100
