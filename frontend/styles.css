@@ -316,6 +316,8 @@ input:disabled { opacity: 0.7; }
 .subhead { font-size: 0.9rem; margin: 16px 0 8px; }
 .scan-button { margin-top: 0; }
 #scan-status:empty { display: none; }
+.scan-tip { margin: 6px 0 0; }
+#scan-text pre { white-space: pre-wrap; font-size: 0.75rem; background: var(--bg); padding: 8px; border-radius: 8px; max-height: 240px; overflow: auto; }
 .receipt-item select { width: auto; max-width: 45%; padding: 8px; }
 .item-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 14px 12px; }
 

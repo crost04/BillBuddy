@@ -121,6 +121,19 @@ def test_total_keyword_survives_ocr_noise(label):
     assert receipt.total_cents == 129
 
 
+def test_total_from_card_payment_when_the_total_line_is_lost():
+    text = "REWE\nBIO BANANEN 1,99 B\nSHAMPOO 2,95 A\nGeg. EC-Cash 4,94\nDatum: 28.10.2026"
+    receipt = parse_receipt(text, TODAY)
+    assert receipt.total_cents == 494
+    assert [i.amount_cents for i in receipt.items] == [199, 295]
+
+
+def test_total_from_cash_minus_change_when_the_total_line_is_lost():
+    receipt = parse_receipt("LIDL\nBananen 1,29 A\nGouda 2,19 A\nBar 10,00\nRückgeld 6,52", TODAY)
+    assert receipt.total_cents == 348
+    assert receipt.items_match_total
+
+
 def test_zwischensumme_is_not_the_total():
     receipt = parse_receipt("Rewe\nBrot 1,29\nZwischensumme 1,29\nKäse 2,00\nSumme 3,29", TODAY)
     assert receipt.total_cents == 329
@@ -129,6 +142,10 @@ def test_zwischensumme_is_not_the_total():
 def test_date_with_confused_digits():
     receipt = parse_receipt("Rewe\nSumme 1,00\nDatum: 28.1O.2O26", TODAY)
     assert receipt.date == dt.date(2026, 10, 28)
+
+
+def test_store_printed_without_umlauts():
+    assert parse_receipt("ALDI SUED\nSumme 1,00", TODAY).store == "Aldi Süd"
 
 
 def test_store_with_confused_characters():

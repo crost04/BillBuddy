@@ -130,8 +130,44 @@ def find_date(lines: list[str], today: dt.date) -> dt.date | None:
     return min(candidates, key=lambda c: c[0])[1] if candidates else None
 
 
+CARD_PAYMENT_WORDS = ["ec-cash", "ec cash", "girocard", "kartenzahlung", "maestro", "visa", "mastercard", "kreditkarte"]
+CASH_WORDS = ["bar", "gegeben"]
+CHANGE_WORDS = ["rückgeld", "rueckgeld", "wechselgeld"]
+
+
 def find_total(lines: list[str]) -> tuple[int | None, int | None]:
-    """(index of the total line, total in cents)"""
+    """(index of the total line, total in cents)
+
+    If the total line itself was not recognized, the payment lines still tell
+    the total: a card payment is exactly the total, and with cash it is the
+    money given minus the change.
+    """
+    total = _total_from_keywords(lines)
+    if total[1] is None:
+        total = _total_from_payment(lines)
+    return total
+
+
+def _total_from_payment(lines: list[str]) -> tuple[int | None, int | None]:
+    for index, line in enumerate(lines):
+        amount = _amount_at_end(line)
+        if amount and amount > 0 and any(_sounds_like(line, w) or _has_word(line, [w]) for w in CARD_PAYMENT_WORDS):
+            return index, amount
+    given = change = None
+    for index, line in enumerate(lines):
+        amount = _amount_at_end(line)
+        if amount is None:
+            continue
+        if given is None and _has_word(line, CASH_WORDS):
+            given = (index, amount)
+        elif change is None and any(_has_word(line, [w]) or _sounds_like(line, w) for w in CHANGE_WORDS):
+            change = amount
+    if given and change is not None and given[1] > change:
+        return given[0], given[1] - change
+    return None, None
+
+
+def _total_from_keywords(lines: list[str]) -> tuple[int | None, int | None]:
     best = None
     for index, line in enumerate(lines):
         if _sounds_like(line, "zwischensumme") or _has_word(line, ["mwst", "netto", "steuer"]):
@@ -178,8 +214,10 @@ def _has_word(line: str, words: list[str]) -> bool:
 
 
 def _ocr_normalized(text: str) -> str:
-    """Lower case with letters/digits OCR confuses mapped to one form, for comparing names."""
-    return text.lower().translate(str.maketrans("0158cav", "olsbeou"))
+    """Lower case with letters/digits OCR confuses mapped to one form, for comparing names.
+    Umlauts are written out, because receipt printers often print "SUED" for "SÜD"."""
+    text = text.lower().replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss")
+    return text.translate(str.maketrans("0158cav", "olsbeou"))
 
 
 def _sounds_like(line: str, keyword: str) -> bool:

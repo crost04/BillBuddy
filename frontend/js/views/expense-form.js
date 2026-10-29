@@ -37,7 +37,9 @@ export async function renderExpenseForm(container, id) {
         <label class="btn secondary scan-button">📷 Kassenbon scannen
           <input type="file" id="receipt-photo" accept="image/*" capture="environment" hidden>
         </label>
-        <p class="muted small center" id="scan-status"></p>`}
+        <p class="muted small center scan-tip">Tipp: Bon flach hinlegen, gerade von oben, gutes Licht, ganzer Bon im Bild.</p>
+        <p class="muted small center" id="scan-status"></p>
+        <details id="scan-text" hidden><summary class="small muted">Erkannten Text anzeigen</summary><pre></pre></details>`}
 
       <label for="amount">Betrag in €</label>
       <input type="text" id="amount" class="amount-input" inputmode="decimal" autocomplete="off"
@@ -254,9 +256,14 @@ export async function renderExpenseForm(container, id) {
     if (!file) return;
     const status = $("#scan-status");
     try {
-      const text = await recognizeReceipt(file, (message) => { status.textContent = message; });
-      status.textContent = "Werte den Kassenbon aus …";
-      applyReceipt(await api.parseReceipt(state.group.id, text));
+      const { text, result } = await recognizeReceipt(
+        file,
+        (message) => { status.textContent = message; },
+        (recognized) => api.parseReceipt(state.group.id, recognized),
+      );
+      $("#scan-text pre").textContent = text;
+      $("#scan-text").hidden = false;
+      applyReceipt(result);
     } catch (e) {
       status.textContent = `⚠️ ${e.message}`;
     }

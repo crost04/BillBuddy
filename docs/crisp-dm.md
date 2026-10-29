@@ -252,8 +252,9 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
 ### Data Preparation
 - Every recognized line is cleaned: letters inside numbers are turned back into digits ("l,99" → "1,99"),
   spaces inside amounts removed, capitals made readable ("BIER 6ER" → "Bier 6er").
-- On the phone, the photo is scaled down and turned into a high-contrast grayscale image before the
-  recognition.
+- On the phone, the photo is scaled by its width (so the print stays large enough), turned into grayscale
+  and binarized with an **adaptive threshold** (Bradley–Roth), which copes with shadows and uneven
+  light; Tesseract straightens tilted photos (`rotateAuto`).
 
 ### Modeling
 - **Architecture decision:** text recognition with **Tesseract.js in the browser of the phone** (fast,
@@ -279,13 +280,30 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
   "✅ die Summe passt" or "⚠️ bitte prüfen".
 - End-to-end test in the browser: a drawn receipt image went through Tesseract.js, the parser and the
   form in about 5 seconds, all fields correct.
-- Limit: real photos (folds, shadows, faded thermal paper) are harder than the simulation; the real
-  accuracy has to be measured with real receipts.
+- **First real test (iPhone, 29 Oct 2026): values were recognized wrongly.** The image preparation only
+  raised the contrast of the whole photo and scaled it by its longest side; on real photos shadows,
+  tilt and small print broke the recognition.
+- **Second iteration – photo test in the browser** with simulated phone photos (receipt tilted 2–4°,
+  blurred, shadow across the paper, speckles, JPEG compression, receipt only in the middle of the
+  picture), 6 receipts:
+  - first version: total right in 0 of 6, no items found;
+  - adaptive threshold (every pixel compared with its surroundings, against shadows) + automatic
+    straightening (`rotateAuto`): depending on the page mode 0–5 of 6;
+  - tuning on 3 photos and testing on 3 new ones showed **overfitting**: the best setting for the first
+    photos failed on the new ones – and which page mode was best changed between photo sets;
+  - **chosen: several reading attempts, the most plausible result wins**, judged by the parser's own
+    check (items add up to the total): total right in 5 of 6, items 22 of 30, about 2 s per receipt
+    (up to 3 attempts). The one wrong total was flagged by the check, so the app showed
+    "⚠️ bitte prüfen" instead of silently saving a wrong amount.
+- Simulated photos are only a rough stand-in for real ones; the real accuracy still has to be measured
+  with real receipts.
 
 ### Deployment
 - "📷 Kassenbon scannen" in the expense form opens the camera; Tesseract.js (about 3 MB incl. German
   language data) is loaded from a CDN on first use and then cached by the browser.
 - The server endpoint `/api/groups/{id}/parse-receipt` parses the text and adds a category suggestion.
 - The photo is not stored anywhere; only the resulting expense is saved.
+- Transparency: after a scan, "Erkannten Text anzeigen" shows what the phone read, and the app shows
+  photo tips (flat, from above, good light, whole receipt).
 - Next steps: collect a few real receipts (locally, never in the repository) to measure the real
   accuracy; possibly let the user crop the photo before recognition.
