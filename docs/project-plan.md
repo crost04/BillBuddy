@@ -6,6 +6,9 @@ Start: 29 Oct 2026 · **Deadline: 12 Dec 2026** · Team: solo
 to improve, while the AI features are built on top. Everything required for the
 submission is done by M2, which leaves ten days of buffer before the deadline.
 
+**Status 29 Oct:** data model, sample data, expenses API, settlement and the web app are done
+(weeks 1–3). Open for M1: database migrations (Alembic) before real data piles up.
+
 | Week | Dates | Focus | Modules |
 |------|-------|-------|---------|
 | 1 | 29 Oct – 04 Nov | Data model, sample data generator, REST endpoints for groups and expenses | `expenses`, `data`, `api` |

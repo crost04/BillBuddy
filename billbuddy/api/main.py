@@ -1,6 +1,7 @@
 """FastAPI application – the interface between the backend and the frontend.
 
 Start:      uvicorn billbuddy.api.main:app --reload
+Web app:    http://127.0.0.1:8000
 API docs:   http://127.0.0.1:8000/docs
 """
 
@@ -8,13 +9,16 @@ from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
+from fastapi.staticfiles import StaticFiles
 from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 
 from billbuddy import __version__
 from billbuddy.api import expense_routes, settlement_routes
-from billbuddy.db import init_db, make_engine, make_session_factory
+from billbuddy.db import PROJECT_ROOT, init_db, make_engine, make_session_factory
 from billbuddy.expenses.service import NotFoundError, ValidationError
+
+FRONTEND_DIR = PROJECT_ROOT / "frontend"
 
 
 def create_app(engine: Engine | None = None) -> FastAPI:
@@ -30,6 +34,8 @@ def create_app(engine: Engine | None = None) -> FastAPI:
     app.state.session_factory = make_session_factory(engine)
     app.include_router(expense_routes.router)
     app.include_router(settlement_routes.router)
+    # The web app itself; mounted last so the /api routes above take priority
+    app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
 
     # Turn errors from the service layer into proper HTTP status codes
     @app.exception_handler(NotFoundError)

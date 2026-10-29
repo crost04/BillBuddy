@@ -10,6 +10,7 @@ MODULES = [
     "billbuddy.expenses",
     "billbuddy.settlement",
     "billbuddy.api",
+    "billbuddy.serve",
     "billbuddy.ml.categorizer",
     "billbuddy.ml.receipt_ocr",
     "billbuddy.ml.forecast",

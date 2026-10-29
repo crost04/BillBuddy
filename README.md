@@ -40,7 +40,9 @@ billbuddy/
     forecast/      # spending forecast
     recurring/     # recurring-cost detection
     anomaly/       # duplicates and outliers
-frontend/          # the PWA
+frontend/          # the PWA (HTML, CSS, JavaScript – no build step)
+  js/api.js        # calls to the backend
+  js/views/        # one file per screen
 data/
   sample/          # generated sample data (expenses.csv)
   private/         # your real database – git-ignored, never committed
@@ -58,12 +60,26 @@ pytest
 # Generate sample data and a demo database
 python -m billbuddy.data.generator --db data/sample/demo.db
 
-# Start the API on the demo database, then open http://127.0.0.1:8000/docs
+# Start the app on the demo database
 BILLBUDDY_DATABASE_URL=sqlite:///data/sample/demo.db uvicorn billbuddy.api.main:app --reload
 ```
 
-Without `BILLBUDDY_DATABASE_URL` the API uses your private database in `data/private/billbuddy.db`.
+- Web app: http://127.0.0.1:8000
+- API documentation: http://127.0.0.1:8000/docs
+
+Without `BILLBUDDY_DATABASE_URL` the app uses your private database in `data/private/billbuddy.db`.
 PyCharm users find ready-made run configurations for all of these in `.run/`.
+
+## Using the app on your phone
+1. Start the server for the local network: `python -m billbuddy.serve`
+   (PyCharm: *App on phone (home Wi-Fi)*). It prints the address to open, e.g. `http://192.168.0.23:8000`.
+2. Open that address on a phone in the **same Wi-Fi**.
+3. Add it to the home screen: Safari → Share → *Add to Home Screen* (iPhone),
+   or Chrome → ⋮ → *Add to Home screen* (Android).
+
+Only do this in a network you trust: there is no login yet, so everyone in the same
+Wi-Fi could open the app. Offline start (service worker) only works on `localhost`
+or with HTTPS, i.e. after hosting.
 
 ## How settlement works
 1. **Split:** every expense is divided among its participants (equally, by percentage or

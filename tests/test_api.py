@@ -1,16 +1,6 @@
 """Tests for the REST API in billbuddy.api."""
 
 import pytest
-from fastapi.testclient import TestClient
-
-from billbuddy.api.main import create_app
-from billbuddy.db import make_engine
-
-
-@pytest.fixture
-def client():
-    with TestClient(create_app(make_engine("sqlite://"))) as client:
-        yield client
 
 
 @pytest.fixture
