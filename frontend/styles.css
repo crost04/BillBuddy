@@ -199,6 +199,23 @@ input[type="text"], input[type="email"], input[type="password"], input[type="dat
 
 input.amount-input { font-size: 2rem; font-weight: 700; text-align: center; }
 
+/* Safari on the iPhone gives date fields a built-in minimum width and centers the date,
+   so the field sticks out of the card. Make it behave like the other fields. */
+input[type="date"] {
+  -webkit-appearance: none;
+  appearance: none;
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  min-height: 48px;
+  text-align: left;
+}
+
+input[type="date"]::-webkit-date-and-time-value {
+  text-align: left;
+  margin: 0;
+}
+
 .check {
   display: flex;
   align-items: center;
