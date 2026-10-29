@@ -31,15 +31,19 @@ DEMO_PASSWORD = "demo-password"
 
 # category: (expected purchases per month, median amount in €, spread, merchants)
 VARIABLE_COSTS = {
-    "Groceries": (12, 38.0, 0.5, ["Rewe", "Edeka", "Aldi", "Lidl", "Penny", "Netto", "Kaufland", "Wochenmarkt", "Bäckerei"]),
-    "Household": (2, 18.0, 0.5, ["dm", "Rossmann", "Ikea", "Bauhaus", "Obi"]),
-    "Restaurants": (4, 42.0, 0.5, ["Pizzeria", "Sushi Bar", "Döner", "Lieferando", "Café", "Burger King", "McDonald's", "Biergarten"]),
-    "Transport": (3, 55.0, 0.4, ["Aral", "Shell", "Esso", "DB Ticket", "Flixbus", "Uber", "Parkhaus"]),
-    "Leisure": (2, 30.0, 0.6, ["Kino", "Konzert", "Bowling", "Schwimmbad", "Museum", "Steam"]),
-    "Shopping": (2, 50.0, 0.7, ["Amazon", "Zalando", "H&M", "MediaMarkt", "Saturn", "Thalia"]),
-    "Health": (1, 20.0, 0.6, ["Apotheke", "Optiker", "Zahnarzt"]),
-    "Travel": (0.2, 250.0, 0.6, ["Booking.com", "Airbnb", "Lufthansa", "Ryanair", "Hotel"]),
-    "Other": (0.5, 25.0, 0.8, ["Geschenk", "Post", "Friseur", "Spende"]),
+    "Groceries": (12, 38.0, 0.5, ["Rewe", "Edeka", "Aldi Süd", "Aldi Nord", "Lidl", "Penny", "Netto", "Kaufland",
+                                  "Norma", "Tegut", "Globus", "Alnatura", "Denns Biomarkt", "Wochenmarkt", "Bäckerei", "Metzgerei"]),
+    "Household": (2, 18.0, 0.5, ["dm", "Rossmann", "Müller Drogerie", "Ikea", "Bauhaus", "Obi", "Hornbach", "Tedi", "Action"]),
+    "Restaurants": (4, 42.0, 0.5, ["Pizzeria", "Sushi Bar", "Döner", "Lieferando", "Wolt", "Uber Eats", "Café", "Burger King",
+                                   "McDonald's", "Subway", "Vapiano", "Biergarten", "Starbucks"]),
+    "Transport": (3, 55.0, 0.4, ["Aral", "Shell", "Esso", "Jet Tankstelle", "TotalEnergies", "DB Ticket", "Deutsche Bahn",
+                                 "Flixbus", "Uber", "Bolt", "Parkhaus", "Tier Scooter", "Share Now"]),
+    "Leisure": (2, 30.0, 0.6, ["Kino", "Cinemaxx", "Konzert", "Eventim", "Bowling", "Schwimmbad", "Museum", "Steam",
+                               "Playstation Store", "Kletterhalle"]),
+    "Shopping": (2, 50.0, 0.7, ["Amazon", "Zalando", "H&M", "Zara", "MediaMarkt", "Saturn", "Thalia", "Otto", "About You", "Decathlon"]),
+    "Health": (1, 20.0, 0.6, ["Apotheke", "DocMorris", "Optiker", "Fielmann", "Zahnarzt", "Physiotherapie"]),
+    "Travel": (0.3, 250.0, 0.6, ["Booking.com", "Airbnb", "Lufthansa", "Ryanair", "Eurowings", "Hotel", "Ferienwohnung", "TUI"]),
+    "Other": (0.6, 25.0, 0.8, ["Geschenk", "Post", "DHL", "Friseur", "Spende", "Blumen"]),
 }
 
 # (description, category, amount in cents, day of month)
@@ -53,6 +57,8 @@ FIXED_COSTS = [
     ("Stadtwerke Strom", "Utilities", 8500, 15),
     ("Stadtwerke Gas", "Utilities", 6500, 15),
     ("Spotify", "Subscriptions", 1799, 20),
+    # Same word as the shopping merchant "Amazon": a deliberately hard case for the categorizer
+    ("Amazon Prime", "Subscriptions", 899, 25),
 ]
 
 # Extra spending in certain months: {month: {category: factor}}
@@ -83,6 +89,8 @@ class SampleExpense:
     is_fixed: bool
     is_duplicate: bool = False
     is_outlier: bool = False
+    # The shop behind the description; lets the evaluation test on unseen shops
+    merchant: str = ""
 
 
 def generate_expenses(
@@ -117,7 +125,7 @@ def _fixed_costs_on(day: dt.date, members) -> list[SampleExpense]:
         description = f"{name} {GERMAN_MONTHS[day.month - 1]}" if category == "Rent" else name
         # Each fixed cost is always paid by the same person
         payer = members[i % len(members)]
-        result.append(SampleExpense(day, description, amount_cents, category, payer, is_fixed=True))
+        result.append(SampleExpense(day, description, amount_cents, category, payer, is_fixed=True, merchant=name))
     return result
 
 
@@ -134,8 +142,11 @@ def _variable_costs_on(day: dt.date, members, rng: random.Random) -> list[Sample
 
         # Log-normal: most amounts are near the median, a few are much larger
         amount_cents = max(50, round(median * math.exp(rng.gauss(0, spread)) * 100))
-        description = _vary_description(rng.choice(merchants), amount_cents, rng)
-        result.append(SampleExpense(day, description, amount_cents, category, rng.choice(members), is_fixed=False))
+        merchant = rng.choice(merchants)
+        description = _vary_description(merchant, amount_cents, rng)
+        result.append(
+            SampleExpense(day, description, amount_cents, category, rng.choice(members), is_fixed=False, merchant=merchant)
+        )
     return result
 
 
@@ -202,7 +213,7 @@ def load_into_db(expenses: list[SampleExpense], session: Session, group_name: st
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Generate BillBuddy sample expenses.")
-    parser.add_argument("--months", type=int, default=12, help="number of months up to today")
+    parser.add_argument("--months", type=int, default=24, help="number of months up to today")
     parser.add_argument("--seed", type=int, default=42, help="random seed for reproducible data")
     parser.add_argument("--out", type=Path, default=DEFAULT_CSV_PATH, help="CSV output file")
     parser.add_argument("--db", type=Path, help="also load the data into this SQLite file (replaces it)")

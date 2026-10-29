@@ -1,441 +1,941 @@
-date,description,amount_cents,category,payer,is_fixed,is_duplicate,is_outlier
-2025-11-01,Miete November,95000,Rent,Anna,True,False,False
-2025-11-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False
-2025-11-01,Hausratversicherung,900,Insurance,Anna,True,False,False
-2025-11-01,"DM 17,03",1703,Household,Ben,False,False,False
-2025-11-01,Sushi Bar,5966,Restaurants,Anna,False,False,False
-2025-11-03,Fitnessstudio,2990,Leisure,Ben,True,False,False
-2025-11-03,"Rewe 30,55",3055,Groceries,Ben,False,False,False
-2025-11-05,Telekom Internet,3995,Utilities,Anna,True,False,False
-2025-11-05,Uber,7137,Transport,Anna,False,False,False
-2025-11-06,rewe,3875,Groceries,Anna,False,False,False
-2025-11-07,Bäckerei Kartenzahlung,3211,Groceries,Ben,False,False,False
-2025-11-08,Flixbus,2062,Transport,Anna,False,False,False
-2025-11-09,Penny Hamburg,11742,Groceries,Ben,False,False,False
-2025-11-10,Netflix,1399,Subscriptions,Ben,True,False,False
-2025-11-10,Bäckerei,7304,Groceries,Anna,False,False,False
-2025-11-13,aral kartenzahlung,12762,Transport,Anna,False,False,False
-2025-11-13,KINO,2840,Leisure,Anna,False,False,False
-2025-11-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False
-2025-11-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False
-2025-11-15,dm,1521,Household,Anna,False,False,False
-2025-11-16,Aral,11768,Transport,Ben,False,False,False
-2025-11-17,Wochenmarkt,3784,Groceries,Ben,False,False,False
-2025-11-19,Rewe Kartenzahlung,5079,Groceries,Ben,False,False,False
-2025-11-20,Spotify,1799,Subscriptions,Anna,True,False,False
-2025-11-20,ZALANDO KARTENZAHLUNG,3578,Shopping,Ben,False,False,False
-2025-11-21,bäckerei,5621,Groceries,Anna,False,False,False
-2025-11-21,sushi bar,2140,Restaurants,Ben,False,False,False
-2025-11-22,Pizzeria,2939,Restaurants,Ben,False,False,False
-2025-11-23,BURGER KING KARTENZAHLUNG,5058,Restaurants,Anna,False,False,False
-2025-11-23,parkhaus,2977,Transport,Anna,False,False,False
-2025-11-27,Edeka,9106,Groceries,Ben,False,False,False
-2025-11-27,MUSEUM,4191,Leisure,Ben,False,False,False
-2025-11-28,Lidl,2896,Groceries,Anna,False,False,False
-2025-12-01,Miete Dezember,95000,Rent,Anna,True,False,False
-2025-12-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False
-2025-12-01,Hausratversicherung,900,Insurance,Anna,True,False,False
-2025-12-01,Netto Köln,4722,Groceries,Anna,False,False,False
-2025-12-02,"lidl 88,94",8894,Groceries,Anna,False,False,False
-2025-12-02,Sushi Bar Köln,8322,Restaurants,Anna,False,False,False
-2025-12-03,Fitnessstudio,2990,Leisure,Ben,True,False,False
-2025-12-04,Aldi Nürnberg,3546,Groceries,Ben,False,False,False
-2025-12-05,Telekom Internet,3995,Utilities,Anna,True,False,False
-2025-12-05,"biergarten 42,52",4252,Restaurants,Anna,False,False,False
-2025-12-06,"ALDI 77,47",7747,Groceries,Ben,False,False,False
-2025-12-06,Parkhaus Kartenzahlung,6702,Transport,Ben,False,False,False
-2025-12-10,Netflix,1399,Subscriptions,Ben,True,False,False
-2025-12-11,"Edeka 24,70",2470,Groceries,Anna,False,False,False
-2025-12-11,Sushi Bar Kartenzahlung,4877,Restaurants,Ben,False,False,False
-2025-12-12,Café Kartenzahlung,5194,Restaurants,Anna,False,False,False
-2025-12-12,"Aral 44,81",4481,Transport,Anna,False,False,False
-2025-12-13,Netto,1976,Groceries,Anna,False,False,False
-2025-12-13,Thalia,7316,Shopping,Ben,False,False,False
-2025-12-14,Lidl,6541,Groceries,Anna,False,False,False
-2025-12-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False
-2025-12-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False
-2025-12-15,Penny Kartenzahlung,3354,Groceries,Anna,False,False,False
-2025-12-16,Lidl Hamburg,7364,Groceries,Ben,False,False,False
-2025-12-16,Lidl Hamburg,7364,Groceries,Ben,False,True,False
-2025-12-17,"bäckerei 41,54",4154,Groceries,Ben,False,False,False
-2025-12-18,BÄCKEREI,4812,Groceries,Anna,False,False,False
-2025-12-19,SUSHI BAR KÖLN,7145,Restaurants,Anna,False,False,False
-2025-12-20,Spotify,1799,Subscriptions,Anna,True,False,False
-2025-12-21,dm,1465,Household,Anna,False,False,False
-2025-12-21,Pizzeria Köln,4600,Restaurants,Ben,False,False,False
-2025-12-23,Café Kartenzahlung,5005,Restaurants,Ben,False,False,False
-2025-12-24,NETTO KARTENZAHLUNG,6361,Groceries,Anna,False,False,False
-2025-12-26,Netto,4335,Groceries,Ben,False,False,False
-2025-12-27,"Rewe 43,77",4377,Groceries,Anna,False,False,False
-2025-12-28,"Lieferando 15,60",1560,Restaurants,Anna,False,False,False
-2025-12-30,Aldi,6426,Groceries,Ben,False,False,False
-2025-12-30,Steam,2142,Leisure,Ben,False,False,False
-2026-01-01,Miete Januar,95000,Rent,Anna,True,False,False
-2026-01-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False
-2026-01-01,Hausratversicherung,900,Insurance,Anna,True,False,False
-2026-01-01,Kaufland Hamburg,1277,Groceries,Anna,False,False,False
-2026-01-01,POST HAMBURG,3371,Other,Ben,False,False,False
-2026-01-02,"Netto 29,44",2944,Groceries,Ben,False,False,False
-2026-01-03,Fitnessstudio,2990,Leisure,Ben,True,False,False
-2026-01-03,Edeka Berlin,1929,Groceries,Anna,False,False,False
-2026-01-03,bowling hamburg,3461,Leisure,Ben,False,False,False
-2026-01-04,spende,1320,Other,Ben,False,False,False
-2026-01-05,Telekom Internet,3995,Utilities,Anna,True,False,False
-2026-01-06,"PENNY 26,87",2687,Groceries,Ben,False,False,False
-2026-01-06,"Saturn 78,24",7824,Shopping,Ben,False,False,False
-2026-01-07,"Aldi 43,69",4369,Groceries,Anna,False,False,False
-2026-01-08,Bäckerei,5410,Groceries,Ben,False,False,False
-2026-01-10,Netflix,1399,Subscriptions,Ben,True,False,False
-2026-01-10,Ikea Kartenzahlung,1053,Household,Ben,False,False,False
-2026-01-10,Lieferando Berlin,3705,Restaurants,Ben,False,False,False
-2026-01-10,"H&M 99,34",9934,Shopping,Anna,False,False,False
-2026-01-11,Bäckerei,1426,Groceries,Ben,False,False,False
-2026-01-13,Wochenmarkt,3072,Groceries,Anna,False,False,False
-2026-01-13,Ikea,6577,Household,Anna,False,False,False
-2026-01-13,Lieferando,4338,Restaurants,Anna,False,False,False
-2026-01-14,H&M,3110,Shopping,Anna,False,False,False
-2026-01-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False
-2026-01-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False
-2026-01-15,Museum,3851,Leisure,Anna,False,False,False
-2026-01-15,MediaMarkt Köln,1264,Shopping,Ben,False,False,False
-2026-01-16,"Bäckerei 44,36",4436,Groceries,Ben,False,False,False
-2026-01-16,Uber,6498,Transport,Anna,False,False,False
-2026-01-18,Steam,6302,Leisure,Ben,False,False,False
-2026-01-19,Bäckerei,3197,Groceries,Anna,False,False,False
-2026-01-20,Spotify,1799,Subscriptions,Anna,True,False,False
-2026-01-22,Wochenmarkt,2359,Groceries,Ben,False,False,False
-2026-01-22,Aral,5108,Transport,Anna,False,False,False
-2026-01-23,Kaufland,3829,Groceries,Ben,False,False,False
-2026-01-23,Zalando,3545,Shopping,Ben,False,False,False
-2026-01-25,"mcdonald's 34,24",3424,Restaurants,Ben,False,False,False
-2026-01-25,Esso,8130,Transport,Ben,False,False,False
-2026-01-26,Netto,3211,Groceries,Anna,False,False,False
-2026-01-27,Aldi Kartenzahlung,5802,Groceries,Anna,False,False,False
-2026-01-29,Wochenmarkt,2470,Groceries,Ben,False,False,False
-2026-02-01,Miete Februar,95000,Rent,Anna,True,False,False
-2026-02-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False
-2026-02-01,Hausratversicherung,900,Insurance,Anna,True,False,False
-2026-02-01,Netto,3725,Groceries,Ben,False,False,False
-2026-02-01,Burger King,3089,Restaurants,Ben,False,False,False
-2026-02-03,Fitnessstudio,2990,Leisure,Ben,True,False,False
-2026-02-03,"Sushi Bar 30,17",3017,Restaurants,Anna,False,False,False
-2026-02-04,Edeka Kartenzahlung,8921,Groceries,Anna,False,False,False
-2026-02-05,Telekom Internet,3995,Utilities,Anna,True,False,False
-2026-02-05,"Burger King 65,84",6584,Restaurants,Ben,False,False,False
-2026-02-07,Penny,4696,Groceries,Anna,False,False,False
-2026-02-07,Konzert,6524,Leisure,Anna,False,False,False
-2026-02-09,aldi,3440,Groceries,Ben,False,False,False
-2026-02-09,amazon,2697,Shopping,Anna,False,False,False
-2026-02-10,Netflix,1399,Subscriptions,Ben,True,False,False
-2026-02-10,Rewe,3437,Groceries,Ben,False,False,False
-2026-02-10,BAUHAUS KARTENZAHLUNG,2716,Household,Anna,False,False,False
-2026-02-10,"Konzert 18,76",1876,Leisure,Ben,False,False,False
-2026-02-11,Apotheke,3729,Health,Anna,False,False,False
-2026-02-12,"Aldi 69,53",6953,Groceries,Ben,False,False,False
-2026-02-12,parkhaus berlin,6315,Transport,Anna,False,False,False
-2026-02-13,"pizzeria 32,78",3278,Restaurants,Ben,False,False,False
-2026-02-14,Schwimmbad,2025,Leisure,Anna,False,False,False
-2026-02-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False
-2026-02-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False
-2026-02-15,WOCHENMARKT,2494,Groceries,Ben,False,False,False
-2026-02-15,"Thalia 32,09",3209,Shopping,Anna,False,False,False
-2026-02-16,Ikea,3973,Household,Anna,False,False,False
-2026-02-17,PENNY,5425,Groceries,Anna,False,False,False
-2026-02-18,Biergarten,5843,Restaurants,Anna,False,False,False
-2026-02-19,NETTO KARTENZAHLUNG,2452,Groceries,Anna,False,False,False
-2026-02-20,Spotify,1799,Subscriptions,Anna,True,False,False
-2026-02-20,Bauhaus Kartenzahlung,952,Household,Anna,False,False,False
-2026-02-20,"Burger King 67,49",6749,Restaurants,Ben,False,False,False
-2026-02-22,Café,6355,Restaurants,Anna,False,False,False
-2026-02-23,"kino 123,73",12373,Leisure,Anna,False,False,False
-2026-02-26,NETTO,2444,Groceries,Ben,False,False,False
-2026-02-26,Café Nürnberg,6697,Restaurants,Anna,False,False,False
-2026-02-27,Shell,3890,Transport,Anna,False,False,False
-2026-02-28,Edeka Hamburg,5358,Groceries,Ben,False,False,False
-2026-03-01,Miete März,95000,Rent,Anna,True,False,False
-2026-03-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False
-2026-03-01,Hausratversicherung,900,Insurance,Anna,True,False,False
-2026-03-02,MEDIAMARKT KARTENZAHLUNG,7538,Shopping,Anna,False,False,False
-2026-03-03,Fitnessstudio,2990,Leisure,Ben,True,False,False
-2026-03-04,Edeka Nürnberg,5346,Groceries,Anna,False,False,False
-2026-03-05,Telekom Internet,3995,Utilities,Anna,True,False,False
-2026-03-09,"Penny 142,96",14296,Groceries,Ben,False,False,False
-2026-03-10,Netflix,1399,Subscriptions,Ben,True,False,False
-2026-03-11,Wochenmarkt,2281,Groceries,Ben,False,False,False
-2026-03-12,"DM 9,12",912,Household,Anna,False,False,False
-2026-03-13,Lieferando Kartenzahlung,6341,Restaurants,Anna,False,False,False
-2026-03-14,penny,3776,Groceries,Anna,False,False,False
-2026-03-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False
-2026-03-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False
-2026-03-15,Edeka,1378,Groceries,Ben,False,False,False
-2026-03-15,Lieferando,3379,Restaurants,Ben,False,False,False
-2026-03-16,Lidl,5430,Groceries,Ben,False,False,False
-2026-03-16,"Amazon 27,12",2712,Shopping,Anna,False,False,False
-2026-03-17,café,2233,Restaurants,Anna,False,False,False
-2026-03-19,Bäckerei Kartenzahlung,4696,Groceries,Anna,False,False,False
-2026-03-20,Spotify,1799,Subscriptions,Anna,True,False,False
-2026-03-20,Aldi Kartenzahlung,3366,Groceries,Anna,False,False,False
-2026-03-20,KONZERT KARTENZAHLUNG,2996,Leisure,Ben,False,False,False
-2026-03-23,BÄCKEREI NÜRNBERG,3951,Groceries,Anna,False,False,False
-2026-03-24,AMAZON,2981,Shopping,Anna,False,False,False
-2026-03-25,rewe köln,2120,Groceries,Anna,False,False,False
-2026-03-27,Pizzeria,3188,Restaurants,Ben,False,False,False
-2026-03-28,Aldi Berlin,2140,Groceries,Ben,False,False,False
-2026-03-28,SUSHI BAR MÜNCHEN,4264,Restaurants,Anna,False,False,False
-2026-03-28,"DB Ticket 72,01",7201,Transport,Anna,False,False,False
-2026-03-29,"Aral 141,44",14144,Transport,Anna,False,False,False
-2026-03-31,Netto Berlin,2323,Groceries,Anna,False,False,False
-2026-03-31,Netto Berlin,2323,Groceries,Anna,False,True,False
-2026-03-31,mcdonald's,2247,Restaurants,Anna,False,False,False
-2026-04-01,Miete April,95000,Rent,Anna,True,False,False
-2026-04-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False
-2026-04-01,Hausratversicherung,900,Insurance,Anna,True,False,False
-2026-04-02,Aral,4621,Transport,Ben,False,False,False
-2026-04-03,Fitnessstudio,2990,Leisure,Ben,True,False,False
-2026-04-03,"BAUHAUS 8,45",845,Household,Ben,False,False,False
-2026-04-03,CAFÉ KARTENZAHLUNG,1729,Restaurants,Ben,False,False,False
-2026-04-05,Telekom Internet,3995,Utilities,Anna,True,False,False
-2026-04-06,"Kaufland 50,23",5023,Groceries,Anna,False,False,False
-2026-04-07,Apotheke Kartenzahlung,3725,Health,Ben,False,False,False
-2026-04-09,Edeka Hamburg,3750,Groceries,Ben,False,False,False
-2026-04-10,Netflix,1399,Subscriptions,Ben,True,False,False
-2026-04-10,bäckerei köln,2398,Groceries,Ben,False,False,False
-2026-04-11,BURGER KING,6450,Restaurants,Anna,False,False,False
-2026-04-12,DB Ticket Berlin,5562,Transport,Anna,False,False,False
-2026-04-13,bauhaus,1115,Household,Anna,False,False,False
-2026-04-13,bauhaus,1115,Household,Anna,False,True,False
-2026-04-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False
-2026-04-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False
-2026-04-17,"Bauhaus 22,18",2218,Household,Ben,False,False,False
-2026-04-17,Uber Hamburg,8292,Transport,Anna,False,False,False
-2026-04-20,Spotify,1799,Subscriptions,Anna,True,False,False
-2026-04-22,"Parkhaus 30,74",3074,Transport,Ben,False,False,False
-2026-04-24,Biergarten,5917,Restaurants,Anna,False,False,False
-2026-04-24,Saturn,10666,Shopping,Ben,False,False,False
-2026-04-24,ZAHNARZT,2224,Health,Anna,False,False,False
-2026-04-25,Wochenmarkt Kartenzahlung,5635,Groceries,Ben,False,False,False
-2026-04-26,Penny,4490,Groceries,Anna,False,False,False
-2026-04-27,Post,3371,Other,Ben,False,False,False
-2026-04-29,WOCHENMARKT KARTENZAHLUNG,3082,Groceries,Anna,False,False,False
-2026-04-29,WOCHENMARKT KARTENZAHLUNG,3082,Groceries,Anna,False,True,False
-2026-04-30,H&M,16332,Shopping,Anna,False,False,False
-2026-05-01,Miete Mai,95000,Rent,Anna,True,False,False
-2026-05-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False
-2026-05-01,Hausratversicherung,900,Insurance,Anna,True,False,False
-2026-05-02,"netto 33,68",3368,Groceries,Ben,False,False,False
-2026-05-03,Fitnessstudio,2990,Leisure,Ben,True,False,False
-2026-05-03,"aldi 69,95",6995,Groceries,Ben,False,False,False
-2026-05-04,Burger King Köln,2810,Restaurants,Anna,False,False,False
-2026-05-05,Telekom Internet,3995,Utilities,Anna,True,False,False
-2026-05-06,WOCHENMARKT,3653,Groceries,Ben,False,False,False
-2026-05-06,bauhaus,2346,Household,Anna,False,False,False
-2026-05-07,"Café 37,04",3704,Restaurants,Anna,False,False,False
-2026-05-07,KONZERT KARTENZAHLUNG,2185,Leisure,Ben,False,False,False
-2026-05-08,KAUFLAND,3950,Groceries,Ben,False,False,False
-2026-05-08,"DÖNER 47,49",4749,Restaurants,Anna,False,False,False
-2026-05-09,Sushi Bar,1836,Restaurants,Ben,False,False,False
-2026-05-10,Netflix,1399,Subscriptions,Ben,True,False,False
-2026-05-10,Konzert Kartenzahlung,6053,Leisure,Ben,False,False,False
-2026-05-13,Rewe,1645,Groceries,Ben,False,False,False
-2026-05-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False
-2026-05-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False
-2026-05-15,"STEAM 25,73",2573,Leisure,Anna,False,False,False
-2026-05-16,"Döner 37,66",3766,Restaurants,Anna,False,False,False
-2026-05-16,Kino,3548,Leisure,Ben,False,False,False
-2026-05-16,Kino,3548,Leisure,Ben,False,True,False
-2026-05-17,Penny,2617,Groceries,Anna,False,False,False
-2026-05-17,DB Ticket,6685,Transport,Anna,False,False,False
-2026-05-19,BÄCKEREI,2860,Groceries,Ben,False,False,False
-2026-05-20,Spotify,1799,Subscriptions,Anna,True,False,False
-2026-05-21,Bäckerei,4201,Groceries,Anna,False,False,False
-2026-05-22,Shell Kartenzahlung,5304,Transport,Ben,False,False,False
-2026-05-23,aldi,3270,Groceries,Ben,False,False,False
-2026-05-24,Biergarten München,3808,Restaurants,Ben,False,False,False
-2026-05-25,"Aral 66,06",6606,Transport,Ben,False,False,False
-2026-05-28,Edeka,2593,Groceries,Anna,False,False,False
-2026-05-28,Museum Köln,2108,Leisure,Ben,False,False,False
-2026-05-29,Aldi,4090,Groceries,Anna,False,False,False
-2026-05-30,Schwimmbad Kartenzahlung,1487,Leisure,Ben,False,False,False
-2026-05-31,Biergarten Kartenzahlung,7150,Restaurants,Anna,False,False,False
-2026-06-01,Miete Juni,95000,Rent,Anna,True,False,False
-2026-06-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False
-2026-06-01,Hausratversicherung,900,Insurance,Anna,True,False,False
-2026-06-01,kaufland,5402,Groceries,Ben,False,False,False
-2026-06-01,Steam,2971,Leisure,Anna,False,False,False
-2026-06-02,Lidl,4483,Groceries,Ben,False,False,False
-2026-06-03,Fitnessstudio,2990,Leisure,Ben,True,False,False
-2026-06-04,Penny,3956,Groceries,Ben,False,False,False
-2026-06-05,Telekom Internet,3995,Utilities,Anna,True,False,False
-2026-06-05,"PENNY 29,21",2921,Groceries,Anna,False,False,False
-2026-06-05,zahnarzt,1641,Health,Anna,False,False,False
-2026-06-07,Aral,5456,Transport,Ben,False,False,False
-2026-06-08,wochenmarkt kartenzahlung,4825,Groceries,Anna,False,False,False
-2026-06-08,sushi bar,6178,Restaurants,Ben,False,False,False
-2026-06-10,Netflix,1399,Subscriptions,Ben,True,False,False
-2026-06-11,dm berlin,1890,Household,Ben,False,False,False
-2026-06-11,Aral Berlin,6445,Transport,Ben,False,False,False
-2026-06-12,Kaufland,5474,Groceries,Ben,False,False,False
-2026-06-13,"Museum 17,25",1725,Leisure,Anna,False,False,False
-2026-06-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False
-2026-06-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False
-2026-06-15,mcdonald's,6241,Restaurants,Anna,False,False,False
-2026-06-16,Wochenmarkt,3158,Groceries,Ben,False,False,False
-2026-06-19,Netto,5430,Groceries,Ben,False,False,False
-2026-06-20,Spotify,1799,Subscriptions,Anna,True,False,False
-2026-06-20,"Schwimmbad 8,69",869,Leisure,Ben,False,False,False
-2026-06-21,konzert,4825,Leisure,Ben,False,False,False
-2026-06-21,H&M Nürnberg,3711,Shopping,Anna,False,False,False
-2026-06-23,Rewe,4910,Groceries,Anna,False,False,False
-2026-06-23,Apotheke Hamburg,2428,Health,Anna,False,False,False
-2026-06-25,Uber,2812,Transport,Ben,False,False,False
-2026-06-28,Lidl,8169,Groceries,Ben,False,False,False
-2026-06-29,"Penny 45,16",4516,Groceries,Anna,False,False,False
-2026-06-30,Edeka Berlin,2353,Groceries,Anna,False,False,False
-2026-07-01,Miete Juli,95000,Rent,Anna,True,False,False
-2026-07-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False
-2026-07-01,Hausratversicherung,900,Insurance,Anna,True,False,False
-2026-07-02,ALDI,2855,Groceries,Ben,False,False,False
-2026-07-03,Fitnessstudio,2990,Leisure,Ben,True,False,False
-2026-07-03,aral,2919,Transport,Anna,False,False,False
-2026-07-04,Penny,3204,Groceries,Ben,False,False,False
-2026-07-05,Telekom Internet,3995,Utilities,Anna,True,False,False
-2026-07-05,"Zalando 69,24",6924,Shopping,Anna,False,False,False
-2026-07-06,PENNY KARTENZAHLUNG,15862,Groceries,Anna,False,False,False
-2026-07-06,db ticket,4717,Transport,Anna,False,False,False
-2026-07-06,"Optiker 11,21",1121,Health,Ben,False,False,False
-2026-07-09,EDEKA KARTENZAHLUNG,4712,Groceries,Anna,False,False,False
-2026-07-09,Sushi Bar,4273,Restaurants,Ben,False,False,False
-2026-07-09,Bowling,19407,Leisure,Anna,False,False,True
-2026-07-10,Netflix,1399,Subscriptions,Ben,True,False,False
-2026-07-12,Rossmann,704,Household,Ben,False,False,False
-2026-07-12,AIRBNB KÖLN,15804,Travel,Ben,False,False,False
-2026-07-13,Netto,1584,Groceries,Anna,False,False,False
-2026-07-14,BÄCKEREI KARTENZAHLUNG,3049,Groceries,Anna,False,False,False
-2026-07-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False
-2026-07-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False
-2026-07-16,"WOCHENMARKT 24,45",2445,Groceries,Ben,False,False,False
-2026-07-16,Obi Kartenzahlung,739,Household,Anna,False,False,False
-2026-07-17,"Lufthansa 177,83",17783,Travel,Ben,False,False,False
-2026-07-18,Kaufland,4377,Groceries,Anna,False,False,False
-2026-07-19,Biergarten Nürnberg,5318,Restaurants,Anna,False,False,False
-2026-07-19,Schwimmbad Kartenzahlung,2809,Leisure,Anna,False,False,False
-2026-07-20,Spotify,1799,Subscriptions,Anna,True,False,False
-2026-07-21,PENNY HAMBURG,2019,Groceries,Ben,False,False,False
-2026-07-22,Döner Kartenzahlung,3005,Restaurants,Ben,False,False,False
-2026-07-23,AMAZON,790,Shopping,Anna,False,False,False
-2026-07-24,PENNY,3787,Groceries,Ben,False,False,False
-2026-07-26,Penny,9887,Groceries,Ben,False,False,False
-2026-07-29,Penny Nürnberg,7135,Groceries,Anna,False,False,False
-2026-07-30,Lidl,2858,Groceries,Ben,False,False,False
-2026-07-30,Hotel Kartenzahlung,18194,Travel,Ben,False,False,False
-2026-07-31,Museum,1698,Leisure,Ben,False,False,False
-2026-08-01,Miete August,95000,Rent,Anna,True,False,False
-2026-08-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False
-2026-08-01,Hausratversicherung,900,Insurance,Anna,True,False,False
-2026-08-01,Bäckerei Kartenzahlung,11408,Groceries,Anna,False,False,False
-2026-08-03,Fitnessstudio,2990,Leisure,Ben,True,False,False
-2026-08-05,Telekom Internet,3995,Utilities,Anna,True,False,False
-2026-08-05,penny kartenzahlung,8099,Groceries,Ben,False,False,False
-2026-08-05,uber nürnberg,6432,Transport,Anna,False,False,False
-2026-08-06,OBI,2413,Household,Ben,False,False,False
-2026-08-07,Lieferando,4994,Restaurants,Anna,False,False,False
-2026-08-08,Edeka,9658,Groceries,Ben,False,False,False
-2026-08-10,Netflix,1399,Subscriptions,Ben,True,False,False
-2026-08-11,Flixbus,4767,Transport,Anna,False,False,False
-2026-08-12,Esso Kartenzahlung,11468,Transport,Anna,False,False,False
-2026-08-14,"Döner 84,25",8425,Restaurants,Anna,False,False,False
-2026-08-14,H&M,3611,Shopping,Ben,False,False,False
-2026-08-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False
-2026-08-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False
-2026-08-15,"Bäckerei 33,07",3307,Groceries,Ben,False,False,False
-2026-08-15,"Bäckerei 33,07",3307,Groceries,Ben,False,True,False
-2026-08-16,airbnb hamburg,19962,Travel,Ben,False,False,False
-2026-08-17,"Edeka 22,70",9424,Groceries,Ben,False,False,True
-2026-08-17,Booking.com,51686,Travel,Anna,False,False,False
-2026-08-18,Penny,3263,Groceries,Anna,False,False,False
-2026-08-19,Kaufland Kartenzahlung,24098,Groceries,Anna,False,False,True
-2026-08-20,Spotify,1799,Subscriptions,Anna,True,False,False
-2026-08-20,"Bäckerei 69,58",6958,Groceries,Anna,False,False,False
-2026-08-21,McDonald's Kartenzahlung,4474,Restaurants,Anna,False,False,False
-2026-08-23,FLIXBUS,5490,Transport,Anna,False,False,False
-2026-08-24,Bäckerei Nürnberg,3580,Groceries,Ben,False,False,False
-2026-08-29,OBI,3562,Household,Anna,False,False,False
-2026-08-30,kaufland nürnberg,1496,Groceries,Anna,False,False,False
-2026-08-30,burger king,5932,Restaurants,Anna,False,False,False
-2026-08-30,ZALANDO NÜRNBERG,6800,Shopping,Anna,False,False,False
-2026-09-01,Miete September,95000,Rent,Anna,True,False,False
-2026-09-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False
-2026-09-01,Hausratversicherung,900,Insurance,Anna,True,False,False
-2026-09-01,rewe berlin,4289,Groceries,Ben,False,False,False
-2026-09-01,FRISEUR,757,Other,Ben,False,False,False
-2026-09-02,netto,6372,Groceries,Anna,False,False,False
-2026-09-03,Fitnessstudio,2990,Leisure,Ben,True,False,False
-2026-09-03,Edeka,2996,Groceries,Ben,False,False,False
-2026-09-03,Schwimmbad Kartenzahlung,1308,Leisure,Ben,False,False,False
-2026-09-04,Burger King Hamburg,4538,Restaurants,Anna,False,False,False
-2026-09-04,Optiker,2426,Health,Anna,False,False,False
-2026-09-05,Telekom Internet,3995,Utilities,Anna,True,False,False
-2026-09-06,Aldi Kartenzahlung,7203,Groceries,Ben,False,False,False
-2026-09-06,friseur münchen,1712,Other,Anna,False,False,False
-2026-09-07,Aldi,4315,Groceries,Ben,False,False,False
-2026-09-07,Burger King Kartenzahlung,4145,Restaurants,Ben,False,False,False
-2026-09-10,Netflix,1399,Subscriptions,Ben,True,False,False
-2026-09-12,Edeka,2579,Groceries,Anna,False,False,False
-2026-09-12,dm Nürnberg,2840,Household,Anna,False,False,False
-2026-09-12,Döner,2718,Restaurants,Anna,False,False,False
-2026-09-13,Wochenmarkt Kartenzahlung,8988,Groceries,Anna,False,False,False
-2026-09-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False
-2026-09-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False
-2026-09-15,Aldi,2288,Groceries,Anna,False,False,False
-2026-09-15,Aldi,2288,Groceries,Anna,False,True,False
-2026-09-17,Penny,2483,Groceries,Ben,False,False,False
-2026-09-17,Döner,2740,Restaurants,Ben,False,False,False
-2026-09-17,apotheke,4054,Health,Ben,False,False,False
-2026-09-18,Wochenmarkt,4594,Groceries,Ben,False,False,False
-2026-09-19,PENNY BERLIN,2757,Groceries,Anna,False,False,False
-2026-09-20,Spotify,1799,Subscriptions,Anna,True,False,False
-2026-09-20,"Kaufland 40,39",4039,Groceries,Anna,False,False,False
-2026-09-20,café münchen,7355,Restaurants,Anna,False,False,False
-2026-09-21,EDEKA HAMBURG,3012,Groceries,Anna,False,False,False
-2026-09-21,EDEKA HAMBURG,3012,Groceries,Anna,False,True,False
-2026-09-22,Rewe,8705,Groceries,Anna,False,False,False
-2026-09-24,netto,3238,Groceries,Anna,False,False,False
-2026-09-24,Apotheke,8940,Health,Anna,False,False,True
-2026-09-25,Biergarten Kartenzahlung,2895,Restaurants,Ben,False,False,False
-2026-09-26,Lidl,4799,Groceries,Ben,False,False,False
-2026-09-27,Wochenmarkt,3981,Groceries,Anna,False,False,False
-2026-09-28,"Sushi Bar 47,77",4777,Restaurants,Anna,False,False,False
-2026-10-01,Miete Oktober,95000,Rent,Anna,True,False,False
-2026-10-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False
-2026-10-01,Hausratversicherung,900,Insurance,Anna,True,False,False
-2026-10-02,WOCHENMARKT KÖLN,6866,Groceries,Anna,False,False,False
-2026-10-03,Fitnessstudio,2990,Leisure,Ben,True,False,False
-2026-10-03,Penny Kartenzahlung,5307,Groceries,Anna,False,False,False
-2026-10-04,Esso Hamburg,3172,Transport,Anna,False,False,False
-2026-10-05,Telekom Internet,3995,Utilities,Anna,True,False,False
-2026-10-05,Kaufland Berlin,4037,Groceries,Anna,False,False,False
-2026-10-07,KAUFLAND,2403,Groceries,Ben,False,False,False
-2026-10-07,Flixbus Hamburg,4801,Transport,Ben,False,False,False
-2026-10-08,MCDONALD'S,4758,Restaurants,Ben,False,False,False
-2026-10-09,H&M,6071,Shopping,Anna,False,False,False
-2026-10-10,Netflix,1399,Subscriptions,Ben,True,False,False
-2026-10-12,"lieferando 31,00",3100,Restaurants,Ben,False,False,False
-2026-10-12,STEAM,2082,Leisure,Ben,False,False,False
-2026-10-13,bäckerei,4910,Groceries,Ben,False,False,False
-2026-10-13,DB TICKET HAMBURG,7434,Transport,Ben,False,False,False
-2026-10-14,Penny Berlin,3111,Groceries,Ben,False,False,False
-2026-10-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False
-2026-10-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False
-2026-10-16,Döner Hamburg,6881,Restaurants,Anna,False,False,False
-2026-10-18,lidl,6805,Groceries,Ben,False,False,False
-2026-10-18,Zalando Kartenzahlung,14564,Shopping,Ben,False,False,False
-2026-10-18,Zalando Kartenzahlung,14564,Shopping,Ben,False,True,False
-2026-10-19,Lidl,5764,Groceries,Anna,False,False,False
-2026-10-20,Spotify,1799,Subscriptions,Anna,True,False,False
-2026-10-24,"MUSEUM 20,56",2056,Leisure,Ben,False,False,False
-2026-10-24,Optiker Kartenzahlung,1997,Health,Anna,False,False,False
-2026-10-27,Rewe München,4703,Groceries,Ben,False,False,False
-2026-10-27,H&M,3621,Shopping,Ben,False,False,False
-2026-10-27,"Hotel 346,87",34687,Travel,Ben,False,False,False
-2026-10-29,"Rewe 29,66",2966,Groceries,Ben,False,False,False
-2026-10-29,"Döner 144,30",14430,Restaurants,Anna,False,False,False
+date,description,amount_cents,category,payer,is_fixed,is_duplicate,is_outlier,merchant
+2024-11-01,Miete November,95000,Rent,Anna,True,False,False,Miete
+2024-11-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2024-11-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2024-11-01,"ROSSMANN 17,03",1703,Household,Ben,False,False,False,Rossmann
+2024-11-01,Sushi Bar,5966,Restaurants,Anna,False,False,False,Sushi Bar
+2024-11-02,LIEFERANDO,2940,Restaurants,Anna,False,False,False,Lieferando
+2024-11-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2024-11-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2024-11-05,Parkhaus,6395,Transport,Anna,False,False,False,Parkhaus
+2024-11-06,edeka,3875,Groceries,Anna,False,False,False,Edeka
+2024-11-07,"Norma 32,11",3211,Groceries,Ben,False,False,False,Norma
+2024-11-09,Globus,37095,Groceries,Ben,False,False,True,Globus
+2024-11-09,Bauhaus Kartenzahlung,1036,Household,Anna,False,False,False,Bauhaus
+2024-11-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2024-11-10,UBER EATS,4017,Restaurants,Anna,False,False,False,Uber Eats
+2024-11-10,Flixbus,23825,Transport,Anna,False,False,True,Flixbus
+2024-11-12,SUBWAY,7884,Restaurants,Anna,False,False,False,Subway
+2024-11-13,"Lidl 41,32",4132,Groceries,Anna,False,False,False,Lidl
+2024-11-14,sushi bar,2893,Restaurants,Ben,False,False,False,Sushi Bar
+2024-11-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2024-11-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2024-11-15,Cinemaxx,4106,Leisure,Ben,False,False,False,Cinemaxx
+2024-11-17,"EDEKA 25,97",2597,Groceries,Ben,False,False,False,Edeka
+2024-11-17,H&M,29173,Shopping,Anna,False,False,False,H&M
+2024-11-18,action,3403,Household,Ben,False,False,False,Action
+2024-11-19,JET TANKSTELLE KARTENZAHLUNG,7339,Transport,Ben,False,False,False,Jet Tankstelle
+2024-11-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2024-11-20,CINEMAXX,3690,Leisure,Anna,False,False,False,Cinemaxx
+2024-11-21,norma kartenzahlung,2586,Groceries,Anna,False,False,False,Norma
+2024-11-21,Bowling,3359,Leisure,Ben,False,False,False,Bowling
+2024-11-22,Edeka,1876,Groceries,Ben,False,False,False,Edeka
+2024-11-23,Wochenmarkt Kartenzahlung,4619,Groceries,Anna,False,False,False,Wochenmarkt
+2024-11-23,saturn hamburg,1200,Shopping,Anna,False,False,False,Saturn
+2024-11-24,Kaufland,5693,Groceries,Ben,False,False,False,Kaufland
+2024-11-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2024-11-26,aldi nord nürnberg,22338,Groceries,Anna,False,False,True,Aldi Nord
+2024-11-26,"Biergarten 73,16",7316,Restaurants,Anna,False,False,False,Biergarten
+2024-11-28,Tegut Nürnberg,2871,Groceries,Ben,False,False,False,Tegut
+2024-11-29,VAPIANO KARTENZAHLUNG,7054,Restaurants,Anna,False,False,False,Vapiano
+2024-11-29,DocMorris Nürnberg,2886,Health,Anna,False,False,False,DocMorris
+2024-12-01,Miete Dezember,95000,Rent,Anna,True,False,False,Miete
+2024-12-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2024-12-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2024-12-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2024-12-03,Starbucks,5975,Restaurants,Ben,False,False,False,Starbucks
+2024-12-03,MediaMarkt,2785,Shopping,Anna,False,False,False,MediaMarkt
+2024-12-04,Hornbach,1067,Household,Ben,False,False,False,Hornbach
+2024-12-04,DHL,4328,Other,Ben,False,False,False,DHL
+2024-12-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2024-12-07,Penny,1538,Groceries,Anna,False,False,False,Penny
+2024-12-08,Obi,2782,Household,Anna,False,False,False,Obi
+2024-12-08,Zalando Kartenzahlung,6164,Shopping,Ben,False,False,False,Zalando
+2024-12-09,MediaMarkt Kartenzahlung,6731,Shopping,Anna,False,False,False,MediaMarkt
+2024-12-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2024-12-10,Aldi Nord Kartenzahlung,4359,Groceries,Ben,False,False,False,Aldi Nord
+2024-12-10,Vapiano,1601,Restaurants,Ben,False,False,False,Vapiano
+2024-12-12,Burger King Kartenzahlung,5530,Restaurants,Ben,False,False,False,Burger King
+2024-12-12,db ticket,4492,Transport,Ben,False,False,False,DB Ticket
+2024-12-12,Blumen Köln,3445,Other,Anna,False,False,False,Blumen
+2024-12-13,Eventim Hamburg,2766,Leisure,Ben,False,False,False,Eventim
+2024-12-14,Norma,3384,Groceries,Ben,False,False,False,Norma
+2024-12-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2024-12-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2024-12-15,Lieferando,2872,Restaurants,Ben,False,False,False,Lieferando
+2024-12-15,Aral Kartenzahlung,4022,Transport,Anna,False,False,False,Aral
+2024-12-16,ZALANDO KÖLN,4438,Shopping,Anna,False,False,False,Zalando
+2024-12-17,Wochenmarkt Kartenzahlung,3828,Groceries,Anna,False,False,False,Wochenmarkt
+2024-12-18,ZARA,12231,Shopping,Anna,False,False,False,Zara
+2024-12-19,Bäckerei,3450,Groceries,Anna,False,False,False,Bäckerei
+2024-12-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2024-12-20,Sushi Bar München,6241,Restaurants,Ben,False,False,False,Sushi Bar
+2024-12-20,SATURN KARTENZAHLUNG,10286,Shopping,Anna,False,False,False,Saturn
+2024-12-21,Konzert Nürnberg,3514,Leisure,Ben,False,False,False,Konzert
+2024-12-22,Aldi Nord,2930,Groceries,Ben,False,False,False,Aldi Nord
+2024-12-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2024-12-25,McDonald's,6066,Restaurants,Anna,False,False,False,McDonald's
+2024-12-28,Metzgerei,3112,Groceries,Ben,False,False,False,Metzgerei
+2024-12-30,Edeka,7165,Groceries,Ben,False,False,False,Edeka
+2024-12-31,Globus Kartenzahlung,1041,Groceries,Ben,False,False,False,Globus
+2025-01-01,Miete Januar,95000,Rent,Anna,True,False,False,Miete
+2025-01-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2025-01-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2025-01-01,Tegut,4886,Groceries,Anna,False,False,False,Tegut
+2025-01-01,OPTIKER,1824,Health,Ben,False,False,False,Optiker
+2025-01-02,Aldi Süd Kartenzahlung,4423,Groceries,Anna,False,False,False,Aldi Süd
+2025-01-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2025-01-03,Alnatura Kartenzahlung,3150,Groceries,Ben,False,False,False,Alnatura
+2025-01-04,tegut,3591,Groceries,Anna,False,False,False,Tegut
+2025-01-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2025-01-05,"Lidl 37,87",3787,Groceries,Anna,False,False,False,Lidl
+2025-01-06,Alnatura Kartenzahlung,8796,Groceries,Anna,False,False,False,Alnatura
+2025-01-07,DENNS BIOMARKT KARTENZAHLUNG,10023,Groceries,Ben,False,False,False,Denns Biomarkt
+2025-01-07,Action,1463,Household,Ben,False,False,False,Action
+2025-01-08,"TOTALENERGIES 81,42",8142,Transport,Anna,False,False,False,TotalEnergies
+2025-01-09,Bäckerei,1426,Groceries,Anna,False,False,False,Bäckerei
+2025-01-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2025-01-11,aral,6293,Transport,Anna,False,False,False,Aral
+2025-01-14,Wochenmarkt Kartenzahlung,7607,Groceries,Ben,False,False,False,Wochenmarkt
+2025-01-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2025-01-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2025-01-15,"Deutsche Bahn 119,44",11944,Transport,Ben,False,False,False,Deutsche Bahn
+2025-01-19,"Aldi Nord 37,67",3767,Groceries,Anna,False,False,False,Aldi Nord
+2025-01-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2025-01-22,bauhaus,4205,Household,Ben,False,False,False,Bauhaus
+2025-01-24,Starbucks Kartenzahlung,2800,Restaurants,Ben,False,False,False,Starbucks
+2025-01-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2025-01-25,METZGEREI KARTENZAHLUNG,6770,Groceries,Ben,False,False,False,Metzgerei
+2025-01-25,Lieferando,6809,Restaurants,Ben,False,False,False,Lieferando
+2025-01-25,Konzert Nürnberg,1587,Leisure,Ben,False,False,False,Konzert
+2025-01-25,Geschenk,2535,Other,Ben,False,False,False,Geschenk
+2025-01-26,Starbucks Kartenzahlung,6517,Restaurants,Ben,False,False,False,Starbucks
+2025-01-26,Shell,5761,Transport,Anna,False,False,False,Shell
+2025-01-28,Aldi Süd,4739,Groceries,Ben,False,False,False,Aldi Süd
+2025-01-30,Aldi Süd Kartenzahlung,7222,Groceries,Ben,False,False,False,Aldi Süd
+2025-01-30,Eventim,5788,Leisure,Anna,False,False,False,Eventim
+2025-01-31,Tier Scooter Köln,4150,Transport,Anna,False,False,False,Tier Scooter
+2025-02-01,Miete Februar,95000,Rent,Anna,True,False,False,Miete
+2025-02-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2025-02-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2025-02-01,Globus,2795,Groceries,Ben,False,False,False,Globus
+2025-02-02,Denns Biomarkt,2730,Groceries,Anna,False,False,False,Denns Biomarkt
+2025-02-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2025-02-04,Aldi Nord Kartenzahlung,4328,Groceries,Anna,False,False,False,Aldi Nord
+2025-02-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2025-02-05,"Uber Eats 48,92",4892,Restaurants,Ben,False,False,False,Uber Eats
+2025-02-07,Norma,4696,Groceries,Anna,False,False,False,Norma
+2025-02-07,Konzert,6524,Leisure,Anna,False,False,False,Konzert
+2025-02-09,lidl,3440,Groceries,Ben,False,False,False,Lidl
+2025-02-09,zalando,2697,Shopping,Anna,False,False,False,Zalando
+2025-02-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2025-02-10,Edeka,3437,Groceries,Ben,False,False,False,Edeka
+2025-02-10,Edeka,3437,Groceries,Ben,False,True,False,Edeka
+2025-02-10,TEDI KARTENZAHLUNG,2716,Household,Anna,False,False,False,Tedi
+2025-02-10,"Konzert 18,76",1876,Leisure,Ben,False,False,False,Konzert
+2025-02-11,Apotheke,3729,Health,Anna,False,False,False,Apotheke
+2025-02-12,"Penny 69,53",6953,Groceries,Ben,False,False,False,Penny
+2025-02-12,share now berlin,6315,Transport,Anna,False,False,False,Share Now
+2025-02-13,starbucks,3278,Restaurants,Ben,False,False,False,Starbucks
+2025-02-14,Museum,2025,Leisure,Anna,False,False,False,Museum
+2025-02-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2025-02-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2025-02-15,BÄCKEREI,2494,Groceries,Ben,False,False,False,Bäckerei
+2025-02-15,Thalia,3209,Shopping,Anna,False,False,False,Thalia
+2025-02-16,Obi,3973,Household,Anna,False,False,False,Obi
+2025-02-17,NORMA,5425,Groceries,Anna,False,False,False,Norma
+2025-02-18,Biergarten Berlin,5843,Restaurants,Ben,False,False,False,Biergarten
+2025-02-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2025-02-20,ALNATURA NÜRNBERG,2452,Groceries,Anna,False,False,False,Alnatura
+2025-02-20,Tedi Kartenzahlung,952,Household,Anna,False,False,False,Tedi
+2025-02-20,"Uber Eats 67,49",6749,Restaurants,Ben,False,False,False,Uber Eats
+2025-02-22,Wolt,6355,Restaurants,Anna,False,False,False,Wolt
+2025-02-23,"kino 123,73",12373,Leisure,Anna,False,False,False,Kino
+2025-02-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2025-02-26,GLOBUS,2444,Groceries,Ben,False,False,False,Globus
+2025-02-26,Wolt Nürnberg,6697,Restaurants,Anna,False,False,False,Wolt
+2025-02-27,Jet Tankstelle,3890,Transport,Anna,False,False,False,Jet Tankstelle
+2025-02-28,Aldi Nord Hamburg,5358,Groceries,Ben,False,False,False,Aldi Nord
+2025-03-01,Miete März,95000,Rent,Anna,True,False,False,Miete
+2025-03-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2025-03-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2025-03-01,Schwimmbad Kartenzahlung,5429,Leisure,Anna,False,False,False,Schwimmbad
+2025-03-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2025-03-03,"DHL 22,07",2207,Other,Ben,False,False,False,DHL
+2025-03-04,share now kartenzahlung,1960,Transport,Anna,False,False,False,Share Now
+2025-03-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2025-03-05,Kaufland,4677,Groceries,Anna,False,False,False,Kaufland
+2025-03-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2025-03-10,Edeka,3958,Groceries,Ben,False,False,False,Edeka
+2025-03-11,MCDONALD'S,3179,Restaurants,Ben,False,False,False,McDonald's
+2025-03-12,Metzgerei Hamburg,2105,Groceries,Ben,False,False,False,Metzgerei
+2025-03-14,Bolt Kartenzahlung,2798,Transport,Ben,False,False,False,Bolt
+2025-03-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2025-03-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2025-03-15,"Burger King 52,66",5266,Restaurants,Anna,False,False,False,Burger King
+2025-03-16,Parkhaus,6421,Transport,Ben,False,False,False,Parkhaus
+2025-03-17,"Aral 38,77",3877,Transport,Anna,False,False,False,Aral
+2025-03-18,tegut,2020,Groceries,Anna,False,False,False,Tegut
+2025-03-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2025-03-20,NETTO KARTENZAHLUNG,6346,Groceries,Ben,False,False,False,Netto
+2025-03-21,WOCHENMARKT NÜRNBERG,1469,Groceries,Ben,False,False,False,Wochenmarkt
+2025-03-21,JET TANKSTELLE KARTENZAHLUNG,5495,Transport,Ben,False,False,False,Jet Tankstelle
+2025-03-22,"Döner 43,66",4366,Restaurants,Ben,False,False,False,Döner
+2025-03-23,Denns Biomarkt Kartenzahlung,4462,Groceries,Anna,False,False,False,Denns Biomarkt
+2025-03-24,thalia kartenzahlung,3814,Shopping,Anna,False,False,False,Thalia
+2025-03-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2025-03-25,Ikea Kartenzahlung,1747,Household,Anna,False,False,False,Ikea
+2025-03-27,"Schwimmbad 16,34",1634,Leisure,Ben,False,False,False,Schwimmbad
+2025-03-28,Burger King,5001,Restaurants,Ben,False,False,False,Burger King
+2025-04-01,Miete April,95000,Rent,Anna,True,False,False,Miete
+2025-04-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2025-04-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2025-04-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2025-04-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2025-04-05,Amazon,3686,Shopping,Ben,False,False,False,Amazon
+2025-04-06,Edeka Kartenzahlung,4232,Groceries,Ben,False,False,False,Edeka
+2025-04-06,ACTION KARTENZAHLUNG,3092,Household,Ben,False,False,False,Action
+2025-04-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2025-04-12,Aldi Süd,5660,Groceries,Ben,False,False,False,Aldi Süd
+2025-04-13,Aldi Nord Hamburg,1645,Groceries,Ben,False,False,False,Aldi Nord
+2025-04-14,"Penny 24,03",2403,Groceries,Anna,False,False,False,Penny
+2025-04-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2025-04-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2025-04-15,ALNATURA,3242,Groceries,Ben,False,False,False,Alnatura
+2025-04-16,globus berlin,2013,Groceries,Ben,False,False,False,Globus
+2025-04-17,NORMA HAMBURG,3034,Groceries,Ben,False,False,False,Norma
+2025-04-18,Café,1962,Restaurants,Anna,False,False,False,Café
+2025-04-19,Metzgerei Kartenzahlung,6821,Groceries,Ben,False,False,False,Metzgerei
+2025-04-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2025-04-24,WOCHENMARKT,3884,Groceries,Anna,False,False,False,Wochenmarkt
+2025-04-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2025-04-25,Sushi Bar,1146,Restaurants,Anna,False,False,False,Sushi Bar
+2025-04-28,Wochenmarkt Berlin,2918,Groceries,Anna,False,False,False,Wochenmarkt
+2025-04-28,Jet Tankstelle,6349,Transport,Anna,False,False,False,Jet Tankstelle
+2025-04-29,Globus Kartenzahlung,2880,Groceries,Anna,False,False,False,Globus
+2025-04-30,ALDI NORD,2283,Groceries,Ben,False,False,False,Aldi Nord
+2025-05-01,Miete Mai,95000,Rent,Anna,True,False,False,Miete
+2025-05-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2025-05-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2025-05-02,Metzgerei Köln,6931,Groceries,Ben,False,False,False,Metzgerei
+2025-05-02,PIZZERIA,8416,Restaurants,Anna,False,False,False,Pizzeria
+2025-05-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2025-05-03,Alnatura Kartenzahlung,7285,Groceries,Ben,False,False,False,Alnatura
+2025-05-04,Aldi Süd Berlin,6706,Groceries,Anna,False,False,False,Aldi Süd
+2025-05-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2025-05-07,"Lieferando 54,88",5488,Restaurants,Ben,False,False,False,Lieferando
+2025-05-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2025-05-10,Tegut,5395,Groceries,Ben,False,False,False,Tegut
+2025-05-10,Kino,1346,Leisure,Anna,False,False,False,Kino
+2025-05-12,"Tegut 19,29",1929,Groceries,Anna,False,False,False,Tegut
+2025-05-12,LIEFERANDO KARTENZAHLUNG,3226,Restaurants,Ben,False,False,False,Lieferando
+2025-05-14,Rewe Kartenzahlung,3950,Groceries,Anna,False,False,False,Rewe
+2025-05-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2025-05-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2025-05-17,KAUFLAND KÖLN,10391,Groceries,Ben,False,False,False,Kaufland
+2025-05-17,PIZZERIA,6015,Restaurants,Ben,False,False,False,Pizzeria
+2025-05-17,Geschenk,4414,Other,Ben,False,False,False,Geschenk
+2025-05-19,Globus Nürnberg,4462,Groceries,Anna,False,False,False,Globus
+2025-05-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2025-05-20,Penny,2629,Groceries,Anna,False,False,False,Penny
+2025-05-21,Aldi Nord,2018,Groceries,Ben,False,False,False,Aldi Nord
+2025-05-22,ALDI NORD,6103,Groceries,Anna,False,False,False,Aldi Nord
+2025-05-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2025-05-25,bäckerei,7803,Groceries,Ben,False,False,False,Bäckerei
+2025-05-26,TIER SCOOTER,3175,Transport,Ben,False,False,False,Tier Scooter
+2025-05-27,"MÜLLER DROGERIE 14,98",1498,Household,Anna,False,False,False,Müller Drogerie
+2025-05-28,edeka hamburg,4133,Groceries,Ben,False,False,False,Edeka
+2025-05-29,aldi nord,3179,Groceries,Ben,False,False,False,Aldi Nord
+2025-05-29,burger king,2449,Restaurants,Anna,False,False,False,Burger King
+2025-05-29,"Share Now 93,75",9375,Transport,Anna,False,False,False,Share Now
+2025-05-30,Penny,5678,Groceries,Anna,False,False,False,Penny
+2025-05-30,STARBUCKS,4771,Restaurants,Anna,False,False,False,Starbucks
+2025-05-31,Aldi Süd,3956,Groceries,Anna,False,False,False,Aldi Süd
+2025-05-31,Steam,2671,Leisure,Ben,False,False,False,Steam
+2025-06-01,Miete Juni,95000,Rent,Anna,True,False,False,Miete
+2025-06-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2025-06-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2025-06-01,NORMA HAMBURG,4079,Groceries,Anna,False,False,False,Norma
+2025-06-02,"Museum 43,73",4373,Leisure,Ben,False,False,False,Museum
+2025-06-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2025-06-03,Norma,3439,Groceries,Anna,False,False,False,Norma
+2025-06-03,Vapiano,3917,Restaurants,Anna,False,False,False,Vapiano
+2025-06-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2025-06-06,Metzgerei,3506,Groceries,Anna,False,False,False,Metzgerei
+2025-06-07,Aldi Nord Kartenzahlung,3579,Groceries,Ben,False,False,False,Aldi Nord
+2025-06-09,Decathlon,3812,Shopping,Anna,False,False,False,Decathlon
+2025-06-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2025-06-10,Aldi Süd,2039,Groceries,Anna,False,False,False,Aldi Süd
+2025-06-11,Konzert Köln,1681,Leisure,Ben,False,False,False,Konzert
+2025-06-12,Aral,6441,Transport,Anna,False,False,False,Aral
+2025-06-12,Aral,6441,Transport,Anna,False,True,False,Aral
+2025-06-13,THALIA,7408,Shopping,Anna,False,False,False,Thalia
+2025-06-14,Museum Kartenzahlung,2641,Leisure,Anna,False,False,False,Museum
+2025-06-14,DECATHLON HAMBURG,6747,Shopping,Anna,False,False,False,Decathlon
+2025-06-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2025-06-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2025-06-16,Bäckerei,3820,Groceries,Ben,False,False,False,Bäckerei
+2025-06-16,"Shell 55,46",5546,Transport,Ben,False,False,False,Shell
+2025-06-19,café,2000,Restaurants,Anna,False,False,False,Café
+2025-06-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2025-06-20,Bäckerei,3158,Groceries,Ben,False,False,False,Bäckerei
+2025-06-20,Subway Kartenzahlung,6001,Restaurants,Anna,False,False,False,Subway
+2025-06-21,"KLETTERHALLE 28,45",2845,Leisure,Ben,False,False,False,Kletterhalle
+2025-06-22,globus,5003,Groceries,Ben,False,False,False,Globus
+2025-06-23,"Café 14,95",1495,Restaurants,Ben,False,False,False,Café
+2025-06-24,lieferando,6241,Restaurants,Ben,False,False,False,Lieferando
+2025-06-24,DB Ticket Nürnberg,4638,Transport,Anna,False,False,False,DB Ticket
+2025-06-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2025-06-29,Vapiano,5427,Restaurants,Ben,False,False,False,Vapiano
+2025-06-29,mediamarkt,13574,Shopping,Anna,False,False,False,MediaMarkt
+2025-07-01,Miete Juli,95000,Rent,Anna,True,False,False,Miete
+2025-07-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2025-07-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2025-07-01,Netto,3606,Groceries,Ben,False,False,False,Netto
+2025-07-02,"Penny 36,17",3617,Groceries,Anna,False,False,False,Penny
+2025-07-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2025-07-04,Edeka,9417,Groceries,Ben,False,False,False,Edeka
+2025-07-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2025-07-05,Esso Kartenzahlung,4978,Transport,Anna,False,False,False,Esso
+2025-07-06,"Netto 87,76",8776,Groceries,Ben,False,False,False,Netto
+2025-07-06,"Jet Tankstelle 105,40",10540,Transport,Anna,False,False,False,Jet Tankstelle
+2025-07-07,Globus Hamburg,3881,Groceries,Ben,False,False,False,Globus
+2025-07-08,About You Kartenzahlung,7342,Shopping,Anna,False,False,False,About You
+2025-07-08,Blumen,1625,Other,Anna,False,False,False,Blumen
+2025-07-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2025-07-11,netto,3616,Groceries,Anna,False,False,False,Netto
+2025-07-11,Apotheke,4141,Health,Anna,False,False,False,Apotheke
+2025-07-12,kaufland münchen,3177,Groceries,Anna,False,False,False,Kaufland
+2025-07-12,Pizzeria,1441,Restaurants,Ben,False,False,False,Pizzeria
+2025-07-12,Kino,6347,Leisure,Ben,False,False,False,Kino
+2025-07-13,Aldi Nord Köln,1631,Groceries,Ben,False,False,False,Aldi Nord
+2025-07-14,"subway 68,36",6836,Restaurants,Ben,False,False,False,Subway
+2025-07-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2025-07-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2025-07-15,Schwimmbad,2083,Leisure,Anna,False,False,False,Schwimmbad
+2025-07-17,TEDI HAMBURG,1501,Household,Ben,False,False,False,Tedi
+2025-07-18,BÄCKEREI KARTENZAHLUNG,3022,Groceries,Ben,False,False,False,Bäckerei
+2025-07-18,SUSHI BAR KÖLN,2029,Restaurants,Anna,False,False,False,Sushi Bar
+2025-07-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2025-07-20,Parkhaus,5553,Transport,Ben,False,False,False,Parkhaus
+2025-07-22,"EDEKA 24,44",2444,Groceries,Ben,False,False,False,Edeka
+2025-07-22,Amazon Kartenzahlung,13625,Shopping,Ben,False,False,False,Amazon
+2025-07-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2025-07-28,"pizzeria 61,67",6167,Restaurants,Anna,False,False,False,Pizzeria
+2025-07-30,Museum Köln,4319,Leisure,Ben,False,False,False,Museum
+2025-08-01,Miete August,95000,Rent,Anna,True,False,False,Miete
+2025-08-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2025-08-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2025-08-01,bäckerei,3609,Groceries,Anna,False,False,False,Bäckerei
+2025-08-01,Pizzeria München,3038,Restaurants,Anna,False,False,False,Pizzeria
+2025-08-01,Amazon,998,Shopping,Ben,False,False,False,Amazon
+2025-08-02,Döner Kartenzahlung,5378,Restaurants,Anna,False,False,False,Döner
+2025-08-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2025-08-03,METZGEREI KARTENZAHLUNG,4480,Groceries,Ben,False,False,False,Metzgerei
+2025-08-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2025-08-05,NETTO,8623,Groceries,Anna,False,False,False,Netto
+2025-08-05,"Eventim 68,07",6807,Leisure,Anna,False,False,False,Eventim
+2025-08-07,Airbnb Kartenzahlung,35741,Travel,Anna,False,False,False,Airbnb
+2025-08-08,"Starbucks 51,97",5197,Restaurants,Ben,False,False,False,Starbucks
+2025-08-09,Denns Biomarkt Kartenzahlung,3426,Groceries,Anna,False,False,False,Denns Biomarkt
+2025-08-09,Denns Biomarkt Kartenzahlung,3426,Groceries,Anna,False,True,False,Denns Biomarkt
+2025-08-09,Booking.com,31588,Travel,Anna,False,False,False,Booking.com
+2025-08-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2025-08-11,"Penny 31,25",3125,Groceries,Ben,False,False,False,Penny
+2025-08-11,"Lieferando 35,10",3510,Restaurants,Ben,False,False,False,Lieferando
+2025-08-13,"kaufland 27,19",2719,Groceries,Ben,False,False,False,Kaufland
+2025-08-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2025-08-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2025-08-15,Denns Biomarkt Kartenzahlung,3351,Groceries,Ben,False,False,False,Denns Biomarkt
+2025-08-16,BÄCKEREI KARTENZAHLUNG,3778,Groceries,Ben,False,False,False,Bäckerei
+2025-08-17,"Lidl 76,22",34073,Groceries,Anna,False,False,True,Lidl
+2025-08-17,DB Ticket,4567,Transport,Ben,False,False,False,DB Ticket
+2025-08-17,"Eurowings 211,61",21161,Travel,Anna,False,False,False,Eurowings
+2025-08-18,Aldi Süd Kartenzahlung,3150,Groceries,Anna,False,False,False,Aldi Süd
+2025-08-19,netto,7174,Groceries,Anna,False,False,False,Netto
+2025-08-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2025-08-20,Subway,5868,Restaurants,Anna,False,False,False,Subway
+2025-08-23,Aral,4717,Transport,Ben,False,False,False,Aral
+2025-08-24,Parkhaus,6375,Transport,Anna,False,False,False,Parkhaus
+2025-08-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2025-08-25,Metzgerei München,2665,Groceries,Anna,False,False,False,Metzgerei
+2025-08-26,REWE KARTENZAHLUNG,3553,Groceries,Anna,False,False,False,Rewe
+2025-08-29,Aldi Nord,4890,Groceries,Ben,False,False,False,Aldi Nord
+2025-08-29,"Museum 7,16",716,Leisure,Anna,False,False,False,Museum
+2025-08-30,denns biomarkt kartenzahlung,2041,Groceries,Anna,False,False,False,Denns Biomarkt
+2025-08-31,Kaufland Kartenzahlung,2287,Groceries,Ben,False,False,False,Kaufland
+2025-08-31,Starbucks München,10660,Restaurants,Ben,False,False,False,Starbucks
+2025-08-31,Starbucks München,10660,Restaurants,Ben,False,True,False,Starbucks
+2025-09-01,Miete September,95000,Rent,Anna,True,False,False,Miete
+2025-09-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2025-09-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2025-09-02,Wochenmarkt Kartenzahlung,15672,Groceries,Ben,False,False,False,Wochenmarkt
+2025-09-02,McDonald's Kartenzahlung,2859,Restaurants,Ben,False,False,False,McDonald's
+2025-09-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2025-09-03,Rossmann,1743,Household,Anna,False,False,False,Rossmann
+2025-09-03,AIRBNB MÜNCHEN,31270,Travel,Anna,False,False,False,Airbnb
+2025-09-04,Norma,2736,Groceries,Anna,False,False,False,Norma
+2025-09-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2025-09-05,Metzgerei Kartenzahlung,11415,Groceries,Anna,False,False,False,Metzgerei
+2025-09-05,Metzgerei Kartenzahlung,11415,Groceries,Anna,False,True,False,Metzgerei
+2025-09-07,Penny Berlin,6863,Groceries,Ben,False,False,False,Penny
+2025-09-07,Sushi Bar,3356,Restaurants,Ben,False,False,False,Sushi Bar
+2025-09-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2025-09-10,Wochenmarkt Hamburg,2462,Groceries,Ben,False,False,False,Wochenmarkt
+2025-09-11,Spende,8004,Other,Anna,False,False,False,Spende
+2025-09-14,Globus,7604,Groceries,Ben,False,False,False,Globus
+2025-09-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2025-09-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2025-09-15,Aldi Süd,3430,Groceries,Anna,False,False,False,Aldi Süd
+2025-09-15,TEDI KARTENZAHLUNG,868,Household,Ben,False,False,False,Tedi
+2025-09-16,Lidl,3643,Groceries,Anna,False,False,False,Lidl
+2025-09-16,Obi,1050,Household,Ben,False,False,False,Obi
+2025-09-18,Döner,1825,Restaurants,Anna,False,False,False,Döner
+2025-09-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2025-09-20,Vapiano,3714,Restaurants,Ben,False,False,False,Vapiano
+2025-09-21,"Norma 24,17",2417,Groceries,Ben,False,False,False,Norma
+2025-09-21,dm kartenzahlung,1064,Household,Anna,False,False,False,dm
+2025-09-21,Zara,5535,Shopping,Ben,False,False,False,Zara
+2025-09-22,Lidl,19611,Groceries,Anna,False,False,True,Lidl
+2025-09-22,Fielmann Hamburg,5111,Health,Anna,False,False,False,Fielmann
+2025-09-23,Netto Köln,3351,Groceries,Ben,False,False,False,Netto
+2025-09-24,Aldi Nord,7666,Groceries,Anna,False,False,False,Aldi Nord
+2025-09-24,Aldi Nord,7666,Groceries,Anna,False,True,False,Aldi Nord
+2025-09-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2025-09-25,Aldi Süd,4822,Groceries,Ben,False,False,False,Aldi Süd
+2025-09-25,cinemaxx,1690,Leisure,Ben,False,False,False,Cinemaxx
+2025-09-26,Lidl,2059,Groceries,Ben,False,False,False,Lidl
+2025-09-27,Wolt Kartenzahlung,2458,Restaurants,Ben,False,False,False,Wolt
+2025-09-28,Denns Biomarkt,3417,Groceries,Anna,False,False,False,Denns Biomarkt
+2025-09-29,Parkhaus Nürnberg,2768,Transport,Ben,False,False,False,Parkhaus
+2025-09-29,EVENTIM KARTENZAHLUNG,1833,Leisure,Anna,False,False,False,Eventim
+2025-10-01,Miete Oktober,95000,Rent,Anna,True,False,False,Miete
+2025-10-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2025-10-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2025-10-01,"Sushi Bar 47,77",4777,Restaurants,Anna,False,False,False,Sushi Bar
+2025-10-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2025-10-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2025-10-05,BÄCKEREI KÖLN,6866,Groceries,Anna,False,False,False,Bäckerei
+2025-10-06,Norma Kartenzahlung,5307,Groceries,Anna,False,False,False,Norma
+2025-10-07,DB Ticket Hamburg,3172,Transport,Anna,False,False,False,DB Ticket
+2025-10-08,Wochenmarkt Berlin,4037,Groceries,Anna,False,False,False,Wochenmarkt
+2025-10-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2025-10-10,WOCHENMARKT,2403,Groceries,Ben,False,False,False,Wochenmarkt
+2025-10-10,Uber Hamburg,4801,Transport,Ben,False,False,False,Uber
+2025-10-11,Starbucks München,4758,Restaurants,Anna,False,False,False,Starbucks
+2025-10-13,BOLT,5394,Transport,Anna,False,False,False,Bolt
+2025-10-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2025-10-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2025-10-15,"lieferando 28,94",2894,Restaurants,Ben,False,False,False,Lieferando
+2025-10-15,schwimmbad,2082,Leisure,Ben,False,False,False,Schwimmbad
+2025-10-16,Aldi Süd,4910,Groceries,Ben,False,False,False,Aldi Süd
+2025-10-16,FLIXBUS HAMBURG,7434,Transport,Ben,False,False,False,Flixbus
+2025-10-17,Norma Berlin,3111,Groceries,Ben,False,False,False,Norma
+2025-10-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2025-10-21,Wochenmarkt München,5845,Groceries,Ben,False,False,False,Wochenmarkt
+2025-10-21,Kletterhalle Kartenzahlung,3305,Leisure,Anna,False,False,False,Kletterhalle
+2025-10-23,Norma Hamburg,1258,Groceries,Anna,False,False,False,Norma
+2025-10-23,Burger King Kartenzahlung,8589,Restaurants,Ben,False,False,False,Burger King
+2025-10-24,Edeka Kartenzahlung,35411,Groceries,Anna,False,False,True,Edeka
+2025-10-24,thalia kartenzahlung,3558,Shopping,Ben,False,False,False,Thalia
+2025-10-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2025-10-25,Parkhaus Berlin,4412,Transport,Anna,False,False,False,Parkhaus
+2025-10-26,Rewe,3690,Groceries,Anna,False,False,False,Rewe
+2025-10-26,BIERGARTEN,3036,Restaurants,Ben,False,False,False,Biergarten
+2025-10-27,Denns Biomarkt,7251,Groceries,Anna,False,False,False,Denns Biomarkt
+2025-10-27,STEAM,2122,Leisure,Anna,False,False,False,Steam
+2025-10-27,Optiker,4955,Health,Ben,False,False,False,Optiker
+2025-10-27,"Spende 38,69",3869,Other,Ben,False,False,False,Spende
+2025-10-28,rewe,2966,Groceries,Anna,False,False,False,Rewe
+2025-10-28,dm,2779,Household,Ben,False,False,False,dm
+2025-10-28,shell hamburg,8776,Transport,Ben,False,False,False,Shell
+2025-10-29,Deutsche Bahn,4893,Transport,Anna,False,False,False,Deutsche Bahn
+2025-11-01,Miete November,95000,Rent,Anna,True,False,False,Miete
+2025-11-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2025-11-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2025-11-01,Geschenk Berlin,5191,Other,Anna,False,False,False,Geschenk
+2025-11-02,Apotheke,2317,Health,Ben,False,False,False,Apotheke
+2025-11-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2025-11-03,"Denns Biomarkt 56,00",5600,Groceries,Anna,False,False,False,Denns Biomarkt
+2025-11-04,Globus Köln,1440,Groceries,Anna,False,False,False,Globus
+2025-11-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2025-11-05,"Museum 40,26",4026,Leisure,Ben,False,False,False,Museum
+2025-11-06,TotalEnergies,7249,Transport,Anna,False,False,False,TotalEnergies
+2025-11-06,Zara,3122,Shopping,Ben,False,False,False,Zara
+2025-11-08,Aldi Nord,6154,Groceries,Anna,False,False,False,Aldi Nord
+2025-11-08,"Optiker 22,90",2290,Health,Anna,False,False,False,Optiker
+2025-11-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2025-11-11,EDEKA,11000,Groceries,Ben,False,False,False,Edeka
+2025-11-11,EDEKA,11000,Groceries,Ben,False,True,False,Edeka
+2025-11-12,ALDI SÜD NÜRNBERG,4622,Groceries,Ben,False,False,False,Aldi Süd
+2025-11-13,Globus,3086,Groceries,Anna,False,False,False,Globus
+2025-11-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2025-11-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2025-11-16,TIER SCOOTER KARTENZAHLUNG,6668,Transport,Ben,False,False,False,Tier Scooter
+2025-11-19,Tegut München,5145,Groceries,Anna,False,False,False,Tegut
+2025-11-19,About You,3314,Shopping,Ben,False,False,False,About You
+2025-11-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2025-11-22,Lidl,6580,Groceries,Ben,False,False,False,Lidl
+2025-11-23,Kaufland,2340,Groceries,Ben,False,False,False,Kaufland
+2025-11-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2025-11-25,Parkhaus,2876,Transport,Ben,False,False,False,Parkhaus
+2025-11-27,Norma,4378,Groceries,Anna,False,False,False,Norma
+2025-11-27,CINEMAXX,2198,Leisure,Ben,False,False,False,Cinemaxx
+2025-11-29,Aldi Süd,3896,Groceries,Anna,False,False,False,Aldi Süd
+2025-11-30,dm,1656,Household,Ben,False,False,False,dm
+2025-12-01,Miete Dezember,95000,Rent,Anna,True,False,False,Miete
+2025-12-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2025-12-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2025-12-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2025-12-04,"Rewe 95,49",9549,Groceries,Anna,False,False,False,Rewe
+2025-12-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2025-12-05,Netto Kartenzahlung,1577,Groceries,Anna,False,False,False,Netto
+2025-12-06,Tegut Berlin,2105,Groceries,Ben,False,False,False,Tegut
+2025-12-07,NORMA,5592,Groceries,Anna,False,False,False,Norma
+2025-12-07,NORMA,5592,Groceries,Anna,False,True,False,Norma
+2025-12-08,"Subway 41,59",4159,Restaurants,Anna,False,False,False,Subway
+2025-12-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2025-12-10,Burger King,10176,Restaurants,Ben,False,False,False,Burger King
+2025-12-10,Zalando,3464,Shopping,Ben,False,False,False,Zalando
+2025-12-11,Biergarten Berlin,3294,Restaurants,Ben,False,False,False,Biergarten
+2025-12-13,Globus,4719,Groceries,Anna,False,False,False,Globus
+2025-12-13,Vapiano Kartenzahlung,2973,Restaurants,Anna,False,False,False,Vapiano
+2025-12-13,Konzert Berlin,1645,Leisure,Anna,False,False,False,Konzert
+2025-12-14,Sushi Bar,2030,Restaurants,Anna,False,False,False,Sushi Bar
+2025-12-14,Jet Tankstelle München,3374,Transport,Ben,False,False,False,Jet Tankstelle
+2025-12-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2025-12-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2025-12-15,about you,1971,Shopping,Anna,False,False,False,About You
+2025-12-16,PENNY,5625,Groceries,Anna,False,False,False,Penny
+2025-12-16,"Café 22,95",2295,Restaurants,Anna,False,False,False,Café
+2025-12-17,Share Now,2784,Transport,Anna,False,False,False,Share Now
+2025-12-18,otto hamburg,6765,Shopping,Anna,False,False,False,Otto
+2025-12-19,Bäckerei,4572,Groceries,Anna,False,False,False,Bäckerei
+2025-12-19,"Lieferando 34,70",3470,Restaurants,Ben,False,False,False,Lieferando
+2025-12-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2025-12-20,Wochenmarkt,3732,Groceries,Anna,False,False,False,Wochenmarkt
+2025-12-23,Lieferando Kartenzahlung,6025,Restaurants,Ben,False,False,False,Lieferando
+2025-12-23,"deutsche bahn 38,26",3826,Transport,Ben,False,False,False,Deutsche Bahn
+2025-12-24,"METZGEREI 43,79",4379,Groceries,Ben,False,False,False,Metzgerei
+2025-12-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2025-12-26,Tedi Hamburg,1768,Household,Ben,False,False,False,Tedi
+2025-12-26,"Biergarten 68,25",6825,Restaurants,Anna,False,False,False,Biergarten
+2025-12-27,Vapiano,2530,Restaurants,Anna,False,False,False,Vapiano
+2025-12-28,ALDI SÜD KARTENZAHLUNG,2345,Groceries,Ben,False,False,False,Aldi Süd
+2025-12-28,"Burger King 71,91",7191,Restaurants,Anna,False,False,False,Burger King
+2025-12-29,Aldi Nord Nürnberg,2592,Groceries,Ben,False,False,False,Aldi Nord
+2025-12-30,Denns Biomarkt,5631,Groceries,Anna,False,False,False,Denns Biomarkt
+2025-12-31,vapiano,3083,Restaurants,Anna,False,False,False,Vapiano
+2026-01-01,Miete Januar,95000,Rent,Anna,True,False,False,Miete
+2026-01-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2026-01-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2026-01-02,Norma,5928,Groceries,Ben,False,False,False,Norma
+2026-01-02,Döner Kartenzahlung,3011,Restaurants,Ben,False,False,False,Döner
+2026-01-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2026-01-03,Globus Kartenzahlung,5899,Groceries,Ben,False,False,False,Globus
+2026-01-03,DB Ticket Nürnberg,4734,Transport,Ben,False,False,False,DB Ticket
+2026-01-03,Otto,8989,Shopping,Anna,False,False,False,Otto
+2026-01-03,"Optiker 17,77",1777,Health,Ben,False,False,False,Optiker
+2026-01-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2026-01-05,Subway,1079,Restaurants,Ben,False,False,False,Subway
+2026-01-05,JET TANKSTELLE,3938,Transport,Ben,False,False,False,Jet Tankstelle
+2026-01-06,VAPIANO,2514,Restaurants,Ben,False,False,False,Vapiano
+2026-01-07,wochenmarkt münchen,3525,Groceries,Ben,False,False,False,Wochenmarkt
+2026-01-08,Denns Biomarkt,2222,Groceries,Ben,False,False,False,Denns Biomarkt
+2026-01-09,Tegut Nürnberg,5884,Groceries,Anna,False,False,False,Tegut
+2026-01-09,dm,776,Household,Ben,False,False,False,dm
+2026-01-09,DÖNER HAMBURG,3413,Restaurants,Ben,False,False,False,Döner
+2026-01-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2026-01-10,"Metzgerei 26,63",2663,Groceries,Anna,False,False,False,Metzgerei
+2026-01-10,biergarten,6326,Restaurants,Ben,False,False,False,Biergarten
+2026-01-11,"Netto 44,49",4449,Groceries,Anna,False,False,False,Netto
+2026-01-12,Burger King München,2599,Restaurants,Anna,False,False,False,Burger King
+2026-01-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2026-01-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2026-01-15,Rossmann,1704,Household,Anna,False,False,False,Rossmann
+2026-01-16,Netto,2240,Groceries,Anna,False,False,False,Netto
+2026-01-16,"TotalEnergies 57,36",5736,Transport,Anna,False,False,False,TotalEnergies
+2026-01-17,Alnatura,7468,Groceries,Anna,False,False,False,Alnatura
+2026-01-17,subway,1572,Restaurants,Anna,False,False,False,Subway
+2026-01-17,"Zahnarzt 16,21",1621,Health,Anna,False,False,False,Zahnarzt
+2026-01-18,alnatura köln,1237,Groceries,Anna,False,False,False,Alnatura
+2026-01-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2026-01-20,Friseur Nürnberg,1445,Other,Anna,False,False,False,Friseur
+2026-01-21,Denns Biomarkt Nürnberg,1957,Groceries,Anna,False,False,False,Denns Biomarkt
+2026-01-21,Hornbach,2821,Household,Ben,False,False,False,Hornbach
+2026-01-23,Pizzeria,3914,Restaurants,Anna,False,False,False,Pizzeria
+2026-01-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2026-01-25,Café München,1536,Restaurants,Ben,False,False,False,Café
+2026-01-25,"Playstation Store 52,73",5273,Leisure,Anna,False,False,False,Playstation Store
+2026-01-26,Metzgerei Nürnberg,2723,Groceries,Anna,False,False,False,Metzgerei
+2026-01-27,ALNATURA,9159,Groceries,Ben,False,False,True,Alnatura
+2026-01-27,MediaMarkt Kartenzahlung,5094,Shopping,Anna,False,False,False,MediaMarkt
+2026-01-28,Hornbach Kartenzahlung,2594,Household,Ben,False,False,False,Hornbach
+2026-01-28,Uber Eats Nürnberg,3785,Restaurants,Anna,False,False,False,Uber Eats
+2026-01-29,tegut,3877,Groceries,Anna,False,False,False,Tegut
+2026-01-29,Eventim Kartenzahlung,5512,Leisure,Anna,False,False,False,Eventim
+2026-01-30,Wolt Kartenzahlung,4150,Restaurants,Ben,False,False,False,Wolt
+2026-01-31,metzgerei,2849,Groceries,Ben,False,False,False,Metzgerei
+2026-01-31,JET TANKSTELLE,2564,Transport,Anna,False,False,False,Jet Tankstelle
+2026-02-01,Miete Februar,95000,Rent,Anna,True,False,False,Miete
+2026-02-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2026-02-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2026-02-02,Tegut Köln,9157,Groceries,Ben,False,False,False,Tegut
+2026-02-02,"mediamarkt 62,09",6209,Shopping,Anna,False,False,False,MediaMarkt
+2026-02-02,Spende,3093,Other,Ben,False,False,False,Spende
+2026-02-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2026-02-04,norma berlin,3233,Groceries,Anna,False,False,False,Norma
+2026-02-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2026-02-05,WOCHENMARKT,4156,Groceries,Ben,False,False,False,Wochenmarkt
+2026-02-05,McDonald's Köln,6206,Restaurants,Ben,False,False,False,McDonald's
+2026-02-07,Aldi Nord Kartenzahlung,38457,Groceries,Ben,False,False,True,Aldi Nord
+2026-02-07,HORNBACH,1593,Household,Anna,False,False,False,Hornbach
+2026-02-08,Biergarten München,4675,Restaurants,Anna,False,False,False,Biergarten
+2026-02-09,"Pizzeria 23,71",2371,Restaurants,Anna,False,False,False,Pizzeria
+2026-02-09,bolt,6111,Transport,Anna,False,False,False,Bolt
+2026-02-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2026-02-12,Penny,5704,Groceries,Ben,False,False,False,Penny
+2026-02-12,"OTTO 15,21",1521,Shopping,Anna,False,False,False,Otto
+2026-02-13,Metzgerei Hamburg,3306,Groceries,Anna,False,False,False,Metzgerei
+2026-02-14,ALNATURA KARTENZAHLUNG,1698,Groceries,Ben,False,False,False,Alnatura
+2026-02-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2026-02-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2026-02-15,Edeka,1822,Groceries,Ben,False,False,False,Edeka
+2026-02-17,Döner,3263,Restaurants,Anna,False,False,False,Döner
+2026-02-18,Norma Kartenzahlung,6657,Groceries,Anna,False,False,False,Norma
+2026-02-19,Norma,3865,Groceries,Ben,False,False,False,Norma
+2026-02-19,"Obi 20,58",2058,Household,Ben,False,False,False,Obi
+2026-02-19,Uber Eats,3981,Restaurants,Anna,False,False,False,Uber Eats
+2026-02-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2026-02-20,müller drogerie berlin,1363,Household,Ben,False,False,False,Müller Drogerie
+2026-02-20,müller drogerie berlin,1363,Household,Ben,False,True,False,Müller Drogerie
+2026-02-20,Museum,2053,Leisure,Anna,False,False,False,Museum
+2026-02-21,"Kino 13,17",1317,Leisure,Ben,False,False,False,Kino
+2026-02-22,Tegut,6837,Groceries,Ben,False,False,False,Tegut
+2026-02-22,DocMorris,883,Health,Ben,False,False,False,DocMorris
+2026-02-23,"TEGUT 29,01",2901,Groceries,Anna,False,False,False,Tegut
+2026-02-24,Schwimmbad Hamburg,8391,Leisure,Anna,False,False,False,Schwimmbad
+2026-02-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2026-02-27,rewe,1822,Groceries,Anna,False,False,False,Rewe
+2026-02-27,"Café 27,10",2710,Restaurants,Ben,False,False,False,Café
+2026-02-28,"Norma 132,79",13279,Groceries,Anna,False,False,False,Norma
+2026-02-28,Rossmann,3517,Household,Ben,False,False,False,Rossmann
+2026-03-01,Miete März,95000,Rent,Anna,True,False,False,Miete
+2026-03-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2026-03-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2026-03-01,DENNS BIOMARKT,20815,Groceries,Anna,False,False,True,Denns Biomarkt
+2026-03-01,"Otto 19,31",1931,Shopping,Ben,False,False,False,Otto
+2026-03-02,wochenmarkt,3935,Groceries,Anna,False,False,False,Wochenmarkt
+2026-03-02,steam kartenzahlung,2141,Leisure,Ben,False,False,False,Steam
+2026-03-02,Thalia Köln,13408,Shopping,Ben,False,False,False,Thalia
+2026-03-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2026-03-03,Amazon Nürnberg,5250,Shopping,Anna,False,False,False,Amazon
+2026-03-04,"BÄCKEREI 22,66",2266,Groceries,Ben,False,False,False,Bäckerei
+2026-03-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2026-03-06,Lieferando,2542,Restaurants,Anna,False,False,False,Lieferando
+2026-03-07,Alnatura,641,Groceries,Anna,False,False,False,Alnatura
+2026-03-07,SHELL,3234,Transport,Anna,False,False,False,Shell
+2026-03-08,"Lidl 50,46",5046,Groceries,Anna,False,False,False,Lidl
+2026-03-09,Shell,4417,Transport,Ben,False,False,False,Shell
+2026-03-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2026-03-10,Lidl,2895,Groceries,Ben,False,False,False,Lidl
+2026-03-10,starbucks münchen,2930,Restaurants,Anna,False,False,False,Starbucks
+2026-03-10,"db ticket 34,49",3449,Transport,Ben,False,False,False,DB Ticket
+2026-03-12,DENNS BIOMARKT,6940,Groceries,Anna,False,False,False,Denns Biomarkt
+2026-03-12,Playstation Store,1578,Leisure,Ben,False,False,False,Playstation Store
+2026-03-13,Café Hamburg,2348,Restaurants,Ben,False,False,False,Café
+2026-03-14,lidl kartenzahlung,2530,Groceries,Anna,False,False,False,Lidl
+2026-03-14,about you kartenzahlung,13191,Shopping,Ben,False,False,False,About You
+2026-03-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2026-03-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2026-03-15,Alnatura,2328,Groceries,Anna,False,False,False,Alnatura
+2026-03-15,DB Ticket,8223,Transport,Anna,False,False,False,DB Ticket
+2026-03-17,Burger King,6487,Restaurants,Ben,False,False,False,Burger King
+2026-03-19,LIEFERANDO KÖLN,2911,Restaurants,Anna,False,False,False,Lieferando
+2026-03-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2026-03-20,Obi,2370,Household,Anna,False,False,False,Obi
+2026-03-20,Subway Berlin,6238,Restaurants,Ben,False,False,False,Subway
+2026-03-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2026-03-25,TEDI KARTENZAHLUNG,1343,Household,Anna,False,False,False,Tedi
+2026-03-27,Aldi Süd,3309,Groceries,Ben,False,False,False,Aldi Süd
+2026-03-27,Esso,4768,Transport,Anna,False,False,False,Esso
+2026-03-27,KINO,5331,Leisure,Anna,False,False,False,Kino
+2026-03-28,Kaufland Nürnberg,4856,Groceries,Ben,False,False,False,Kaufland
+2026-03-28,Amazon Hamburg,15288,Shopping,Anna,False,False,False,Amazon
+2026-03-29,Tegut Kartenzahlung,1664,Groceries,Anna,False,False,False,Tegut
+2026-03-30,Bäckerei Kartenzahlung,2828,Groceries,Anna,False,False,False,Bäckerei
+2026-03-30,"Bauhaus 30,41",3041,Household,Anna,False,False,False,Bauhaus
+2026-03-30,Playstation Store Kartenzahlung,2269,Leisure,Ben,False,False,False,Playstation Store
+2026-04-01,Miete April,95000,Rent,Anna,True,False,False,Miete
+2026-04-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2026-04-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2026-04-01,Netto Nürnberg,3017,Groceries,Anna,False,False,False,Netto
+2026-04-01,Burger King,2886,Restaurants,Ben,False,False,False,Burger King
+2026-04-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2026-04-03,Rewe,6175,Groceries,Anna,False,False,False,Rewe
+2026-04-03,pizzeria,1936,Restaurants,Ben,False,False,False,Pizzeria
+2026-04-04,Sushi Bar,8540,Restaurants,Anna,False,False,False,Sushi Bar
+2026-04-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2026-04-05,Aldi Süd,17103,Groceries,Anna,False,False,True,Aldi Süd
+2026-04-05,Decathlon,14069,Shopping,Anna,False,False,False,Decathlon
+2026-04-06,globus köln,3297,Groceries,Ben,False,False,False,Globus
+2026-04-06,Deutsche Bahn Kartenzahlung,5379,Transport,Ben,False,False,False,Deutsche Bahn
+2026-04-07,Lieferando,3606,Restaurants,Anna,False,False,False,Lieferando
+2026-04-08,Kaufland,3798,Groceries,Anna,False,False,False,Kaufland
+2026-04-09,"Globus 48,25",4825,Groceries,Anna,False,False,False,Globus
+2026-04-09,MEDIAMARKT KÖLN,3372,Shopping,Ben,False,False,False,MediaMarkt
+2026-04-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2026-04-10,Denns Biomarkt Köln,2139,Groceries,Anna,False,False,False,Denns Biomarkt
+2026-04-11,"lidl 41,18",4118,Groceries,Ben,False,False,False,Lidl
+2026-04-11,H&M,3203,Shopping,Ben,False,False,False,H&M
+2026-04-12,Alnatura,3222,Groceries,Anna,False,False,False,Alnatura
+2026-04-12,Action Kartenzahlung,2760,Household,Anna,False,False,False,Action
+2026-04-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2026-04-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2026-04-15,about you,9651,Shopping,Anna,False,False,False,About You
+2026-04-17,Norma,3913,Groceries,Anna,False,False,False,Norma
+2026-04-18,Zara,13307,Shopping,Ben,False,False,False,Zara
+2026-04-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2026-04-20,Metzgerei,9298,Groceries,Anna,False,False,False,Metzgerei
+2026-04-23,ALNATURA,3816,Groceries,Ben,False,False,False,Alnatura
+2026-04-24,McDonald's Kartenzahlung,2765,Restaurants,Ben,False,False,False,McDonald's
+2026-04-24,Eventim,3489,Leisure,Ben,False,False,False,Eventim
+2026-04-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2026-04-25,Optiker,2151,Health,Ben,False,False,False,Optiker
+2026-04-26,müller drogerie hamburg,767,Household,Anna,False,False,False,Müller Drogerie
+2026-04-27,netto köln,1099,Groceries,Ben,False,False,False,Netto
+2026-04-27,"Wolt 80,74",8074,Restaurants,Ben,False,False,False,Wolt
+2026-04-28,Rewe Kartenzahlung,8285,Groceries,Anna,False,False,False,Rewe
+2026-04-29,Obi Kartenzahlung,1172,Household,Ben,False,False,False,Obi
+2026-04-29,"sushi bar 60,89",6089,Restaurants,Ben,False,False,False,Sushi Bar
+2026-04-29,deutsche bahn,7258,Transport,Anna,False,False,False,Deutsche Bahn
+2026-04-29,optiker köln,7006,Health,Anna,False,False,False,Optiker
+2026-05-01,Miete Mai,95000,Rent,Anna,True,False,False,Miete
+2026-05-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2026-05-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2026-05-01,Lieferando,3744,Restaurants,Ben,False,False,False,Lieferando
+2026-05-02,Aldi Süd,2210,Groceries,Ben,False,False,False,Aldi Süd
+2026-05-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2026-05-03,döner,4006,Restaurants,Anna,False,False,False,Döner
+2026-05-04,Starbucks,3645,Restaurants,Ben,False,False,False,Starbucks
+2026-05-04,Steam München,6979,Leisure,Anna,False,False,False,Steam
+2026-05-04,"Apotheke 23,08",2308,Health,Ben,False,False,False,Apotheke
+2026-05-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2026-05-06,"Aldi Süd 23,37",2337,Groceries,Anna,False,False,False,Aldi Süd
+2026-05-08,kaufland,3413,Groceries,Anna,False,False,False,Kaufland
+2026-05-09,Uber Eats,3418,Restaurants,Anna,False,False,False,Uber Eats
+2026-05-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2026-05-10,globus,4287,Groceries,Anna,False,False,False,Globus
+2026-05-10,Obi,2401,Household,Ben,False,False,False,Obi
+2026-05-11,Aldi Nord Kartenzahlung,1955,Groceries,Ben,False,False,False,Aldi Nord
+2026-05-13,Tegut,1719,Groceries,Anna,False,False,False,Tegut
+2026-05-13,obi münchen,884,Household,Ben,False,False,False,Obi
+2026-05-13,"FLIXBUS 88,77",8877,Transport,Ben,False,False,False,Flixbus
+2026-05-13,"FLIXBUS 88,77",8877,Transport,Ben,False,True,False,Flixbus
+2026-05-14,Rewe,2780,Groceries,Anna,False,False,False,Rewe
+2026-05-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2026-05-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2026-05-15,METZGEREI,3609,Groceries,Anna,False,False,False,Metzgerei
+2026-05-15,Döner Kartenzahlung,4283,Restaurants,Anna,False,False,False,Döner
+2026-05-15,eventim,2766,Leisure,Anna,False,False,False,Eventim
+2026-05-17,Metzgerei,2480,Groceries,Anna,False,False,False,Metzgerei
+2026-05-18,"lidl 32,64",3264,Groceries,Anna,False,False,False,Lidl
+2026-05-18,"Action 15,97",1597,Household,Ben,False,False,False,Action
+2026-05-19,Penny,5867,Groceries,Ben,False,False,False,Penny
+2026-05-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2026-05-20,"Alnatura 30,10",3010,Groceries,Anna,False,False,False,Alnatura
+2026-05-20,Friseur Nürnberg,2908,Other,Anna,False,False,False,Friseur
+2026-05-22,"WOCHENMARKT 18,63",1863,Groceries,Ben,False,False,False,Wochenmarkt
+2026-05-22,Apotheke,2817,Health,Ben,False,False,False,Apotheke
+2026-05-23,lidl,6308,Groceries,Anna,False,False,False,Lidl
+2026-05-23,Bowling Köln,4544,Leisure,Anna,False,False,False,Bowling
+2026-05-24,globus,8203,Groceries,Ben,False,False,False,Globus
+2026-05-24,"Pizzeria 91,08",9108,Restaurants,Anna,False,False,False,Pizzeria
+2026-05-24,Uber,7062,Transport,Ben,False,False,False,Uber
+2026-05-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2026-05-26,LIDL,1802,Groceries,Ben,False,False,False,Lidl
+2026-05-27,Globus,4674,Groceries,Ben,False,False,False,Globus
+2026-05-29,vapiano kartenzahlung,3393,Restaurants,Ben,False,False,False,Vapiano
+2026-05-30,db ticket münchen,5512,Transport,Ben,False,False,False,DB Ticket
+2026-06-01,Miete Juni,95000,Rent,Anna,True,False,False,Miete
+2026-06-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2026-06-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2026-06-02,"Netto 53,86",5386,Groceries,Anna,False,False,False,Netto
+2026-06-02,kino kartenzahlung,4268,Leisure,Ben,False,False,False,Kino
+2026-06-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2026-06-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2026-06-05,"Metzgerei 49,10",4910,Groceries,Ben,False,False,False,Metzgerei
+2026-06-05,Obi,1772,Household,Anna,False,False,False,Obi
+2026-06-05,"flixbus 64,97",6497,Transport,Anna,False,False,False,Flixbus
+2026-06-08,Lidl,3004,Groceries,Anna,False,False,False,Lidl
+2026-06-08,Vapiano,3806,Restaurants,Ben,False,False,False,Vapiano
+2026-06-08,Saturn Hamburg,2020,Shopping,Anna,False,False,False,Saturn
+2026-06-09,Tier Scooter Kartenzahlung,5648,Transport,Ben,False,False,False,Tier Scooter
+2026-06-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2026-06-10,Cinemaxx,6004,Leisure,Anna,False,False,False,Cinemaxx
+2026-06-10,"MediaMarkt 22,06",2206,Shopping,Anna,False,False,False,MediaMarkt
+2026-06-11,LIDL,2847,Groceries,Anna,False,False,False,Lidl
+2026-06-13,edeka,2520,Groceries,Anna,False,False,False,Edeka
+2026-06-13,Cinemaxx Kartenzahlung,3555,Leisure,Anna,False,False,False,Cinemaxx
+2026-06-13,"Eurowings 158,85",15885,Travel,Ben,False,False,False,Eurowings
+2026-06-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2026-06-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2026-06-15,Netto,11981,Groceries,Ben,False,False,False,Netto
+2026-06-19,Cinemaxx,4574,Leisure,Ben,False,False,False,Cinemaxx
+2026-06-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2026-06-20,Aral,5303,Transport,Ben,False,False,False,Aral
+2026-06-22,"Alnatura 70,80",7080,Groceries,Ben,False,False,False,Alnatura
+2026-06-24,Tier Scooter,4157,Transport,Anna,False,False,False,Tier Scooter
+2026-06-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2026-06-29,Netto,3348,Groceries,Ben,False,False,False,Netto
+2026-06-30,Bäckerei,5652,Groceries,Anna,False,False,False,Bäckerei
+2026-06-30,Playstation Store Kartenzahlung,2091,Leisure,Ben,False,False,False,Playstation Store
+2026-06-30,MediaMarkt,6080,Shopping,Ben,False,False,False,MediaMarkt
+2026-07-01,Miete Juli,95000,Rent,Anna,True,False,False,Miete
+2026-07-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2026-07-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2026-07-01,Bäckerei,7878,Groceries,Ben,False,False,False,Bäckerei
+2026-07-01,ikea,1714,Household,Anna,False,False,False,Ikea
+2026-07-02,Lidl,2180,Groceries,Ben,False,False,False,Lidl
+2026-07-02,Physiotherapie,2869,Health,Ben,False,False,False,Physiotherapie
+2026-07-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2026-07-03,Aldi Süd Hamburg,2537,Groceries,Anna,False,False,False,Aldi Süd
+2026-07-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2026-07-05,NETTO,3997,Groceries,Anna,False,False,False,Netto
+2026-07-05,Vapiano,2938,Restaurants,Ben,False,False,False,Vapiano
+2026-07-05,"Deutsche Bahn 66,39",6639,Transport,Ben,False,False,False,Deutsche Bahn
+2026-07-06,Globus,7924,Groceries,Anna,False,False,False,Globus
+2026-07-07,"Alnatura 38,09",3809,Groceries,Ben,False,False,False,Alnatura
+2026-07-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2026-07-11,WOLT,3446,Restaurants,Anna,False,False,False,Wolt
+2026-07-14,edeka kartenzahlung,13857,Groceries,Anna,False,False,False,Edeka
+2026-07-14,ZARA KARTENZAHLUNG,40720,Shopping,Ben,False,False,False,Zara
+2026-07-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2026-07-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2026-07-15,dhl,1848,Other,Anna,False,False,False,DHL
+2026-07-18,metzgerei,3539,Groceries,Anna,False,False,False,Metzgerei
+2026-07-18,Subway Hamburg,2614,Restaurants,Anna,False,False,False,Subway
+2026-07-19,AIRBNB,40338,Travel,Anna,False,False,False,Airbnb
+2026-07-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2026-07-20,Share Now,6929,Transport,Ben,False,False,False,Share Now
+2026-07-21,AIRBNB KARTENZAHLUNG,281197,Travel,Anna,False,False,True,Airbnb
+2026-07-23,Aldi Nord,4518,Groceries,Ben,False,False,False,Aldi Nord
+2026-07-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2026-07-25,PHYSIOTHERAPIE,2729,Health,Ben,False,False,False,Physiotherapie
+2026-07-27,Wochenmarkt Köln,3385,Groceries,Ben,False,False,False,Wochenmarkt
+2026-07-28,"kaufland 75,41",7541,Groceries,Anna,False,False,False,Kaufland
+2026-07-30,Lidl,5654,Groceries,Anna,False,False,False,Lidl
+2026-07-30,FLIXBUS KARTENZAHLUNG,8330,Transport,Ben,False,False,False,Flixbus
+2026-07-30,Fielmann,3263,Health,Anna,False,False,False,Fielmann
+2026-07-31,rewe,2585,Groceries,Anna,False,False,False,Rewe
+2026-07-31,Döner,5336,Restaurants,Ben,False,False,False,Döner
+2026-08-01,Miete August,95000,Rent,Anna,True,False,False,Miete
+2026-08-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2026-08-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2026-08-01,"Lidl 69,13",6913,Groceries,Anna,False,False,False,Lidl
+2026-08-01,Biergarten Kartenzahlung,3793,Restaurants,Ben,False,False,False,Biergarten
+2026-08-02,uber eats,2387,Restaurants,Anna,False,False,False,Uber Eats
+2026-08-02,bolt,9323,Transport,Anna,False,False,False,Bolt
+2026-08-02,Decathlon,3970,Shopping,Ben,False,False,False,Decathlon
+2026-08-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2026-08-03,Alnatura,14817,Groceries,Ben,False,False,False,Alnatura
+2026-08-03,Alnatura,14817,Groceries,Ben,False,True,False,Alnatura
+2026-08-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2026-08-08,STARBUCKS,6470,Restaurants,Ben,False,False,False,Starbucks
+2026-08-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2026-08-11,"Aldi Süd 24,05",2405,Groceries,Ben,False,False,False,Aldi Süd
+2026-08-11,SHARE NOW,6300,Transport,Anna,False,False,False,Share Now
+2026-08-14,Edeka Kartenzahlung,3709,Groceries,Anna,False,False,False,Edeka
+2026-08-14,Share Now,4014,Transport,Anna,False,False,False,Share Now
+2026-08-14,"kino 21,18",2118,Leisure,Anna,False,False,False,Kino
+2026-08-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2026-08-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2026-08-17,"Sushi Bar 48,27",4827,Restaurants,Ben,False,False,False,Sushi Bar
+2026-08-17,Friseur,870,Other,Anna,False,False,False,Friseur
+2026-08-19,Action,1784,Household,Ben,False,False,False,Action
+2026-08-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2026-08-20,"Aldi Nord 27,53",2753,Groceries,Ben,False,False,False,Aldi Nord
+2026-08-21,Wochenmarkt München,2867,Groceries,Ben,False,False,False,Wochenmarkt
+2026-08-22,Wochenmarkt,3449,Groceries,Anna,False,False,False,Wochenmarkt
+2026-08-23,Alnatura Köln,8123,Groceries,Ben,False,False,False,Alnatura
+2026-08-23,obi,688,Household,Ben,False,False,False,Obi
+2026-08-23,Apotheke,2278,Health,Ben,False,False,False,Apotheke
+2026-08-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2026-08-27,Tier Scooter Kartenzahlung,5202,Transport,Anna,False,False,False,Tier Scooter
+2026-08-28,"Kaufland 53,19",5319,Groceries,Anna,False,False,False,Kaufland
+2026-08-29,TEGUT,2956,Groceries,Ben,False,False,False,Tegut
+2026-08-29,"steam 35,72",3572,Leisure,Ben,False,False,False,Steam
+2026-08-30,Rewe,2315,Groceries,Anna,False,False,False,Rewe
+2026-08-30,APOTHEKE,1268,Health,Anna,False,False,False,Apotheke
+2026-08-31,ALNATURA,3607,Groceries,Anna,False,False,False,Alnatura
+2026-09-01,Miete September,95000,Rent,Anna,True,False,False,Miete
+2026-09-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2026-09-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2026-09-01,denns biomarkt,3733,Groceries,Ben,False,False,False,Denns Biomarkt
+2026-09-01,starbucks kartenzahlung,2340,Restaurants,Anna,False,False,False,Starbucks
+2026-09-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2026-09-04,Aldi Süd,4283,Groceries,Ben,False,False,False,Aldi Süd
+2026-09-04,DB Ticket,3822,Transport,Ben,False,False,False,DB Ticket
+2026-09-04,DB Ticket,3822,Transport,Ben,False,True,False,DB Ticket
+2026-09-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2026-09-05,Aldi Süd Kartenzahlung,3370,Groceries,Ben,False,False,False,Aldi Süd
+2026-09-06,globus kartenzahlung,7453,Groceries,Anna,False,False,False,Globus
+2026-09-07,sushi bar münchen,3738,Restaurants,Ben,False,False,False,Sushi Bar
+2026-09-08,APOTHEKE,1671,Health,Ben,False,False,False,Apotheke
+2026-09-09,Alnatura Kartenzahlung,7522,Groceries,Anna,False,False,False,Alnatura
+2026-09-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2026-09-10,Penny,5792,Groceries,Anna,False,False,False,Penny
+2026-09-11,norma,2139,Groceries,Ben,False,False,False,Norma
+2026-09-12,METZGEREI,4117,Groceries,Anna,False,False,False,Metzgerei
+2026-09-14,"BOLT 32,07",3207,Transport,Anna,False,False,False,Bolt
+2026-09-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2026-09-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2026-09-16,NORMA,5413,Groceries,Ben,False,False,False,Norma
+2026-09-17,cinemaxx kartenzahlung,4753,Leisure,Ben,False,False,False,Cinemaxx
+2026-09-18,Netto,4147,Groceries,Ben,False,False,False,Netto
+2026-09-18,Bolt München,7777,Transport,Anna,False,False,False,Bolt
+2026-09-19,TotalEnergies,92858,Transport,Anna,False,False,True,TotalEnergies
+2026-09-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2026-09-20,Tegut,4986,Groceries,Anna,False,False,False,Tegut
+2026-09-20,"Starbucks 23,34",2334,Restaurants,Ben,False,False,False,Starbucks
+2026-09-22,LIDL,10084,Groceries,Ben,False,False,False,Lidl
+2026-09-24,"McDonald's 36,81",3681,Restaurants,Anna,False,False,False,McDonald's
+2026-09-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2026-09-26,Rossmann,2670,Household,Ben,False,False,False,Rossmann
+2026-09-26,Konzert,3398,Leisure,Anna,False,False,False,Konzert
+2026-09-27,"Parkhaus 72,49",7249,Transport,Anna,False,False,False,Parkhaus
+2026-10-01,Miete Oktober,95000,Rent,Anna,True,False,False,Miete
+2026-10-01,Haftpflichtversicherung,650,Insurance,Ben,True,False,False,Haftpflichtversicherung
+2026-10-01,Hausratversicherung,900,Insurance,Anna,True,False,False,Hausratversicherung
+2026-10-01,Lidl Kartenzahlung,3255,Groceries,Ben,False,False,False,Lidl
+2026-10-01,FRISEUR,4449,Other,Anna,False,False,False,Friseur
+2026-10-02,Aldi Nord,1464,Groceries,Ben,False,False,False,Aldi Nord
+2026-10-02,Biergarten,2509,Restaurants,Ben,False,False,False,Biergarten
+2026-10-03,Fitnessstudio,2990,Leisure,Ben,True,False,False,Fitnessstudio
+2026-10-03,Konzert Kartenzahlung,2085,Leisure,Anna,False,False,False,Konzert
+2026-10-04,penny,5486,Groceries,Ben,False,False,False,Penny
+2026-10-05,Telekom Internet,3995,Utilities,Anna,True,False,False,Telekom Internet
+2026-10-06,Steam,4581,Leisure,Ben,False,False,False,Steam
+2026-10-06,Otto,2744,Shopping,Ben,False,False,False,Otto
+2026-10-06,Post,968,Other,Anna,False,False,False,Post
+2026-10-07,Aldi Süd,3320,Groceries,Ben,False,False,False,Aldi Süd
+2026-10-09,"kino 16,89",1689,Leisure,Anna,False,False,False,Kino
+2026-10-10,Netflix,1399,Subscriptions,Ben,True,False,False,Netflix
+2026-10-11,Aldi Süd München,3798,Groceries,Anna,False,False,False,Aldi Süd
+2026-10-15,Stadtwerke Strom,8500,Utilities,Anna,True,False,False,Stadtwerke Strom
+2026-10-15,Stadtwerke Gas,6500,Utilities,Ben,True,False,False,Stadtwerke Gas
+2026-10-15,"Café 48,22",4822,Restaurants,Anna,False,False,False,Café
+2026-10-16,NORMA MÜNCHEN,4546,Groceries,Anna,False,False,False,Norma
+2026-10-16,Subway,2893,Restaurants,Ben,False,False,False,Subway
+2026-10-16,STEAM,2730,Leisure,Ben,False,False,False,Steam
+2026-10-16,STEAM,2730,Leisure,Ben,False,True,False,Steam
+2026-10-18,Sushi Bar Nürnberg,3339,Restaurants,Anna,False,False,False,Sushi Bar
+2026-10-19,KAUFLAND,2717,Groceries,Anna,False,False,False,Kaufland
+2026-10-20,Spotify,1799,Subscriptions,Anna,True,False,False,Spotify
+2026-10-21,KAUFLAND,6022,Groceries,Ben,False,False,False,Kaufland
+2026-10-21,Apotheke,1626,Health,Ben,False,False,False,Apotheke
+2026-10-24,"Thalia 14,21",1421,Shopping,Anna,False,False,False,Thalia
+2026-10-25,Amazon Prime,899,Subscriptions,Ben,True,False,False,Amazon Prime
+2026-10-25,"ALNATURA 37,34",3734,Groceries,Anna,False,False,False,Alnatura
+2026-10-27,Wochenmarkt Kartenzahlung,2695,Groceries,Anna,False,False,False,Wochenmarkt
+2026-10-27,TotalEnergies Kartenzahlung,2854,Transport,Ben,False,False,False,TotalEnergies
