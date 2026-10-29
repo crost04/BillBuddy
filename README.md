@@ -4,7 +4,7 @@ A mobile-first web app (PWA) for couples, flatmates and groups to track shared e
 split them fairly and see who owes whom. AI features categorize expenses automatically,
 read receipts, detect recurring costs and anomalies, and forecast spending.
 
-> **Status:** early development – see [docs/project-plan.md](docs/project-plan.md)
+> **Status:** core features, accounts and web app done; AI features in progress – see [docs/project-plan.md](docs/project-plan.md)
 
 ## Features
 
@@ -15,6 +15,7 @@ read receipts, detect recurring costs and anomalies, and forecast spending.
 - Settlement: who owes whom, with as few transfers as possible
 - Overview by category, person and month
 - Installable on the phone's home screen (PWA)
+- Personal accounts; friends join a group via invitation link and only see their own groups
 
 **AI**
 1. Automatic categorization from the description, learning from corrections
@@ -24,12 +25,13 @@ read receipts, detect recurring costs and anomalies, and forecast spending.
 5. Detection of duplicates and unusually high expenses
 
 ## Tech stack
-Python · FastAPI · SQLite + SQLAlchemy · scikit-learn · HTML/CSS/JavaScript (PWA) · pytest
+Python · FastAPI · SQLAlchemy + Alembic (SQLite locally, PostgreSQL online) · scikit-learn · HTML/CSS/JavaScript (PWA) · pytest
 
 ## Project structure
 ```
 billbuddy/
-  db.py            # database setup (SQLite + SQLAlchemy)
+  db.py            # database setup (SQLAlchemy, migrations)
+  auth/            # accounts, passwords, login sessions, access control
   data/            # sample data generator
   expenses/        # groups, members and expenses
   settlement/      # splitting and debt settlement
@@ -46,8 +48,10 @@ frontend/          # the PWA (HTML, CSS, JavaScript – no build step)
 data/
   sample/          # generated sample data (expenses.csv)
   private/         # your real database – git-ignored, never committed
+migrations/        # Alembic database migrations
 tests/             # pytest tests
-docs/              # project plan and CRISP-DM documentation
+docs/              # project plan, CRISP-DM and deployment documentation
+render.yaml        # hosting configuration (Render)
 ```
 
 ## Getting started
@@ -64,21 +68,25 @@ python -m billbuddy.data.generator --db data/sample/demo.db
 BILLBUDDY_DATABASE_URL=sqlite:///data/sample/demo.db uvicorn billbuddy.api.main:app --reload
 ```
 
-- Web app: http://127.0.0.1:8000
+- Web app: http://127.0.0.1:8000 – demo login: `anna@demo.local` / `demo-password`
+  (exists only in the generated demo database)
 - API documentation: http://127.0.0.1:8000/docs
 
 Without `BILLBUDDY_DATABASE_URL` the app uses your private database in `data/private/billbuddy.db`.
 PyCharm users find ready-made run configurations for all of these in `.run/`.
 
-## Using the app on your phone
+## Online: use it on your phone anywhere
+BillBuddy can be hosted for free on Render (app) and Neon (database), see
+**[docs/deployment.md](docs/deployment.md)**.
+
+## Using the app on your phone in the home Wi-Fi
 1. Start the server for the local network: `python -m billbuddy.serve`
    (PyCharm: *App on phone (home Wi-Fi)*). It prints the address to open, e.g. `http://192.168.0.23:8000`.
 2. Open that address on a phone in the **same Wi-Fi**.
 3. Add it to the home screen: Safari → Share → *Add to Home Screen* (iPhone),
    or Chrome → ⋮ → *Add to Home screen* (Android).
 
-Only do this in a network you trust: there is no login yet, so everyone in the same
-Wi-Fi could open the app. Offline start (service worker) only works on `localhost`
+Without HTTPS the connection is not encrypted, so only do this in a network you trust. Offline start (service worker) only works on `localhost`
 or with HTTPS, i.e. after hosting.
 
 ## How settlement works
@@ -93,8 +101,14 @@ or with HTTPS, i.e. after hosting.
 ## API overview
 Interactive documentation: `http://127.0.0.1:8000/docs`
 
+All endpoints except `/api/health`, `/api/categories` and login/registration require a login
+and only return groups the user belongs to.
+
 | Method | Path | Purpose |
 |--------|------|---------|
+| POST | `/api/auth/register`, `/api/auth/login`, `/api/auth/logout` | account and login session (cookie) |
+| GET | `/api/auth/me` | the logged-in user |
+| GET/POST | `/api/invites/{code}`, `/api/invites/{code}/join` | view / accept an invitation |
 | GET/POST | `/api/groups` | list / create groups |
 | GET/DELETE | `/api/groups/{id}` | read / delete a group |
 | POST | `/api/groups/{id}/members` | add a member |
@@ -113,3 +127,4 @@ secrets are excluded via `.gitignore`.
 ## Documentation
 - [Project plan](docs/project-plan.md)
 - [CRISP-DM documentation](docs/crisp-dm.md)
+- [Deployment guide](docs/deployment.md)

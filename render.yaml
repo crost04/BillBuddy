@@ -1,0 +1,22 @@
+# Render Blueprint: describes how Render builds and runs BillBuddy.
+# Setup guide: docs/deployment.md
+services:
+  - type: web
+    name: billbuddy
+    runtime: python
+    plan: free
+    region: frankfurt  # in the EU, close to the Neon database
+    buildCommand: pip install -r requirements.txt
+    # Database migrations run automatically when the app starts
+    startCommand: uvicorn billbuddy.api.main:app --host 0.0.0.0 --port $PORT --proxy-headers --forwarded-allow-ips="*"
+    healthCheckPath: /api/health
+    autoDeploy: true  # every push to GitHub deploys the new version
+    envVars:
+      - key: PYTHON_VERSION
+        value: "3.11.9"
+      # Login cookies only over HTTPS
+      - key: BILLBUDDY_SECURE_COOKIES
+        value: "true"
+      # Connection string of the Neon database; Render asks for it when the Blueprint is created
+      - key: DATABASE_URL
+        sync: false

@@ -47,6 +47,7 @@ Wenn du für mein Niveau eine bessere Wahl siehst, schlag sie vor und begründe 
 # Modulare Struktur
 Jedes Modul hat eine klare Aufgabe und lässt sich einzeln testen:
 - expenses – Ausgaben und Gruppen verwalten
+- auth – Konten, Login, Zugriffsrechte, Einladungslinks
 - settlement – Aufteilung und Schuldenausgleich
 - ml/categorizer – Kategorisierung
 - ml/receipt_ocr – Kassenbon-Scan

@@ -6,6 +6,7 @@ import pytest
 
 MODULES = [
     "billbuddy",
+    "billbuddy.auth",
     "billbuddy.data",
     "billbuddy.expenses",
     "billbuddy.settlement",

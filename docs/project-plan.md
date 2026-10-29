@@ -6,8 +6,9 @@ Start: 29 Oct 2026 · **Deadline: 12 Dec 2026** · Team: solo
 to improve, while the AI features are built on top. Everything required for the
 submission is done by M2, which leaves ten days of buffer before the deadline.
 
-**Status 29 Oct:** data model, sample data, expenses API, settlement and the web app are done
-(weeks 1–3). Open for M1: database migrations (Alembic) before real data piles up.
+**Status 29 Oct:** M1 reached early – data model, sample data, expenses API, settlement, web app,
+database migrations, user accounts with invitation links and the hosting setup (Render + Neon)
+are done. Next: AI categorization.
 
 | Week | Dates | Focus | Modules |
 |------|-------|-------|---------|
@@ -20,7 +21,7 @@ submission is done by M2, which leaves ten days of buffer before the deadline.
 | **M2** | **02 Dec** | **Submission-ready** – core features, categorization, forecast, statistics | |
 | 6 | 03 Dec – 12 Dec | Anomaly and recurring-cost detection (statistical methods, DAS); docs polish; German bullet points for the oral statement; buffer | `ml/anomaly`, `ml/recurring`, `docs` |
 | **M3** | **12 Dec** | **Submission** | |
-| after | from Dec 2026 | Receipt scan (OCR), hosting with HTTPS, improvements based on real use | `ml/receipt_ocr`, deployment |
+| after | from Dec 2026 | Receipt scan (OCR), improvements based on real use | `ml/receipt_ocr` |
 
 ## DAS – data analysis and statistics
 How the DAS quality criteria show up in the project:
