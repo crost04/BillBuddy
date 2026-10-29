@@ -295,8 +295,10 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
     check (items add up to the total): total right in 5 of 6, items 22 of 30, about 2 s per receipt
     (up to 3 attempts). The one wrong total was flagged by the check, so the app showed
     "⚠️ bitte prüfen" instead of silently saving a wrong amount.
-- Simulated photos are only a rough stand-in for real ones; the real accuracy still has to be measured
-  with real receipts.
+- **Second real test (iPhone, same day):** with the improved version the user reported that the scan
+  now works better on the same receipt.
+- Simulated photos are only a rough stand-in for real ones; a systematic measurement with several real
+  receipts is still open.
 
 ### Deployment
 - "📷 Kassenbon scannen" in the expense form opens the camera; Tesseract.js (about 3 MB incl. German
