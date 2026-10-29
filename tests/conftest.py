@@ -17,8 +17,27 @@ def session():
     engine.dispose()
 
 
+PASSWORD = "secret-password"
+
+
 @pytest.fixture
-def client():
+def app():
     """The whole app (API + web app) with a fresh in-memory database."""
-    with TestClient(create_app(make_engine("sqlite://"))) as client:
+    return create_app(make_engine("sqlite://"))
+
+
+@pytest.fixture
+def anon_client(app):
+    """A browser that is not logged in."""
+    with TestClient(app) as client:
         yield client
+
+
+@pytest.fixture
+def client(anon_client):
+    """A browser logged in as Anna (the login cookie is kept automatically)."""
+    response = anon_client.post(
+        "/api/auth/register", json={"email": "anna@example.com", "name": "Anna", "password": PASSWORD}
+    )
+    assert response.status_code == 201
+    return anon_client

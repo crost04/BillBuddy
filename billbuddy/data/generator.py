@@ -19,10 +19,15 @@ from pathlib import Path
 
 from sqlalchemy.orm import Session
 
+from billbuddy.auth import service as auth_service
 from billbuddy.db import PROJECT_ROOT, init_db, make_engine, make_session_factory
 from billbuddy.expenses.models import Expense, ExpenseShare, Group, Member
 
 DEFAULT_CSV_PATH = PROJECT_ROOT / "data" / "sample" / "expenses.csv"
+
+# Login for the local demo database only (sample data, not a real account)
+DEMO_EMAIL = "anna@demo.local"
+DEMO_PASSWORD = "demo-password"
 
 # category: (expected purchases per month, median amount in €, spread, merchants)
 VARIABLE_COSTS = {
@@ -216,8 +221,11 @@ def main() -> None:
         engine = make_engine(f"sqlite:///{args.db}")
         init_db(engine)
         with make_session_factory(engine)() as session:
-            load_into_db(expenses, session)
-        print(f"Loaded them into {args.db}")
+            group = load_into_db(expenses, session)
+            user = auth_service.register(session, DEMO_EMAIL, "Anna", DEMO_PASSWORD)
+            group.members[0].user_id = user.id
+            session.commit()
+        print(f"Loaded them into {args.db} – log in as {DEMO_EMAIL} / {DEMO_PASSWORD}")
 
 
 def _first_of_month(day: dt.date, months_back: int) -> dt.date:

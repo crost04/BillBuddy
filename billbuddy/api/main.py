@@ -14,7 +14,9 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 
 from billbuddy import __version__
-from billbuddy.api import expense_routes, settlement_routes
+from billbuddy.api import auth_routes, expense_routes, settlement_routes
+from billbuddy.auth.limiter import LoginLimiter, TooManyAttemptsError
+from billbuddy.auth.service import AuthError
 from billbuddy.db import PROJECT_ROOT, init_db, make_engine, make_session_factory
 from billbuddy.expenses.service import NotFoundError, ValidationError
 
@@ -32,6 +34,14 @@ def create_app(engine: Engine | None = None) -> FastAPI:
 
     app = FastAPI(title="BillBuddy API", version=__version__, lifespan=lifespan)
     app.state.session_factory = make_session_factory(engine)
+    app.state.login_limiter = LoginLimiter()
+
+    @app.get("/api/health")
+    def health():
+        """For the hosting provider: answers without touching the database."""
+        return {"status": "ok"}
+
+    app.include_router(auth_routes.router)
     app.include_router(expense_routes.router)
     app.include_router(settlement_routes.router)
     # The web app itself; mounted last so the /api routes above take priority
@@ -45,6 +55,14 @@ def create_app(engine: Engine | None = None) -> FastAPI:
     @app.exception_handler(ValidationError)
     async def invalid(request: Request, exc: ValidationError):
         return JSONResponse(status_code=422, content={"detail": str(exc)})
+
+    @app.exception_handler(AuthError)
+    async def unauthorized(request: Request, exc: AuthError):
+        return JSONResponse(status_code=401, content={"detail": str(exc)})
+
+    @app.exception_handler(TooManyAttemptsError)
+    async def too_many(request: Request, exc: TooManyAttemptsError):
+        return JSONResponse(status_code=429, content={"detail": str(exc)})
 
     @app.exception_handler(IntegrityError)
     async def conflict(request: Request, exc: IntegrityError):

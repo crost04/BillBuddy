@@ -5,7 +5,8 @@ import pytest
 
 @pytest.fixture
 def group(client):
-    response = client.post("/api/groups", json={"name": "Home", "members": ["Anna", "Ben"]})
+    # Anna (the logged-in user) is added automatically as the first member
+    response = client.post("/api/groups", json={"name": "Home", "members": ["Ben"]})
     assert response.status_code == 201
     return response.json()
 
