@@ -3,7 +3,8 @@
 
 import { api } from "../api.js";
 import {
-  categoryEmoji, categoryLabel, currentMonth, esc, formatMoney, formatMonth, formatShortDate, shiftMonth,
+  categoryEmoji, categoryLabel, currentMonth, esc, formatAmountInput, formatMoney, formatMonth, formatShortDate,
+  parseAmount, shiftMonth,
 } from "../format.js";
 import { memberName, state } from "../state.js";
 import { setTitle } from "../ui.js";
@@ -13,9 +14,11 @@ let month = currentMonth();
 export async function renderOverview(container) {
   setTitle("Übersicht");
   const groupId = state.group.id;
-  const [data, recurring, anomalies] = await Promise.all([
-    api.overview(groupId, month),
+  // The overview books due standing orders first, so it is loaded before the rest
+  const data = await api.overview(groupId, month);
+  const [recurring, rules, anomalies] = await Promise.all([
     api.recurring(groupId).catch(() => []),
+    api.recurringRules(groupId).catch(() => []),
     api.anomalies(groupId, month).catch(() => []),
   ]);
 
@@ -28,15 +31,32 @@ export async function renderOverview(container) {
     ${totalCard(data)}
     ${anomaliesCard(anomalies)}
     ${categoriesCard(data)}
-    ${fixedCostsCard(recurring)}
+    ${fixedCostsCard(recurring, rules)}
     ${historyCard(data)}
     ${membersCard(data)}`;
 
-  container.querySelectorAll("[data-mark-fixed]").forEach((button) => button.addEventListener("click", async () => {
-    button.disabled = true;
-    await api.markFixed(groupId, button.dataset.markFixed);
-    renderOverview(container);
-  }));
+  // Buttons of the fixed-costs card
+  const onClick = (selector, action) => container.querySelectorAll(selector).forEach((button) =>
+    button.addEventListener("click", async () => {
+      button.disabled = true;
+      try {
+        if ((await action(button.dataset)) !== false) await renderOverview(container);
+      } finally {
+        button.disabled = false;
+      }
+    }));
+  onClick("[data-auto]", (d) => api.createRecurringRule(groupId, Number(d.auto)));
+  onClick("[data-dismiss]", (d) => api.dismissRecurring(groupId, d.dismiss));
+  onClick("[data-rule-stop]", (d) => {
+    if (!confirm(`„${d.name}“ wird ab jetzt nicht mehr automatisch eingetragen. Bisherige Einträge bleiben.`)) return false;
+    return api.deleteRecurringRule(Number(d.ruleStop));
+  });
+  onClick("[data-rule-amount]", (d) => {
+    const text = prompt(`Neuer Betrag für „${d.name}“ in € (gilt ab der nächsten Buchung):`, formatAmountInput(Number(d.amount)));
+    const amount = text === null ? NaN : parseAmount(text);
+    if (!(amount > 0)) return false;
+    return api.updateRecurringRule(Number(d.ruleAmount), amount);
+  });
 
   container.querySelector("#prev").addEventListener("click", () => {
     month = shiftMonth(month, -1);
@@ -113,38 +133,64 @@ function anomaliesCard(anomalies) {
     </div>`;
 }
 
-// Recognized fixed costs (billbuddy.ml.recurring)
-function fixedCostsCard(recurring) {
-  const active = recurring.filter((r) => r.active);
-  if (active.length === 0) {
+// Fixed costs: standing orders and recognized series (billbuddy.ml.recurring)
+function fixedCostsCard(recurring, rules) {
+  const suggestions = recurring.filter((r) => r.active && !r.has_rule);
+  if (rules.length === 0 && suggestions.length === 0) {
     return `
       <div class="card">
         <h2>Fixkosten</h2>
-        <p class="muted small">Noch keine erkannt. BillBuddy erkennt Fixkosten, sobald eine Zahlung dreimal im
-          Monatsabstand mit ähnlichem Betrag vorkam.</p>
+        <p class="muted small">Noch keine. BillBuddy erkennt Fixkosten, sobald eine Zahlung dreimal im Monatsabstand
+          mit ähnlichem Betrag vorkam. Oder du wählst beim Eintragen „Fixkosten“ und „Jeden Monat automatisch eintragen“.</p>
       </div>`;
   }
-  const perMonth = active.reduce((sum, r) => sum + r.typical_amount, 0);
+  const perMonth = rules.reduce((sum, r) => sum + r.amount, 0) + suggestions.reduce((sum, r) => sum + r.typical_amount, 0);
   return `
     <div class="card">
       <h2>Fixkosten</h2>
-      <p class="muted small">Erkannte regelmäßige Zahlungen – zusammen etwa <strong>${formatMoney(perMonth)}</strong> pro Monat.</p>
-      <ul class="list">
-        ${active.map((r) => `
-          <li class="row">
-            <div class="main">
-              <div class="title">${esc(r.description)}</div>
-              <div class="muted small">jeden ${r.day_of_month}. · nächste am ${formatShortDate(r.next_date)}</div>
-            </div>
-            <div class="amount">${formatMoney(r.typical_amount)}</div>
-            ${r.already_fixed
-              ? '<span class="badge">Fix</span>'
-              : `<button class="btn small" data-mark-fixed="${esc(r.key)}">Markieren</button>`}
-          </li>`).join("")}
-      </ul>
-      ${active.some((r) => !r.already_fixed)
-        ? '<p class="muted small">„Markieren“ setzt bei allen bisherigen Zahlungen das Häkchen „Fixkosten“.</p>'
-        : ""}
+      <p class="muted small">Zusammen etwa <strong>${formatMoney(perMonth)}</strong> pro Monat.</p>
+
+      ${rules.length ? `
+        <h3 class="subhead">🔁 Werden automatisch eingetragen</h3>
+        <ul class="list">
+          ${rules.map((r) => `
+            <li>
+              <div class="row">
+                <div class="main">
+                  <div class="title">${esc(r.description)}</div>
+                  <div class="muted small">jeden ${r.day_of_month}. · nächste am ${formatShortDate(r.next_date)} ·
+                    zahlt ${esc(memberName(r.payer_id))}</div>
+                </div>
+                <div class="amount">${formatMoney(r.amount)}</div>
+              </div>
+              <div class="item-actions">
+                <button class="btn small secondary" data-rule-amount="${r.id}" data-amount="${r.amount}"
+                        data-name="${esc(r.description)}">Betrag ändern</button>
+                <button class="btn small danger" data-rule-stop="${r.id}" data-name="${esc(r.description)}">Stoppen</button>
+              </div>
+            </li>`).join("")}
+        </ul>` : ""}
+
+      ${suggestions.length ? `
+        <h3 class="subhead">Erkannt – jeden Monat automatisch eintragen?</h3>
+        <ul class="list">
+          ${suggestions.map((r) => `
+            <li>
+              <div class="row">
+                <div class="main">
+                  <div class="title">${esc(r.description)}</div>
+                  <div class="muted small">jeden ${r.day_of_month}. · ${r.count}× bisher · nächste am ${formatShortDate(r.next_date)}</div>
+                </div>
+                <div class="amount">${formatMoney(r.typical_amount)}</div>
+              </div>
+              <div class="item-actions">
+                <button class="btn small" data-auto="${r.last_expense_id}">Automatisch eintragen</button>
+                <button class="btn small secondary" data-dismiss="${esc(r.key)}">Keine Fixkosten</button>
+              </div>
+            </li>`).join("")}
+        </ul>
+        <p class="muted small">„Automatisch eintragen“ legt die Zahlung ab dem nächsten Monat selbst an – mit Betrag,
+          Kategorie, Zahler und Aufteilung wie beim letzten Mal.</p>` : ""}
     </div>`;
 }
 

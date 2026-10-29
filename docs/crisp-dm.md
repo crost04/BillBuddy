@@ -177,10 +177,14 @@ Full numbers: [recurring-report.md](recurring-report.md) (regenerate with
 - 100 % is optimistic because the sample data is tidy; the real test is daily use.
 
 ### Deployment
-- The overview screen lists the recognized fixed costs with amount, day and next payment; with one tap
-  all payments of a series are marked as fixed costs.
+- The overview screen suggests the recognized fixed costs with amount, day and next payment.
+- Real use showed a gap: the detection only works if fixed costs are entered by hand every month.
+  So a recognized series can now be turned into a **standing order** with one tap – from then on the
+  app enters it automatically every month. A wrong suggestion can be dismissed ("Keine Fixkosten"),
+  so the user stays in control and false positives cost one tap.
 - Calculated on the fly from the group's expenses (no stored model).
-- Next steps: quarterly and yearly payments (need more than a year of data).
+- Next steps: quarterly and yearly payments (need more than a year of data); measure how often
+  suggestions are accepted or dismissed.
 
 ## 4. Anomaly detection (`ml/anomaly`)
 Full numbers: [anomaly-report.md](anomaly-report.md) (regenerate with

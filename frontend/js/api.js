@@ -63,6 +63,12 @@ export const api = {
   overview: (groupId, month) => request("GET", `/groups/${groupId}/overview?month=${month}`),
   recurring: (groupId) => request("GET", `/groups/${groupId}/recurring`),
   markFixed: (groupId, key) => request("POST", `/groups/${groupId}/recurring/mark-fixed`, { key }),
+  dismissRecurring: (groupId, key) => request("POST", `/groups/${groupId}/recurring/dismiss`, { key }),
+  recurringRules: (groupId) => request("GET", `/groups/${groupId}/recurring-rules`),
+  createRecurringRule: (groupId, expenseId) =>
+    request("POST", `/groups/${groupId}/recurring-rules`, { expense_id: expenseId }),
+  updateRecurringRule: (id, amount) => request("PUT", `/recurring-rules/${id}`, { amount }),
+  deleteRecurringRule: (id) => request("DELETE", `/recurring-rules/${id}`),
   checkExpense: (groupId, data) => request("POST", `/groups/${groupId}/check-expense`, data),
   anomalies: (groupId, month) => request("GET", `/groups/${groupId}/anomalies?month=${month}`),
 

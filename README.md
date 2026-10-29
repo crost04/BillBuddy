@@ -107,8 +107,12 @@ sample data it is off by 9.6 % on average (simple extrapolation: 69.5 %). Detail
 ## AI: fixed costs and anomalies
 - **Recognized fixed costs:** payments that come back every month with a similar amount
   (same cleaned description, ~monthly gaps with little variation, amount variation ≤ 15 %). The overview
-  lists them with the next due date and marks them as fixed costs with one tap.
+  suggests them; with one tap they become a standing order, or they are dismissed ("Keine Fixkosten").
   [Evaluation report](docs/recurring-report.md)
+- **Standing orders:** fixed costs that are entered automatically every month (same amount, category,
+  payer and split). They are booked when someone of the group opens the app – the free server has no
+  scheduler – and missed months are caught up with their correct dates. The amount can be changed
+  (e.g. rent increase) and the standing order stopped.
 - **Anomalies:** before saving, the form warns about likely duplicates (same purchase entered twice) and
   unusually high amounts (IQR rule on log amounts per category, e.g. "10.8 × as much as usual – typo?").
   The overview lists the anomalies of the month. [Evaluation report](docs/anomaly-report.md)
@@ -145,7 +149,9 @@ and only return groups the user belongs to.
 | GET | `/api/categories` | available categories |
 | GET | `/api/groups/{id}/suggest-category?description=…` | AI category suggestion |
 | GET | `/api/groups/{id}/overview?month=2026-10` | overview per category, person and month, with forecast |
-| GET/POST | `/api/groups/{id}/recurring`, `…/recurring/mark-fixed` | recognized fixed costs / mark them |
+| GET/POST | `/api/groups/{id}/recurring`, `…/recurring/mark-fixed`, `…/recurring/dismiss` | recognized fixed costs / mark / dismiss |
+| GET/POST | `/api/groups/{id}/recurring-rules` | standing orders / create one from an expense |
+| PUT/DELETE | `/api/recurring-rules/{id}` | change the amount / stop |
 | POST | `/api/groups/{id}/check-expense` | duplicate and outlier check before saving |
 | GET | `/api/groups/{id}/anomalies?month=2026-10` | anomalies of a month |
 

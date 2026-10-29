@@ -59,6 +59,11 @@ export async function renderExpenseForm(container, id) {
       <div class="check">
         <label><input type="checkbox" id="is-fixed" ${expense?.is_fixed ? "checked" : ""}> Fixkosten (kommt regelmäßig wieder)</label>
       </div>
+      ${editing ? (expense.recurring_rule_id ? `
+        <p class="muted small">🔁 Wird jeden Monat automatisch eingetragen – ändern oder stoppen unter Übersicht → Fixkosten.</p>` : "") : `
+        <div class="check" id="repeat-row" hidden>
+          <label><input type="checkbox" id="repeat-monthly"> Jeden Monat automatisch eintragen</label>
+        </div>`}
 
       <label>Aufteilung</label>
       <div class="segmented">
@@ -131,6 +136,12 @@ export async function renderExpenseForm(container, id) {
   }));
   form.addEventListener("input", updateSplit);
   updateSplit();
+
+  // "Jeden Monat automatisch eintragen" only makes sense for fixed costs
+  const repeatRow = $("#repeat-row");
+  const updateRepeatRow = () => { if (repeatRow) repeatRow.hidden = !$("#is-fixed").checked; };
+  $("#is-fixed").addEventListener("change", updateRepeatRow);
+  updateRepeatRow();
 
   // --- Anomaly check (billbuddy.ml.anomaly) ---
   // Before saving, the server checks for duplicates and unusual amounts. If it
@@ -276,8 +287,12 @@ export async function renderExpenseForm(container, id) {
           return;
         }
       }
-      if (editing) await api.updateExpense(id, body);
-      else await api.createExpense(state.group.id, body);
+      if (editing) {
+        await api.updateExpense(id, body);
+      } else {
+        const created = await api.createExpense(state.group.id, body);
+        if (body.is_fixed && $("#repeat-monthly")?.checked) await api.createRecurringRule(state.group.id, created.id);
+      }
       storage.set(lastPayerKey, body.payer_id);
       showMonth(body.date.slice(0, 7));
       location.hash = "#/expenses";

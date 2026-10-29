@@ -12,6 +12,7 @@ are done.
 AI categorization and the month-end forecast with the overview screen (both CRISP-DM documented,
 evaluated and live in the app) are done as well – **M2 (submission-ready) reached on 29 Oct**.
 Recurring-cost and anomaly detection are done too (all four planned AI modules for the submission).
+After the first real use: faster saving and standing orders (fixed costs entered automatically).
 Next: German notes for the oral statement; later the receipt scan.
 
 | Week | Dates | Focus | Modules |

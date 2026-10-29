@@ -313,6 +313,9 @@ input:disabled { opacity: 0.7; }
 .swatch.rest { background: var(--chart-rest); }
 .swatch.avg { width: 2px; height: 14px; border-radius: 0; background: var(--text); vertical-align: -3px; }
 
+.subhead { font-size: 0.9rem; margin: 16px 0 8px; }
+.item-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 14px 12px; }
+
 .cat-row { margin-bottom: 14px; }
 .cat-row:last-child { margin-bottom: 0; }
 .cat-head { display: flex; justify-content: space-between; gap: 8px; }
