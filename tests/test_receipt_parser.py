@@ -108,3 +108,23 @@ def test_empty_or_unreadable_text():
     receipt = parse_receipt("~~ ### ~~", TODAY)
     assert (receipt.store, receipt.date, receipt.total_cents, receipt.items) == (None, None, None, [])
     assert not receipt.items_match_total
+
+
+@pytest.mark.parametrize("label", ["S UMME", "SUMMC", "Su mme", "ZU ZAHLFN"])
+def test_total_keyword_survives_ocr_noise(label):
+    receipt = parse_receipt(f"Rewe\nBrot 1,29\n{label} 1,29\nBar 5,00", TODAY)
+    assert receipt.total_cents == 129
+
+
+def test_zwischensumme_is_not_the_total():
+    receipt = parse_receipt("Rewe\nBrot 1,29\nZwischensumme 1,29\nKäse 2,00\nSumme 3,29", TODAY)
+    assert receipt.total_cents == 329
+
+
+def test_date_with_confused_digits():
+    receipt = parse_receipt("Rewe\nSumme 1,00\nDatum: 28.1O.2O26", TODAY)
+    assert receipt.date == dt.date(2026, 10, 28)
+
+
+def test_store_with_confused_characters():
+    assert parse_receipt("R0SSMANN\nSumme 1,00", TODAY).store == "Rossmann"

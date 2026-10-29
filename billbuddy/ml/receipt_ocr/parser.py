@@ -22,6 +22,9 @@ AMOUNT = r"-?\d{1,4}[.,]\d{2}"
 # An amount at the end of a line, optionally followed by "€"/"EUR" and a tax code (A, B, *)
 LINE_AMOUNT = re.compile(rf"(?P<amount>{AMOUNT})\s*(?:€|EUR)?\s*(?:[A-Z*]{{1,2}})?\s*$")
 DATE = re.compile(r"(?<!\d)(\d{1,2})[./-](\d{1,2})[./-](\d{4}|\d{2})(?!\d)")
+# Date-shaped text with letters OCR confuses with digits ("28.1O.2O26")
+DATE_LIKE = re.compile(r"(?<![A-Za-z])[\dOoQlIiSB]{1,2}[./-][\dOoQlIiSB]{1,2}[./-][\dOoQlIiSB]{2,4}(?![A-Za-z])")
+DIGIT_FIXES = str.maketrans("OoQlIiSB", "00011158")
 # Lines that only explain the line above: "2 Stk x 0,59", "0,846 kg x 1,99 EUR/kg"
 QUANTITY = re.compile(r"^\s*\d+([.,]\d+)?\s*(x|stk|st\b|kg)|\bx\s*\d+[.,]\d{2}\b|eur\s*/\s*kg", re.IGNORECASE)
 
@@ -89,7 +92,7 @@ def clean_line(line: str) -> str:
         token = match.group(0)
         if not any(c.isdigit() for c in token):
             return token  # no digit at all: probably a word, leave it
-        return token.translate(str.maketrans("OoQlIiSB", "00011158"))
+        return token.translate(DIGIT_FIXES)
 
     line = re.sub(r"(?<![A-Za-zÄÖÜäöüß])[\dOoQlIiSB]+[.,][\dOoQlIiSB]{2}(?![A-Za-zÄÖÜäöüß])", fix_token, line)
     # "1, 29" or "1 ,29" -> "1,29"
@@ -99,9 +102,9 @@ def clean_line(line: str) -> str:
 
 def find_store(lines: list[str]) -> str | None:
     for line in lines[:8]:
-        lowered = line.lower()
+        lowered = _ocr_normalized(line)
         for store in KNOWN_STORES:
-            if re.search(rf"(?<![a-zäöüß]){re.escape(store.lower())}(?![a-zäöüß])", lowered):
+            if re.search(rf"(?<![a-zäöüß]){re.escape(_ocr_normalized(store))}(?![a-zäöüß])", lowered):
                 if store in GENERIC_SHOPS and not _amount_at_end(line):
                     return line.title() if line.isupper() else line
                 return store
@@ -115,6 +118,7 @@ def find_store(lines: list[str]) -> str | None:
 def find_date(lines: list[str], today: dt.date) -> dt.date | None:
     candidates = []
     for line in lines:
+        line = DATE_LIKE.sub(lambda m: m.group(0).translate(DIGIT_FIXES), line)
         for day, month, year in DATE.findall(line):
             year = int(year) + (2000 if len(year) == 2 else 0)
             try:
@@ -130,11 +134,10 @@ def find_total(lines: list[str]) -> tuple[int | None, int | None]:
     """(index of the total line, total in cents)"""
     best = None
     for index, line in enumerate(lines):
-        lowered = line.lower()
-        if "zwischensumme" in lowered or _has_word(line, ["mwst", "netto", "steuer"]):
+        if _sounds_like(line, "zwischensumme") or _has_word(line, ["mwst", "netto", "steuer"]):
             continue
         for rank, word in enumerate(TOTAL_WORDS):
-            if not _has_word(line, [word]):
+            if not (_has_word(line, [word]) or _sounds_like(line, word)):
                 continue
             amount = _amount_at_end(line)
             # OCR sometimes puts the amount on the next line
@@ -166,6 +169,33 @@ def _has_word(line: str, words: list[str]) -> bool:
     """Whole words only: "bar" (cash) must not hide "Barilla" or "Rhabarber"."""
     lowered = line.lower()
     return any(re.search(rf"(?<![a-zäöüß]){re.escape(w)}(?![a-zäöüß])", lowered) for w in words)
+
+
+def _ocr_normalized(text: str) -> str:
+    """Lower case with letters/digits OCR confuses mapped to one form, for comparing names."""
+    return text.lower().translate(str.maketrans("0158cav", "olsbeou"))
+
+
+def _sounds_like(line: str, keyword: str) -> bool:
+    """Keyword in the line even with broken spaces and one wrong letter ("S UMME", "SUMMC" ~ "summe")."""
+    letters = re.sub(r"[^a-zäöüß]", "", line.lower())
+    target = keyword.replace(" ", "")
+    if target in letters:
+        return True
+    if len(target) < 5:
+        return False
+    size = len(target)
+    windows = {letters[i:i + n] for n in (size - 1, size, size + 1) for i in range(len(letters) - n + 1)}
+    return any(_within_one_edit(window, target) for window in windows)
+
+
+def _within_one_edit(a: str, b: str) -> bool:
+    if abs(len(a) - len(b)) > 1:
+        return False
+    if len(a) == len(b):
+        return sum(x != y for x, y in zip(a, b)) <= 1
+    short, long = sorted((a, b), key=len)
+    return any(long[:i] + long[i + 1:] == short for i in range(len(long)))
 
 
 def _amount_at_end(line: str) -> int | None:
