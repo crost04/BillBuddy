@@ -12,8 +12,8 @@ def entry(expense_id, description, amount_cents, days=0, category="Groceries"):
 
 
 def groceries(n=20):
-    """Typical grocery shopping between about 25 and 50 €."""
-    amounts = [2500, 3100, 3800, 4200, 2900, 4700, 3500, 3300, 4100, 2700]
+    """Typical grocery shopping between about 15 and 60 €."""
+    amounts = [1500, 2200, 2800, 3300, 3800, 4500, 5200, 6100, 2500, 3500]
     return [entry(100 + i, "Rewe", amounts[i % len(amounts)], days=-2 * i - 3) for i in range(n)]
 
 
@@ -47,7 +47,7 @@ def test_typing_error_is_an_outlier():
     check = model.check("Groceries", 34500)  # 345 € instead of 34,50 €
     assert check.is_outlier
     assert 3000 <= check.typical_cents <= 4000
-    assert check.score > 3.5
+    assert check.ratio > 8
 
 
 def test_normal_and_somewhat_larger_amounts_are_fine():

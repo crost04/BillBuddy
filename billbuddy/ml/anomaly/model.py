@@ -4,31 +4,34 @@ Duplicates: the same amount and the same description (after cleaning:
 "REWE Kartenzahlung" = "Rewe") at most one day apart – typically when two
 people enter the same purchase.
 
-Unusually high amounts: robust z-score of the amount within its category
-(Iglewicz & Hoaglin):
+Unusually high amounts: Tukey's fence on the log of the amount, per category:
 
-    z = 0.6745 · (log(amount) − median) / MAD      outlier if z > 3.5
+    outlier if log(amount) > Q3 + 1.5 · IQR
+
+    Q1, Q3 = quartiles of the log amounts of the category, IQR = Q3 − Q1
 
 - log scale: amounts are skewed (many small, few large), on the log scale they
   are roughly symmetric
-- median and MAD (median absolute deviation) instead of mean and standard
-  deviation: the outliers themselves would pull the mean up and widen the
-  standard deviation, so they would hide themselves ("masking")
+- quartiles instead of mean and standard deviation: the outliers themselves
+  would pull the mean up and widen the standard deviation, so they would hide
+  themselves ("masking"); quartiles stay put
 - only high amounts count: a cheap purchase is no reason to worry
-The evaluation (docs/anomaly-report.md) compares this with other methods.
+The evaluation (docs/anomaly-report.md) compared this with the z-score, the
+robust z-score (median/MAD), the IQR rule on euros and an Isolation Forest;
+it found the most outliers with the fewest false alarms.
 """
 
 import datetime as dt
 import math
 from dataclasses import dataclass
-from statistics import median
+from statistics import median, quantiles
 
 from billbuddy.ml.categorizer.preprocessing import clean_description
 
 MAX_DUPLICATE_DAYS = 1
-Z_THRESHOLD = 3.5
+IQR_FACTOR = 1.5
 MIN_HISTORY = 8  # expenses needed in a category before it is checked
-# Categories with always the same amount (rent): MAD is 0, so compare with the median instead
+# Categories with always the same amount (rent): the IQR is 0, so compare with the median instead
 FIXED_AMOUNT_FACTOR = 3
 
 
@@ -79,7 +82,7 @@ def find_duplicates(entries: list[Entry]) -> list[tuple[Entry, Entry]]:
 class OutlierCheck:
     is_outlier: bool
     typical_cents: int | None = None  # median amount in the category
-    score: float | None = None  # robust z-score
+    ratio: float | None = None  # amount / typical amount, e.g. 9.1 = "9 × as much as usual"
 
 
 class OutlierModel:
@@ -94,19 +97,17 @@ class OutlierModel:
         for category, amounts in by_category.items():
             if len(amounts) < MIN_HISTORY:
                 continue
-            logs = [math.log(a) for a in amounts]
-            center = median(logs)
-            mad = median(abs(x - center) for x in logs)
-            self.stats[category] = (center, mad, round(median(amounts)))
+            q1, _, q3 = quantiles([math.log(a) for a in amounts], n=4, method="inclusive")
+            self.stats[category] = (q3 + IQR_FACTOR * (q3 - q1), q3 > q1, round(median(amounts)))
 
     def check(self, category: str | None, amount_cents: int) -> OutlierCheck:
         if category not in self.stats or amount_cents <= 0:
             return OutlierCheck(False)
-        center, mad, typical = self.stats[category]
-        if mad == 0:
-            return OutlierCheck(amount_cents > FIXED_AMOUNT_FACTOR * typical, typical)
-        score = 0.6745 * (math.log(amount_cents) - center) / mad
-        return OutlierCheck(score > Z_THRESHOLD, typical, round(score, 2))
+        fence, varies, typical = self.stats[category]
+        ratio = round(amount_cents / typical, 1)
+        if not varies:
+            return OutlierCheck(amount_cents > FIXED_AMOUNT_FACTOR * typical, typical, ratio)
+        return OutlierCheck(math.log(amount_cents) > fence, typical, ratio)
 
 
 def find_outliers(entries: list[Entry]) -> list[tuple[Entry, OutlierCheck]]:
