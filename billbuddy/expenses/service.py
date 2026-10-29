@@ -41,10 +41,15 @@ class ExpenseInput:
 # --- Groups and members ---
 
 
-def create_group(session: Session, name: str, member_names: list[str] = ()) -> Group:
+def create_group(
+    session: Session, name: str, member_names: list[str] = (), creator_user_id: int | None = None
+) -> Group:
+    """Create a group; creator_user_id links the first member to the creator's account."""
     if len(set(member_names)) != len(member_names):
         raise ValidationError("Member names must be unique within a group")
     group = Group(name=name, members=[Member(name=n) for n in member_names])
+    if creator_user_id is not None and group.members:
+        group.members[0].user_id = creator_user_id
     session.add(group)
     session.commit()
     return group
