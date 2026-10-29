@@ -60,6 +60,8 @@ export const api = {
     `/groups/${groupId}/suggest-category?description=${encodeURIComponent(description)}&amount=${amount}`,
   ),
 
+  overview: (groupId, month) => request("GET", `/groups/${groupId}/overview?month=${month}`),
+
   settlement: (groupId) => request("GET", `/groups/${groupId}/settlement`),
   payments: (groupId) => request("GET", `/groups/${groupId}/payments`),
   createPayment: (groupId, data) => request("POST", `/groups/${groupId}/payments`, data),

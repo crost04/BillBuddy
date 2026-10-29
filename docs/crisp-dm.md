@@ -81,14 +81,60 @@ Full numbers: [categorizer-report.md](categorizer-report.md) (regenerate with
   with real data after a few weeks, re-test the amount feature.
 
 ## 2. Forecast (`ml/forecast`)
-| Phase | What we did / decided |
-|-------|-----------------------|
-| Business Understanding | _TBD_ |
-| Data Understanding | _TBD_ |
-| Data Preparation | _TBD_ |
-| Modeling | _TBD_ |
-| Evaluation | _TBD_ |
-| Deployment | _TBD_ |
+Full numbers: [forecast-report.md](forecast-report.md) (regenerate with
+`python -m billbuddy.ml.forecast.evaluate`).
+
+### Business Understanding
+- **Problem:** in the middle of the month nobody knows whether spending is on track – the
+  bank balance only shows the past.
+- **Goal:** forecast the month-end total and every category, with a range, and compare it with
+  the previous months ("more or less than usual?").
+- **Success criteria:** clearly better than simple methods (extrapolation, average of previous
+  months) in backtesting; a range that is honest (the real result lands inside it in roughly
+  two out of three cases).
+
+### Data Understanding
+- Same sample data as the categorizer (22 complete months).
+- Monthly totals vary a lot (coefficient of variation 0.30); fixed costs (rent, insurance,
+  utilities) are constant, travel and shopping vary strongly.
+- **Spending is not spread evenly:** 38 % of a month's total is spent on the 1st (rent), 71 % by
+  the 15th.
+- Seasonality: July is clearly higher (holidays); with real data a full year is needed to see it.
+
+### Data Preparation
+- Duplicates removed; each expense reduced to date, category and amount (`Record`).
+- History = up to 6 complete previous months. The group's first month is left out, because it
+  is probably incomplete (nobody starts using the app on the 1st).
+- For the backtesting only the data known on the simulated day is used (no look into the future).
+
+### Modeling
+- Compared in backtesting (16 months × days 5, 10, 15, 20, 25): extrapolation, mean of previous
+  months, last month, linear regression (trained only on earlier months), and
+  "spent so far + typical rest" with mean or median.
+- **Chosen:** spent so far + **median** of what was spent after the same day in the previous
+  months. It combines what is known about this month with the typical rest – including fixed
+  costs that are still due. The median is robust against single unusual months.
+- Range: ± one standard deviation of the rest.
+- The linear regression was worse: with one example per month there is too little data, so it
+  learns noise. The simpler method wins.
+
+### Evaluation
+- MAPE of the month total: **9.6 %** (extrapolation 69.5 %, mean of previous months 15.0 %,
+  linear regression 12.9 %) → success criterion met.
+- Accuracy improves over the month: 13.5 % on day 5, 4.5 % on day 25.
+- The range contains the real result in 61 % (total) and 77 % (categories) of the cases –
+  close to the ~68 % that ± one standard deviation promises.
+- Limitations: seasonality is not modeled (a July after a quiet spring is underestimated);
+  single big purchases cannot be predicted.
+
+### Deployment
+- The overview screen calls `/api/groups/{id}/overview`; the forecast is calculated on the fly
+  from the group's expenses (milliseconds, no stored model, nothing to retrain).
+- Shown per category: spent so far, forecast with range, and the average of the previous months.
+- Cold start: without a complete previous month, the app shows only what was spent and says
+  that a forecast needs more data; with 1–2 months it marks the forecast as uncertain.
+- Next steps: re-run the backtesting on real data after a few months; add seasonality once a
+  full year of data exists.
 
 ## 3. Recurring-cost detection (`ml/recurring`)
 | Phase | What we did / decided |

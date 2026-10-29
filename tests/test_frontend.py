@@ -31,3 +31,8 @@ def test_api_still_works_next_to_the_frontend(client):
 def test_responses_are_marked_as_coming_from_the_app(anon_client, path):
     # The service worker only caches responses with this header
     assert "x-billbuddy" in anon_client.get(path).headers
+
+
+@pytest.mark.parametrize("path", ["/", "/js/app.js", "/styles.css"])
+def test_app_files_are_revalidated_so_updates_arrive(anon_client, path):
+    assert anon_client.get(path).headers["cache-control"] == "no-cache"

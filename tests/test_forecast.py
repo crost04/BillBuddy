@@ -2,6 +2,9 @@
 
 import datetime as dt
 
+import pytest
+
+from billbuddy.ml.forecast import service as forecast_service
 from billbuddy.ml.forecast.model import Record, forecast_month
 
 
@@ -95,3 +98,70 @@ def test_empty_data():
     result = forecast_month([], today=dt.date(2026, 10, 15))
     assert result.total.spent_cents == 0
     assert result.categories == []
+
+
+# --- API: overview screen ---
+
+
+@pytest.fixture
+def group(client, monkeypatch):
+    monkeypatch.setattr(forecast_service, "today", lambda: dt.date(2026, 10, 15))
+    group = client.post("/api/groups", json={"name": "Home", "members": ["Ben"]}).json()
+    anna, ben = group["members"]
+    # March (first, partial month) to September as history, then October so far
+    for month in range(3, 11):
+        add(client, group, anna, f"2026-{month:02d}-01", 1000, "Rent")
+        if month < 10:
+            add(client, group, ben, f"2026-{month:02d}-20", 10, "Subscriptions")
+    return group
+
+
+def add(client, group, payer, date, amount, category):
+    response = client.post(
+        f"/api/groups/{group['id']}/expenses",
+        json={
+            "payer_id": payer["id"],
+            "amount": amount,
+            "date": date,
+            "description": category,
+            "category": category,
+            "participants": [{"member_id": m["id"]} for m in group["members"]],
+        },
+    )
+    assert response.status_code == 201
+
+
+def test_overview_of_the_current_month(client, group):
+    body = client.get(f"/api/groups/{group['id']}/overview").json()
+
+    assert (body["month"], body["is_current"], body["day"], body["days_in_month"]) == ("2026-10", True, 15, 31)
+    assert body["history_months"] == 6
+    assert body["total"] == {
+        "category": None,
+        "spent": 1000.0,
+        "forecast": 1010.0,
+        "low": 1010.0,
+        "high": 1010.0,
+        "average": 1010.0,
+    }
+    assert [(c["category"], c["spent"], c["forecast"]) for c in body["categories"]] == [
+        ("Rent", 1000.0, 1000.0),
+        ("Subscriptions", 0.0, 10.0),
+    ]
+    anna, ben = group["members"]
+    assert body["members"] == [{"member_id": anna["id"], "paid": 1000.0}, {"member_id": ben["id"], "paid": 0.0}]
+    assert [h["month"] for h in body["history"]] == [f"2026-{m:02d}" for m in range(4, 11)]
+    assert body["history"][-1]["total"] == 1000.0
+
+
+def test_overview_of_a_past_month(client, group):
+    body = client.get(f"/api/groups/{group['id']}/overview", params={"month": "2026-09"}).json()
+    assert not body["is_current"]
+    assert body["total"]["spent"] == 1010.0
+    assert body["total"]["forecast"] is None
+
+
+def test_overview_needs_access(client, anon_client, group):
+    assert client.get("/api/groups/999/overview").status_code == 404
+    client.post("/api/auth/logout")
+    assert anon_client.get(f"/api/groups/{group['id']}/overview").status_code == 401

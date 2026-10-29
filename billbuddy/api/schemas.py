@@ -167,3 +167,40 @@ class SuggestionOut(BaseModel):
     # Both empty if the categorizer is not sure enough
     category: str | None
     confidence: float | None
+
+
+# --- Overview and forecast ---
+
+
+class ForecastOut(BaseModel):
+    # None in a category row = expenses without category
+    category: str | None
+    spent: float
+    forecast: float | None
+    low: float | None
+    high: float | None
+    average: float | None
+
+
+class MemberPaidOut(BaseModel):
+    member_id: int
+    paid: float
+
+
+class MonthTotalOut(BaseModel):
+    month: str
+    total: float
+
+
+class OverviewOut(BaseModel):
+    month: str
+    is_current: bool
+    day: int
+    days_in_month: int
+    # Number of complete previous months the forecast and the average are based on
+    history_months: int
+    total: ForecastOut
+    categories: list[ForecastOut]
+    members: list[MemberPaidOut]
+    # Totals of the history months and the selected month, oldest first
+    history: list[MonthTotalOut]

@@ -14,7 +14,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 
 from billbuddy import __version__
-from billbuddy.api import auth_routes, categorizer_routes, expense_routes, settlement_routes
+from billbuddy.api import auth_routes, categorizer_routes, expense_routes, forecast_routes, settlement_routes
 from billbuddy.auth.limiter import LoginLimiter, TooManyAttemptsError
 from billbuddy.auth.service import AuthError
 from billbuddy.db import PROJECT_ROOT, init_db, make_engine, make_session_factory
@@ -42,6 +42,10 @@ def create_app(engine: Engine | None = None) -> FastAPI:
         # waiting or error pages of the hosting provider
         response = await call_next(request)
         response.headers["X-BillBuddy"] = __version__
+        # App files: the browser has to ask whether its copy is still current (a tiny
+        # request answered with "304 Not Modified"), so updates arrive right away
+        if not request.url.path.startswith("/api/"):
+            response.headers.setdefault("Cache-Control", "no-cache")
         return response
 
     @app.get("/api/health")
@@ -53,6 +57,7 @@ def create_app(engine: Engine | None = None) -> FastAPI:
     app.include_router(expense_routes.router)
     app.include_router(settlement_routes.router)
     app.include_router(categorizer_routes.router)
+    app.include_router(forecast_routes.router)
     # The web app itself; mounted last so the /api routes above take priority
     app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
 

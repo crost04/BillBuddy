@@ -9,7 +9,9 @@ submission is done by M2, which leaves ten days of buffer before the deadline.
 **Status 29 Oct:** M1 reached early – data model, sample data, expenses API, settlement, web app,
 database migrations, user accounts with invitation links and the hosting setup (Render + Neon)
 are done.
-AI categorization (CRISP-DM documented, evaluated, live in the app) is done as well. Next: forecast.
+AI categorization and the month-end forecast with the overview screen (both CRISP-DM documented,
+evaluated and live in the app) are done as well – **M2 (submission-ready) reached on 29 Oct**.
+Next: recurring-cost and anomaly detection, German notes for the oral statement.
 
 | Week | Dates | Focus | Modules |
 |------|-------|-------|---------|

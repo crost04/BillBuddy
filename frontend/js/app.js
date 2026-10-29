@@ -11,11 +11,13 @@ import { renderExpenseForm } from "./views/expense-form.js";
 import { renderExpenses } from "./views/expenses.js";
 import { renderJoin } from "./views/join.js";
 import { renderLogin } from "./views/login.js";
+import { renderOverview } from "./views/overview.js";
 import { renderSettings } from "./views/settings.js";
 import { renderSetup } from "./views/setup.js";
 
 const views = {
   expenses: renderExpenses,
+  overview: renderOverview,
   add: renderExpenseForm,
   edit: renderExpenseForm,
   balances: renderBalances,
