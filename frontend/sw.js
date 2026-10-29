@@ -27,8 +27,9 @@ self.addEventListener("fetch", (event) => {
 async function staleWhileRevalidate(event) {
   const cache = await caches.open(CACHE);
   const cached = await cache.match(event.request);
-  // cache: "no-cache" – always ask the server, never take an old copy from the browser's HTTP cache
-  const fresh = fetch(event.request, { cache: "no-cache" }).then((response) => {
+  // No extra fetch options here: page loads ("navigate" requests) cannot be copied with options.
+  // The server sends "Cache-Control: no-cache", so the browser asks it for the newest version anyway.
+  const fresh = fetch(event.request).then((response) => {
     // Only keep real answers of the app, not error or waiting pages of the hosting provider
     if (response.ok && response.headers.has("X-BillBuddy")) {
       cache.put(event.request, response.clone());
