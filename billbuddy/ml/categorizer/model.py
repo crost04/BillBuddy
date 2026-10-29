@@ -1,10 +1,12 @@
 """The categorization model.
 
-Features:
-- the cleaned description, split into overlapping groups of 2–5 characters
-  ("rewe" -> "re", "ew", "we", "rew", ...) and weighted with TF-IDF. Character
-  groups still work with typos and unknown spellings ("Rewe-Markt", "REWE City").
-- the amount (log-scaled): rent is large, a streaming subscription is small.
+Feature: the cleaned description, split into overlapping groups of 2–5
+characters ("rewe" -> "re", "ew", "we", "rew", ...) and weighted with TF-IDF.
+Character groups still work with typos and unknown spellings ("Rewe-Markt").
+
+The amount was tested as a second feature but brought no measurable benefit on
+the sample data (see docs/categorizer-report.md), so the simpler text-only
+model is used. use_amount=True keeps the option to re-test it with real data.
 
 Classifier: logistic regression. It is fast, works well with little data and
 returns a probability per category, which is used as the confidence.
@@ -22,11 +24,12 @@ from sklearn.preprocessing import FunctionTransformer, StandardScaler
 
 from billbuddy.ml.categorizer.preprocessing import clean_description
 
-# Below this probability the app makes no suggestion (chosen in the evaluation)
-MIN_CONFIDENCE = 0.5
+# Below this probability the app makes no suggestion. Chosen in the evaluation:
+# a wrong suggestion is worse than none, especially for shops the model never saw.
+MIN_CONFIDENCE = 0.7
 
 
-def build_pipeline(use_amount: bool = True, c: float = 10.0) -> Pipeline:
+def build_pipeline(use_amount: bool = False, c: float = 10.0) -> Pipeline:
     features = [
         ("text", TfidfVectorizer(analyzer="char_wb", ngram_range=(2, 5), sublinear_tf=True), "text"),
     ]

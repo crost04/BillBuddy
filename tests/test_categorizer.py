@@ -6,7 +6,7 @@ import pytest
 
 from billbuddy.expenses import service as expenses
 from billbuddy.expenses.categories import CATEGORIES
-from billbuddy.ml.categorizer.model import CategoryModel
+from billbuddy.ml.categorizer.model import MIN_CONFIDENCE, CategoryModel
 from billbuddy.ml.categorizer.preprocessing import clean_description
 from billbuddy.ml.categorizer.training_data import USER_WEIGHT, TrainingData, group_data, sample_data
 
@@ -89,7 +89,7 @@ def test_known_shops_are_recognized(model, description, amount, category):
     suggestion = model.suggest(description, amount)
     assert suggestion is not None
     assert suggestion.category == category
-    assert suggestion.confidence >= 0.5
+    assert suggestion.confidence >= MIN_CONFIDENCE
 
 
 @pytest.mark.parametrize("description", ["xyz", "Filiale 123", ""])
@@ -100,7 +100,7 @@ def test_no_suggestion_when_unsure(model, description):
 def test_learns_from_user_categories():
     data = sample_data()
     before = CategoryModel.train(data.descriptions, data.amounts, data.categories, data.weights)
-    assert before.suggest("Vereinsbeitrag Tennis", 15) is None
+    assert before.suggest("Vereinsbeitrag Tennis", 15) is None  # unknown words: no suggestion
 
     corrections = TrainingData()
     for _ in range(2):
