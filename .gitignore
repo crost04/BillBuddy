@@ -1,0 +1,29 @@
+# --- Privacy: real data never goes into the repository ---
+data/private/
+*.db
+*.sqlite
+*.sqlite3
+receipts/
+.env
+.env.*
+!.env.example
+
+# Trained models (can be regenerated from sample data)
+models/
+*.joblib
+*.pkl
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+*.egg-info/
+
+# Editors & OS
+.vscode/
+.idea/
+.DS_Store
