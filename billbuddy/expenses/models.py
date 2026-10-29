@@ -81,6 +81,9 @@ class Expense(Base):
     description: Mapped[str] = mapped_column(String(200))
     # Empty until the user or the categorizer sets it
     category: Mapped[str | None] = mapped_column(String(50))
+    # What the categorizer suggested when the expense was entered; comparing it with
+    # `category` shows how often suggestions are kept (evaluation on real data)
+    suggested_category: Mapped[str | None] = mapped_column(String(50))
     is_fixed: Mapped[bool] = mapped_column(default=False)
     split_method: Mapped[SplitMethod] = mapped_column(default=SplitMethod.EQUAL)
     created_at: Mapped[dt.datetime] = mapped_column(default=dt.datetime.now)

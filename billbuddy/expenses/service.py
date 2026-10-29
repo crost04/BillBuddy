@@ -36,6 +36,8 @@ class ExpenseInput:
     split_method: SplitMethod = SplitMethod.EQUAL
     # Only for SplitMethod.PERCENT: {member_id: percent}
     percents: dict[int, float] | None = None
+    # The categorizer's suggestion shown while entering the expense (kept for evaluation)
+    suggested_category: str | None = None
 
 
 # --- Groups and members ---
@@ -99,6 +101,10 @@ def create_expense(session: Session, group_id: int, data: ExpenseInput) -> Expen
     group = get_group(session, group_id)
     expense = Expense()
     _apply(expense, group, data)
+    if data.suggested_category is not None and data.suggested_category not in CATEGORIES:
+        raise ValidationError(f"Unknown category {data.suggested_category!r}")
+    # Only stored once, when the expense is entered; later edits keep the original suggestion
+    expense.suggested_category = data.suggested_category
     # Attach to the group only after validation, so a rejected expense is never saved
     expense.group = group
     session.add(expense)

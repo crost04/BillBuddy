@@ -6,6 +6,7 @@ import pytest
 
 from billbuddy.expenses import service as expenses
 from billbuddy.expenses.categories import CATEGORIES
+from billbuddy.ml.categorizer import service as categorizer
 from billbuddy.ml.categorizer.model import MIN_CONFIDENCE, CategoryModel
 from billbuddy.ml.categorizer.preprocessing import clean_description
 from billbuddy.ml.categorizer.training_data import USER_WEIGHT, TrainingData, group_data, sample_data
@@ -109,3 +110,89 @@ def test_learns_from_user_categories():
     after = CategoryModel.train(combined.descriptions, combined.amounts, combined.categories, combined.weights)
 
     assert after.suggest("Tennis Vereinsbeitrag", 15).category == "Leisure"
+
+
+# --- Service (one cached model per group) ---
+
+
+def add_expense(session, group, description, category):
+    member = group.members[0]
+    return expenses.create_expense(
+        session,
+        group.id,
+        expenses.ExpenseInput(
+            payer_id=member.id,
+            amount_cents=1500,
+            date=dt.date(2026, 10, 29),
+            description=description,
+            participant_ids=[member.id],
+            category=category,
+        ),
+    )
+
+
+def test_service_reuses_the_model_until_categories_change(session):
+    group = expenses.create_group(session, "Home", ["Anna"])
+    first = categorizer.model_for_group(session, group.id)
+    assert categorizer.model_for_group(session, group.id) is first
+
+    add_expense(session, group, "Vereinsbeitrag Tennis", "Leisure")
+    assert categorizer.model_for_group(session, group.id) is not first
+
+
+def test_service_learns_from_the_groups_choices(session):
+    group = expenses.create_group(session, "Home", ["Anna"])
+    assert categorizer.suggest(session, group.id, "Vereinsbeitrag Tennis", 15) is None
+
+    add_expense(session, group, "Vereinsbeitrag Tennis", "Leisure")
+    add_expense(session, group, "Tennis Vereinsbeitrag", "Leisure")
+
+    assert categorizer.suggest(session, group.id, "Vereinsbeitrag Tennis", 15).category == "Leisure"
+
+
+# --- API ---
+
+
+@pytest.fixture
+def group(client):
+    return client.post("/api/groups", json={"name": "Home", "members": ["Ben"]}).json()
+
+
+def test_api_suggests_a_category(client, group):
+    params = {"description": "Rewe 34,50", "amount": 34.5}
+    response = client.get(f"/api/groups/{group['id']}/suggest-category", params=params)
+    assert response.status_code == 200
+    body = response.json()
+    assert body["category"] == "Groceries"
+    assert body["confidence"] >= MIN_CONFIDENCE
+
+
+def test_api_returns_nothing_when_unsure(client, group):
+    body = client.get(f"/api/groups/{group['id']}/suggest-category", params={"description": "xyz"}).json()
+    assert body == {"category": None, "confidence": None}
+
+
+def test_api_needs_access_to_the_group(client, anon_client, group):
+    url = f"/api/groups/{group['id']}/suggest-category"
+    assert client.get("/api/groups/999/suggest-category", params={"description": "Rewe"}).status_code == 404
+    client.post("/api/auth/logout")
+    assert anon_client.get(url, params={"description": "Rewe"}).status_code == 401
+
+
+def test_suggestion_is_stored_with_the_expense(client, group):
+    anna = group["members"][0]
+    body = {
+        "payer_id": anna["id"],
+        "amount": 20,
+        "date": "2026-10-29",
+        "description": "Rewe",
+        "category": "Household",  # the user changed the suggestion
+        "suggested_category": "Groceries",
+        "participants": [{"member_id": anna["id"]}],
+    }
+    expense = client.post(f"/api/groups/{group['id']}/expenses", json=body).json()
+    assert (expense["category"], expense["suggested_category"]) == ("Household", "Groceries")
+
+    # Editing later keeps the original suggestion
+    updated = client.put(f"/api/expenses/{expense['id']}", json={**body, "suggested_category": None}).json()
+    assert updated["suggested_category"] == "Groceries"

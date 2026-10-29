@@ -122,6 +122,7 @@ def _to_input(body: ExpenseIn) -> service.ExpenseInput:
         description=body.description,
         participant_ids=[p.member_id for p in body.participants],
         category=body.category,
+        suggested_category=body.suggested_category,
         is_fixed=body.is_fixed,
         split_method=body.split_method,
         percents=percents,

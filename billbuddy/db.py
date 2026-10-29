@@ -67,7 +67,7 @@ def make_session_factory(engine: Engine) -> sessionmaker:
     return sessionmaker(bind=engine, expire_on_commit=False)
 
 
-def init_db(engine: Engine) -> None:
+def init_db(engine: Engine, revision: str = "head") -> None:
     """Bring the database up to date by applying all migrations in migrations/.
 
     Migrations change the tables step by step and keep the existing data, so
@@ -80,4 +80,4 @@ def init_db(engine: Engine) -> None:
     config.set_main_option("script_location", str(MIGRATIONS_DIR))
     with engine.begin() as connection:
         config.attributes["connection"] = connection
-        command.upgrade(config, "head")
+        command.upgrade(config, revision)

@@ -89,6 +89,13 @@ BillBuddy can be hosted for free on Render (app) and Neon (database), see
 Without HTTPS the connection is not encrypted, so only do this in a network you trust. Offline start (service worker) only works on `localhost`
 or with HTTPS, i.e. after hosting.
 
+## AI: automatic categorization
+While typing a description, the app suggests a category ("REWE City" → Groceries, 93 %).
+The model – character TF-IDF + logistic regression – is trained per group on the sample data plus
+the group's own categorized expenses, so every correction improves the next suggestion.
+It only suggests when it is at least 70 % sure. Details: [CRISP-DM documentation](docs/crisp-dm.md)
+and [evaluation report](docs/categorizer-report.md) (`python -m billbuddy.ml.categorizer.evaluate`).
+
 ## How settlement works
 1. **Split:** every expense is divided among its participants (equally, by percentage or
    by income). Parts are exact to the cent: leftover cents go to the parts with the largest
@@ -119,6 +126,7 @@ and only return groups the user belongs to.
 | GET/POST | `/api/groups/{id}/payments` | list / record payments between members |
 | DELETE | `/api/payments/{id}` | delete a payment |
 | GET | `/api/categories` | available categories |
+| GET | `/api/groups/{id}/suggest-category?description=…` | AI category suggestion |
 
 ## Privacy
 Only generated sample data is part of this repository. Real expenses, databases and
@@ -127,4 +135,5 @@ secrets are excluded via `.gitignore`.
 ## Documentation
 - [Project plan](docs/project-plan.md)
 - [CRISP-DM documentation](docs/crisp-dm.md)
+- [Categorizer evaluation report](docs/categorizer-report.md)
 - [Deployment guide](docs/deployment.md)

@@ -55,6 +55,11 @@ export const api = {
   updateExpense: (id, data) => request("PUT", `/expenses/${id}`, data),
   deleteExpense: (id) => request("DELETE", `/expenses/${id}`),
 
+  suggestCategory: (groupId, description, amount) => request(
+    "GET",
+    `/groups/${groupId}/suggest-category?description=${encodeURIComponent(description)}&amount=${amount}`,
+  ),
+
   settlement: (groupId) => request("GET", `/groups/${groupId}/settlement`),
   payments: (groupId) => request("GET", `/groups/${groupId}/payments`),
   createPayment: (groupId, data) => request("POST", `/groups/${groupId}/payments`, data),

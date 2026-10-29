@@ -54,6 +54,7 @@ export async function renderExpenseForm(container, id) {
         ${state.categories.map((c) => `
           <option value="${c}" ${c === expense?.category ? "selected" : ""}>${categoryEmoji(c)} ${categoryLabel(c)}</option>`).join("")}
       </select>
+      <p class="small ai-hint" id="category-hint"></p>
 
       <div class="check">
         <label><input type="checkbox" id="is-fixed" ${expense?.is_fixed ? "checked" : ""}> Fixkosten (kommt regelmäßig wieder)</label>
@@ -130,6 +131,38 @@ export async function renderExpenseForm(container, id) {
   }));
   form.addEventListener("input", updateSplit);
   updateSplit();
+
+  // --- Category suggestion (billbuddy.ml.categorizer) ---
+  // A suggestion only fills the field until the user picks a category themselves
+  let categoryChosenByUser = Boolean(expense?.category);
+  let suggestedCategory = null;
+  let latestRequest = 0;
+  let typingTimer;
+
+  async function updateSuggestion() {
+    const description = $("#description").value.trim();
+    const request = ++latestRequest;
+    const amount = parseAmount($("#amount").value) || 0;
+    const result = description ? await api.suggestCategory(state.group.id, description, amount).catch(() => null) : null;
+    // An older answer that arrives late must not overwrite a newer one
+    if (request !== latestRequest || categoryChosenByUser) return;
+    suggestedCategory = result?.category ?? null;
+    $("#category").value = suggestedCategory ?? "";
+    $("#category-hint").textContent = suggestedCategory
+      ? `✨ Vorschlag der KI (${Math.round(result.confidence * 100)} % sicher) – du kannst ihn jederzeit ändern.`
+      : "";
+  }
+
+  $("#description").addEventListener("input", () => {
+    // Ask only when the user pauses typing, not after every letter
+    clearTimeout(typingTimer);
+    typingTimer = setTimeout(updateSuggestion, 300);
+  });
+  $("#category").addEventListener("change", () => {
+    categoryChosenByUser = true;
+    const corrected = suggestedCategory && $("#category").value !== suggestedCategory;
+    $("#category-hint").textContent = corrected ? "Danke! BillBuddy lernt aus deiner Auswahl." : "";
+  });
   if (!editing) $("#amount").focus();
 
   form.addEventListener("submit", async (event) => {
@@ -158,6 +191,7 @@ export async function renderExpenseForm(container, id) {
       date: $("#date").value,
       description,
       category: $("#category").value || null,
+      suggested_category: suggestedCategory,
       is_fixed: $("#is-fixed").checked,
       split_method: split,
       participants: ids.map((memberId) => ({

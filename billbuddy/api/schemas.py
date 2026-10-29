@@ -58,6 +58,8 @@ class ExpenseIn(BaseModel):
     date: dt.date
     description: str = Field(min_length=1, max_length=200)
     category: str | None = None
+    # The suggestion the form showed, if any (only stored when the expense is created)
+    suggested_category: str | None = None
     is_fixed: bool = False
     split_method: SplitMethod = SplitMethod.EQUAL
     participants: list[ParticipantIn] = Field(min_length=1)
@@ -80,6 +82,7 @@ class ExpenseOut(BaseModel):
     date: dt.date
     description: str
     category: str | None
+    suggested_category: str | None
     is_fixed: bool
     split_method: SplitMethod
     shares: list[ShareOut]
@@ -158,3 +161,9 @@ class InviteOut(BaseModel):
 class JoinIn(BaseModel):
     # An existing person without an account, or None to join as a new person
     member_id: int | None = None
+
+
+class SuggestionOut(BaseModel):
+    # Both empty if the categorizer is not sure enough
+    category: str | None
+    confidence: float | None
