@@ -4,7 +4,7 @@ import { api } from "../api.js";
 import {
   categoryEmoji, categoryLabel, esc, formatAmountInput, formatMoney, parseAmount, todayISO,
 } from "../format.js";
-import { state, storage } from "../state.js";
+import { myMember, state, storage } from "../state.js";
 import { setTitle, showError } from "../ui.js";
 import { showMonth } from "./expenses.js";
 
@@ -20,9 +20,12 @@ export async function renderExpenseForm(container, id) {
   const members = state.group.members;
   setTitle(editing ? "Ausgabe bearbeiten" : "Neue Ausgabe");
 
-  // Preselect the person who paid last time, that is usually the same
-  const lastPayer = Number(storage.get("lastPayer"));
-  const payerId = expense?.payer_id ?? (members.some((m) => m.id === lastPayer) ? lastPayer : members[0].id);
+  // Preselect the person who paid last time, otherwise yourself
+  // (remembered per account, in case several people use the same device)
+  const lastPayerKey = `lastPayer:${state.user.id}`;
+  const lastPayer = Number(storage.get(lastPayerKey));
+  const payerId = expense?.payer_id
+    ?? (members.some((m) => m.id === lastPayer) ? lastPayer : (myMember() ?? members[0]).id);
   const shares = new Map((expense?.shares ?? members.map((m) => ({ member_id: m.id, percent: null })))
     .map((s) => [s.member_id, s.percent]));
   const method = expense?.split_method ?? "equal";
@@ -166,7 +169,7 @@ export async function renderExpenseForm(container, id) {
     try {
       if (editing) await api.updateExpense(id, body);
       else await api.createExpense(state.group.id, body);
-      storage.set("lastPayer", body.payer_id);
+      storage.set(lastPayerKey, body.payer_id);
       showMonth(body.date.slice(0, 7));
       location.hash = "#/expenses";
     } catch (e) {

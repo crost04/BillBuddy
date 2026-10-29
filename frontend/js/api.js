@@ -12,6 +12,10 @@ async function request(method, path, body) {
   if (response.status === 204) return null;
 
   const data = await response.json().catch(() => null);
+  // Session expired or logged out elsewhere: let the app show the login screen
+  if (response.status === 401 && !path.startsWith("/auth/")) {
+    window.dispatchEvent(new Event("billbuddy:unauthorized"));
+  }
   if (!response.ok) throw new Error(errorMessage(data, response.status));
   return data;
 }
@@ -25,6 +29,14 @@ function errorMessage(data, status) {
 }
 
 export const api = {
+  me: () => request("GET", "/auth/me"),
+  register: (email, name, password) => request("POST", "/auth/register", { email, name, password }),
+  login: (email, password) => request("POST", "/auth/login", { email, password }),
+  logout: () => request("POST", "/auth/logout"),
+
+  invite: (code) => request("GET", `/invites/${encodeURIComponent(code)}`),
+  join: (code, memberId) => request("POST", `/invites/${encodeURIComponent(code)}/join`, { member_id: memberId }),
+
   categories: () => request("GET", "/categories"),
 
   groups: () => request("GET", "/groups"),

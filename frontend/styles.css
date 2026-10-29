@@ -180,7 +180,7 @@ label:first-child { margin-top: 0; }
 input, select, button { font: inherit; }
 
 /* font-size 16px stops iOS from zooming into the field */
-input[type="text"], input[type="date"], input[type="number"], select {
+input[type="text"], input[type="email"], input[type="password"], input[type="date"], input[type="number"], select {
   width: 100%;
   padding: 12px;
   font-size: 16px;
@@ -260,4 +260,7 @@ input.amount-input { font-size: 2rem; font-weight: 700; text-align: center; }
 
 .inline-form { display: flex; gap: 8px; margin-top: 12px; }
 .inline-form input { flex: 1; min-width: 0; }
-.inline-form input.income { flex: 0 0 120px; }
+.inline-form input.income { flex: 0 0 110px; }
+input:disabled { opacity: 0.7; }
+.account-mark { flex: 0 0 14px; align-self: center; color: var(--success); font-weight: 700; }
+#invite-link { font-size: 0.85rem; }
