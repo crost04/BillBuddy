@@ -135,8 +135,35 @@ export async function renderExpenseForm(container, id) {
   // --- Anomaly check (billbuddy.ml.anomaly) ---
   // Before saving, the server checks for duplicates and unusual amounts. If it
   // warns, the first tap only shows the warning; tapping again saves anyway.
+  // The check already runs while the user is typing, so saving does not wait for it.
   let warningShown = false;
+  const checks = new Map(); // input -> answer of the server (a promise)
+  let checkTimer;
+
+  function check(fields) {
+    const request = { expense_id: editing ? Number(id) : null, ...fields };
+    const key = JSON.stringify(request);
+    if (!checks.has(key)) checks.set(key, api.checkExpense(state.group.id, request).catch(() => null));
+    return checks.get(key);
+  }
+
+  function checkInAdvance() {
+    const fields = currentCheckFields();
+    if (fields.amount > 0 && fields.description && fields.date) check(fields);
+  }
+
+  function currentCheckFields() {
+    return {
+      amount: parseAmount($("#amount").value),
+      date: $("#date").value,
+      description: $("#description").value.trim(),
+      category: $("#category").value || null,
+    };
+  }
+
   form.addEventListener("input", () => {
+    clearTimeout(checkTimer);
+    checkTimer = setTimeout(checkInAdvance, 600);
     if (!warningShown) return;
     warningShown = false;
     showError(error, "");
@@ -144,13 +171,13 @@ export async function renderExpenseForm(container, id) {
   });
 
   async function warnings(body) {
-    const result = await api.checkExpense(state.group.id, {
-      expense_id: editing ? Number(id) : null,
+    const result = await check({
       amount: body.amount,
       date: body.date,
       description: body.description,
       category: body.category,
     });
+    if (!result) return []; // check failed: do not block saving
     const messages = [];
     const [first] = result.duplicates;
     if (first) {
@@ -184,6 +211,7 @@ export async function renderExpenseForm(container, id) {
     $("#category-hint").textContent = suggestedCategory
       ? `✨ Vorschlag der KI (${Math.round(result.confidence * 100)} % sicher) – du kannst ihn jederzeit ändern.`
       : "";
+    checkInAdvance(); // the category changed, so the check needs the new one
   }
 
   $("#description").addEventListener("input", () => {
@@ -233,19 +261,21 @@ export async function renderExpenseForm(container, id) {
       })),
     };
 
-    if (!warningShown) {
-      const messages = await warnings(body).catch(() => []);
-      if (messages.length) {
-        error.innerHTML = `
-          <div class="warning">⚠️ ${messages.map(esc).join("<br>")}
-            <br><span class="small">Prüfe die Angaben – oder tippe auf „Trotzdem speichern“.</span></div>`;
-        $('button[type="submit"]').textContent = "Trotzdem speichern";
-        warningShown = true;
-        return;
-      }
-    }
-
+    // Immediate feedback, and no second expense from a double tap
+    const button = $('button[type="submit"]');
+    button.disabled = true;
+    button.textContent = "Speichert …";
     try {
+      if (!warningShown) {
+        const messages = await warnings(body);
+        if (messages.length) {
+          error.innerHTML = `
+            <div class="warning">⚠️ ${messages.map(esc).join("<br>")}
+              <br><span class="small">Prüfe die Angaben – oder tippe auf „Trotzdem speichern“.</span></div>`;
+          warningShown = true;
+          return;
+        }
+      }
       if (editing) await api.updateExpense(id, body);
       else await api.createExpense(state.group.id, body);
       storage.set(lastPayerKey, body.payer_id);
@@ -253,6 +283,9 @@ export async function renderExpenseForm(container, id) {
       location.hash = "#/expenses";
     } catch (e) {
       showError(error, e.message);
+    } finally {
+      button.disabled = false;
+      button.textContent = warningShown ? "Trotzdem speichern" : editing ? "Speichern" : "Hinzufügen";
     }
   });
 
