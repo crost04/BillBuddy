@@ -65,6 +65,31 @@ BILLBUDDY_DATABASE_URL=sqlite:///data/sample/demo.db uvicorn billbuddy.api.main:
 Without `BILLBUDDY_DATABASE_URL` the API uses your private database in `data/private/billbuddy.db`.
 PyCharm users find ready-made run configurations for all of these in `.run/`.
 
+## How settlement works
+1. **Split:** every expense is divided among its participants (equally, by percentage or
+   by income). Parts are exact to the cent: leftover cents go to the parts with the largest
+   remainder, so 10.00 € / 3 becomes 3.34 + 3.33 + 3.33.
+2. **Balance:** per member, *paid* minus *own share*, plus recorded payments.
+   Positive means the member gets money back; all balances add up to 0.
+3. **Transfers:** the member who owes the most pays the member who is owed the most,
+   until everyone is even – at most *n − 1* transfers for *n* members.
+
+## API overview
+Interactive documentation: `http://127.0.0.1:8000/docs`
+
+| Method | Path | Purpose |
+|--------|------|---------|
+| GET/POST | `/api/groups` | list / create groups |
+| GET/DELETE | `/api/groups/{id}` | read / delete a group |
+| POST | `/api/groups/{id}/members` | add a member |
+| PUT | `/api/members/{id}` | rename a member, set income |
+| GET/POST | `/api/groups/{id}/expenses` | list (optionally `?month=2026-10`) / add expenses |
+| GET/PUT/DELETE | `/api/expenses/{id}` | read / edit / delete an expense |
+| GET | `/api/groups/{id}/settlement` | balances and suggested transfers |
+| GET/POST | `/api/groups/{id}/payments` | list / record payments between members |
+| DELETE | `/api/payments/{id}` | delete a payment |
+| GET | `/api/categories` | available categories |
+
 ## Privacy
 Only generated sample data is part of this repository. Real expenses, databases and
 secrets are excluded via `.gitignore`.

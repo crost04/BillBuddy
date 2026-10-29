@@ -117,3 +117,40 @@ def test_unknown_ids_return_404(client, group):
     assert client.get("/api/groups/999").status_code == 404
     assert client.get("/api/expenses/999").status_code == 404
     assert client.post("/api/groups/999/expenses", json=expense_body(group)).status_code == 404
+
+
+# --- Settlement ---
+
+
+def test_settlement_and_payments(client, group):
+    anna, ben = group["members"]
+    client.post(f"/api/groups/{group['id']}/expenses", json=expense_body(group, amount=60))
+
+    settlement = client.get(f"/api/groups/{group['id']}/settlement").json()
+    assert settlement["balances"] == [
+        {"member_id": anna["id"], "balance": 30.0},
+        {"member_id": ben["id"], "balance": -30.0},
+    ]
+    assert settlement["transfers"] == [
+        {"from_member_id": ben["id"], "to_member_id": anna["id"], "amount": 30.0}
+    ]
+
+    # Ben pays Anna back
+    body = {"from_member_id": ben["id"], "to_member_id": anna["id"], "amount": 30, "date": "2026-10-30"}
+    response = client.post(f"/api/groups/{group['id']}/payments", json=body)
+    assert response.status_code == 201
+    payment = response.json()
+
+    settlement = client.get(f"/api/groups/{group['id']}/settlement").json()
+    assert [b["balance"] for b in settlement["balances"]] == [0, 0]
+    assert settlement["transfers"] == []
+
+    assert client.get(f"/api/groups/{group['id']}/payments").json() == [payment]
+    assert client.delete(f"/api/payments/{payment['id']}").status_code == 204
+    assert client.get(f"/api/groups/{group['id']}/payments").json() == []
+
+
+def test_invalid_payment_returns_422(client, group):
+    anna, _ = group["members"]
+    body = {"from_member_id": anna["id"], "to_member_id": anna["id"], "amount": 10, "date": "2026-10-30"}
+    assert client.post(f"/api/groups/{group['id']}/payments", json=body).status_code == 422

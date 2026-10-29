@@ -1,0 +1,15 @@
+"""Dependencies shared by all API routes."""
+
+from typing import Annotated
+
+from fastapi import Depends, Request
+from sqlalchemy.orm import Session
+
+
+def get_session(request: Request):
+    """One database session per request, closed automatically afterwards."""
+    with request.app.state.session_factory() as session:
+        yield session
+
+
+SessionDep = Annotated[Session, Depends(get_session)]

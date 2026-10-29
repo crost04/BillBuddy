@@ -80,3 +80,39 @@ class ExpenseOut(BaseModel):
     split_method: SplitMethod
     shares: list[ShareOut]
     created_at: dt.datetime
+
+
+class BalanceOut(BaseModel):
+    member_id: int
+    # Positive: gets money back. Negative: owes money.
+    balance: float
+
+
+class TransferOut(BaseModel):
+    from_member_id: int
+    to_member_id: int
+    amount: float
+
+
+class SettlementOut(BaseModel):
+    balances: list[BalanceOut]
+    transfers: list[TransferOut]
+
+
+class PaymentIn(BaseModel):
+    from_member_id: int
+    to_member_id: int
+    amount: Decimal = Field(gt=0, decimal_places=2, max_digits=10)
+    date: dt.date
+
+
+class PaymentOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    group_id: int
+    from_member_id: int
+    to_member_id: int
+    amount: float
+    date: dt.date
+    created_at: dt.datetime

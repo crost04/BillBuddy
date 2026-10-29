@@ -1,12 +1,15 @@
-"""API endpoints. They only translate between HTTP and the service functions."""
+"""API endpoints for groups, members and expenses.
+
+They only translate between HTTP and the service functions.
+"""
 
 import calendar
 import datetime as dt
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Query, Request
-from sqlalchemy.orm import Session
+from fastapi import APIRouter, Query
 
+from billbuddy.api.deps import SessionDep
 from billbuddy.api.schemas import (
     ExpenseIn,
     ExpenseOut,
@@ -21,15 +24,6 @@ from billbuddy.expenses.categories import CATEGORIES
 from billbuddy.expenses.models import SplitMethod
 
 router = APIRouter(prefix="/api")
-
-
-def get_session(request: Request):
-    """One database session per request, closed automatically afterwards."""
-    with request.app.state.session_factory() as session:
-        yield session
-
-
-SessionDep = Annotated[Session, Depends(get_session)]
 
 
 @router.get("/categories")

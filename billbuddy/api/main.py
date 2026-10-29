@@ -12,7 +12,7 @@ from sqlalchemy.engine import Engine
 from sqlalchemy.exc import IntegrityError
 
 from billbuddy import __version__
-from billbuddy.api.routes import router
+from billbuddy.api import expense_routes, settlement_routes
 from billbuddy.db import init_db, make_engine, make_session_factory
 from billbuddy.expenses.service import NotFoundError, ValidationError
 
@@ -28,7 +28,8 @@ def create_app(engine: Engine | None = None) -> FastAPI:
 
     app = FastAPI(title="BillBuddy API", version=__version__, lifespan=lifespan)
     app.state.session_factory = make_session_factory(engine)
-    app.include_router(router)
+    app.include_router(expense_routes.router)
+    app.include_router(settlement_routes.router)
 
     # Turn errors from the service layer into proper HTTP status codes
     @app.exception_handler(NotFoundError)
