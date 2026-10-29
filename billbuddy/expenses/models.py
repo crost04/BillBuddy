@@ -47,6 +47,12 @@ class Member(Base):
 
     group: Mapped[Group] = relationship(back_populates="members")
 
+    @property
+    def monthly_income(self) -> Decimal | None:
+        if self.monthly_income_cents is None:
+            return None
+        return Decimal(self.monthly_income_cents) / 100
+
 
 class Expense(Base):
     __tablename__ = "expenses"
