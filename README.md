@@ -1,5 +1,7 @@
 # BillBuddy
 
+[![Tests](https://github.com/crost04/BillBuddy/actions/workflows/tests.yml/badge.svg)](https://github.com/crost04/BillBuddy/actions/workflows/tests.yml)
+
 A mobile-first web app (PWA) for couples, flatmates and groups to track shared expenses,
 split them fairly and see who owes whom. AI features categorize expenses automatically,
 read receipts, detect recurring costs and anomalies, and forecast spending.
@@ -59,7 +61,8 @@ render.yaml        # hosting configuration (Render)
 python3 -m venv .venv
 source .venv/bin/activate        # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-pytest
+pytest                       # all tests
+ruff check . && ruff format --check .   # code style
 
 # Generate sample data and a demo database
 python -m billbuddy.data.generator --db data/sample/demo.db
@@ -163,6 +166,11 @@ and only return groups the user belongs to.
 | POST | `/api/groups/{id}/check-expense` | duplicate and outlier check before saving |
 | GET | `/api/groups/{id}/anomalies?month=2026-10` | anomalies of a month |
 | POST | `/api/groups/{id}/parse-receipt` | turn recognized receipt text into store, date, total, items |
+
+## Quality assurance
+- **Tests:** pytest, run automatically on GitHub for every push (badge at the top).
+- **Code style:** ruff (linter and formatter, settings in `pyproject.toml`), also checked on GitHub.
+- **Backup:** *Gruppe → Daten sichern* downloads all expenses and payments as a CSV file.
 
 ## Privacy
 Only generated sample data is part of this repository. Real expenses, databases and

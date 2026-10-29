@@ -1,0 +1,27 @@
+# Runs the code checks and all tests on GitHub for every push and pull request.
+# A red cross on GitHub means: something is broken – before it reaches the users.
+name: Tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Code style (ruff)
+        run: |
+          ruff check .
+          ruff format --check .
+      - name: Tests (pytest)
+        run: pytest -q
