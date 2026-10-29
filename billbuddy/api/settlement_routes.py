@@ -12,6 +12,8 @@ from billbuddy.api.schemas import (
     to_cents,
 )
 from billbuddy.auth import access
+from billbuddy.clock import today
+from billbuddy.expenses import recurring_rules
 from billbuddy.settlement import service
 
 router = APIRouter(prefix="/api")
@@ -20,6 +22,7 @@ router = APIRouter(prefix="/api")
 @router.get("/groups/{group_id}/settlement", response_model=SettlementOut)
 def get_settlement(group_id: int, user: CurrentUser, session: SessionDep):
     access.require_group(session, user, group_id)
+    recurring_rules.book_due(session, group_id, today())
     settlement = service.get_settlement(session, group_id)
     return SettlementOut(
         balances=[

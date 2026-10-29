@@ -86,6 +86,8 @@ class ExpenseOut(BaseModel):
     is_fixed: bool
     split_method: SplitMethod
     shares: list[ShareOut]
+    # Set if the expense was entered by a standing order
+    recurring_rule_id: int | None
     created_at: dt.datetime
 
 
@@ -219,6 +221,35 @@ class RecurringOut(BaseModel):
     next_date: dt.date
     active: bool
     already_fixed: bool
+    # True if a standing order already enters it automatically
+    has_rule: bool
+    # The most recent expense of the series (a standing order is created from it)
+    last_expense_id: int
+
+
+class DismissIn(BaseModel):
+    key: str = Field(min_length=1, max_length=200)
+
+
+class RecurringRuleIn(BaseModel):
+    # The expense that becomes the template for the monthly entries
+    expense_id: int
+
+
+class RuleAmountIn(BaseModel):
+    amount: Decimal = Field(gt=0, decimal_places=2, max_digits=10)
+
+
+class RecurringRuleOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    description: str
+    amount: float
+    category: str | None
+    payer_id: int
+    day_of_month: int
+    next_date: dt.date
 
 
 class MarkFixedIn(BaseModel):

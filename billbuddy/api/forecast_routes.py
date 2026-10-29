@@ -7,6 +7,7 @@ from fastapi import APIRouter, Query
 from billbuddy.api.deps import CurrentUser, SessionDep
 from billbuddy.api.schemas import ForecastOut, MemberPaidOut, MonthTotalOut, OverviewOut
 from billbuddy.auth import access
+from billbuddy.expenses import recurring_rules
 from billbuddy.ml.forecast import service
 from billbuddy.ml.forecast.model import Forecast, forecast_month, spent_until
 
@@ -21,6 +22,7 @@ def overview(
     month: Annotated[str | None, Query(pattern=r"^\d{4}-\d{2}$", description="e.g. 2026-10")] = None,
 ):
     group = access.require_group(session, user, group_id)
+    recurring_rules.book_due(session, group_id, service.today())
     records = service.group_records(session, group_id)
     result = forecast_month(records, service.today(), month)
 

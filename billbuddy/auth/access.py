@@ -8,7 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from billbuddy.auth.models import User
-from billbuddy.expenses.models import Expense, Group, Member, Payment
+from billbuddy.expenses.models import Expense, Group, Member, Payment, RecurringRule
 from billbuddy.expenses.service import NotFoundError, ValidationError
 
 
@@ -41,6 +41,10 @@ def require_expense(session: Session, user: User, expense_id: int) -> Expense:
 
 def require_payment(session: Session, user: User, payment_id: int) -> Payment:
     return _require_in_group(session, user, Payment, payment_id)
+
+
+def require_recurring_rule(session: Session, user: User, rule_id: int) -> RecurringRule:
+    return _require_in_group(session, user, RecurringRule, rule_id)
 
 
 def _require_in_group(session: Session, user: User, model, object_id: int):

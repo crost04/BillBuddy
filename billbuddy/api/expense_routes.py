@@ -21,7 +21,8 @@ from billbuddy.api.schemas import (
     to_cents,
 )
 from billbuddy.auth import access
-from billbuddy.expenses import service
+from billbuddy.clock import today
+from billbuddy.expenses import recurring_rules, service
 from billbuddy.expenses.categories import CATEGORIES
 from billbuddy.expenses.models import SplitMethod
 
@@ -80,6 +81,7 @@ def list_expenses(
     month: Annotated[str | None, Query(pattern=r"^\d{4}-\d{2}$", description="e.g. 2026-10")] = None,
 ):
     access.require_group(session, user, group_id)
+    recurring_rules.book_due(session, group_id, today())
     start = end = None
     if month:
         year, month_number = map(int, month.split("-"))
