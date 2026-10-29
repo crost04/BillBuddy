@@ -10,7 +10,7 @@ import enum
 import secrets
 from decimal import Decimal
 
-from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint
+from sqlalchemy import JSON, CheckConstraint, ForeignKey, String, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from billbuddy.db import Base
@@ -45,6 +45,9 @@ class Group(Base):
     payments: Mapped[list["Payment"]] = relationship(
         back_populates="group", cascade="all, delete-orphan"
     )
+    recurring_rules: Mapped[list["RecurringRule"]] = relationship(
+        back_populates="group", cascade="all, delete-orphan"
+    )
 
 
 class Member(Base):
@@ -70,7 +73,11 @@ class Member(Base):
 
 class Expense(Base):
     __tablename__ = "expenses"
-    __table_args__ = (CheckConstraint("amount_cents > 0", name="amount_positive"),)
+    __table_args__ = (
+        CheckConstraint("amount_cents > 0", name="amount_positive"),
+        # A standing order books each date only once, even if two requests arrive at the same time
+        UniqueConstraint("recurring_rule_id", "date", name="one_booking_per_rule_and_day"),
+    )
 
     id: Mapped[int] = mapped_column(primary_key=True)
     group_id: Mapped[int] = mapped_column(ForeignKey("groups.id", ondelete="CASCADE"))
@@ -86,6 +93,10 @@ class Expense(Base):
     suggested_category: Mapped[str | None] = mapped_column(String(50))
     is_fixed: Mapped[bool] = mapped_column(default=False)
     split_method: Mapped[SplitMethod] = mapped_column(default=SplitMethod.EQUAL)
+    # Set for expenses booked automatically by a standing order (or the one it was created from)
+    recurring_rule_id: Mapped[int | None] = mapped_column(
+        ForeignKey("recurring_rules.id", ondelete="SET NULL", name="fk_expenses_recurring_rule")
+    )
     created_at: Mapped[dt.datetime] = mapped_column(default=dt.datetime.now)
 
     group: Mapped[Group] = relationship(back_populates="expenses")
@@ -149,3 +160,46 @@ class Payment(Base):
     @property
     def amount(self) -> Decimal:
         return Decimal(self.amount_cents) / 100
+
+
+class RecurringRule(Base):
+    """A standing order: a fixed cost that is entered automatically every month.
+
+    It is a copy of an expense (amount, category, payer, split) plus the day of
+    the month and the date of the next booking.
+    """
+
+    __tablename__ = "recurring_rules"
+    __table_args__ = (CheckConstraint("amount_cents > 0", name="rule_amount_positive"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    group_id: Mapped[int] = mapped_column(ForeignKey("groups.id", ondelete="CASCADE"))
+    payer_id: Mapped[int] = mapped_column(ForeignKey("members.id", ondelete="RESTRICT"))
+    description: Mapped[str] = mapped_column(String(200))
+    amount_cents: Mapped[int]
+    category: Mapped[str | None] = mapped_column(String(50))
+    # SplitMethod value; stored as text so PostgreSQL needs no second enum type
+    split_method: Mapped[str] = mapped_column(String(20), default=SplitMethod.EQUAL.value)
+    # [{"member_id": 3, "percent": null}, ...] – same meaning as ExpenseShare
+    participants: Mapped[list] = mapped_column(JSON)
+    day_of_month: Mapped[int]
+    next_date: Mapped[dt.date]
+    created_at: Mapped[dt.datetime] = mapped_column(default=dt.datetime.now)
+
+    group: Mapped[Group] = relationship(back_populates="recurring_rules")
+
+    @property
+    def amount(self) -> Decimal:
+        return Decimal(self.amount_cents) / 100
+
+
+class RecurringDismissal(Base):
+    """A description the group said is no fixed cost ("Keine Fixkosten")."""
+
+    __tablename__ = "recurring_dismissals"
+    __table_args__ = (UniqueConstraint("group_id", "key", name="one_dismissal_per_key"),)
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    group_id: Mapped[int] = mapped_column(ForeignKey("groups.id", ondelete="CASCADE"))
+    # Cleaned description (billbuddy.ml.recurring.model.description_key)
+    key: Mapped[str] = mapped_column(String(200))
