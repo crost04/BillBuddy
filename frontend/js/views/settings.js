@@ -49,6 +49,13 @@ export async function renderSettings(container) {
     </div>
 
     <div class="card">
+      <h2>Daten sichern</h2>
+      <p class="muted small">Alle Ausgaben und Ausgleichszahlungen dieser Gruppe als Tabelle – öffnet sich in Excel
+        oder Numbers. Am besten ab und zu herunterladen und aufbewahren.</p>
+      <a class="btn secondary" href="/api/groups/${state.group.id}/export.csv" download>⬇︎ Als CSV-Datei herunterladen</a>
+    </div>
+
+    <div class="card">
       <h2>Konto</h2>
       <p class="muted small">Angemeldet als <strong>${esc(state.user.name)}</strong> (${esc(state.user.email)})</p>
       <button class="btn danger" id="logout">Abmelden</button>

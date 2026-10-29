@@ -1,6 +1,9 @@
 """API endpoints for balances, suggested transfers and recorded payments."""
 
+import re
+
 from fastapi import APIRouter
+from fastapi.responses import Response
 
 from billbuddy.api.deps import CurrentUser, SessionDep
 from billbuddy.api.schemas import (
@@ -15,6 +18,7 @@ from billbuddy.auth import access
 from billbuddy.clock import today
 from billbuddy.expenses import recurring_rules
 from billbuddy.settlement import service
+from billbuddy.settlement.export import group_csv
 
 router = APIRouter(prefix="/api")
 
@@ -57,3 +61,17 @@ def create_payment(group_id: int, body: PaymentIn, user: CurrentUser, session: S
 def delete_payment(payment_id: int, user: CurrentUser, session: SessionDep):
     access.require_payment(session, user, payment_id)
     service.delete_payment(session, payment_id)
+
+
+@router.get("/groups/{group_id}/export.csv")
+def export_csv(group_id: int, user: CurrentUser, session: SessionDep):
+    """All expenses and payments of the group as a CSV file (backup, opens in Excel/Numbers)."""
+    group = access.require_group(session, user, group_id)
+    recurring_rules.book_due(session, group_id, today())
+    slug = re.sub(r"[^a-z0-9]+", "-", group.name.lower()).strip("-") or "gruppe"
+    filename = f"billbuddy-{slug}-{today().isoformat()}.csv"
+    return Response(
+        content=group_csv(group),
+        media_type="text/csv; charset=utf-8",
+        headers={"Content-Disposition": f'attachment; filename="{filename}"'},
+    )
