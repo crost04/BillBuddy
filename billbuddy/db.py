@@ -1,8 +1,8 @@
 """Database setup shared by all modules.
 
-By default the database lives in data/private/, which is git-ignored, so real
-expenses never end up in the repository. Set BILLBUDDY_DATABASE_URL to use a
-different database (e.g. one filled with sample data).
+Locally the database is a SQLite file in data/private/, which is git-ignored,
+so real expenses never end up in the repository. On the server, DATABASE_URL
+points to a PostgreSQL database instead (e.g. on Neon).
 """
 
 import os
@@ -15,15 +15,26 @@ from sqlalchemy.pool import StaticPool
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 DEFAULT_DB_PATH = PROJECT_ROOT / "data" / "private" / "billbuddy.db"
+MIGRATIONS_DIR = PROJECT_ROOT / "migrations"
 
 
 class Base(DeclarativeBase):
     """Parent class of all database models."""
 
 
+def import_models() -> None:
+    """Import every model module, so all tables are registered on Base."""
+    from billbuddy.auth import models as auth_models  # noqa: F401
+    from billbuddy.expenses import models as expense_models  # noqa: F401
+
+
 def get_database_url() -> str:
-    url = os.environ.get("BILLBUDDY_DATABASE_URL")
+    url = os.environ.get("BILLBUDDY_DATABASE_URL") or os.environ.get("DATABASE_URL")
     if url:
+        # Hosts hand out "postgres://..." URLs; SQLAlchemy needs to know the driver
+        for prefix in ("postgres://", "postgresql://"):
+            if url.startswith(prefix):
+                return "postgresql+psycopg://" + url.removeprefix(prefix)
         return url
     # data/private/ is not in the repo, so create it on a fresh clone
     DEFAULT_DB_PATH.parent.mkdir(parents=True, exist_ok=True)
@@ -33,7 +44,8 @@ def get_database_url() -> str:
 def make_engine(url: str | None = None) -> Engine:
     url = url or get_database_url()
     if not url.startswith("sqlite"):
-        return create_engine(url)
+        # pool_pre_ping: a hosted database may close idle connections
+        return create_engine(url, pool_pre_ping=True)
     # FastAPI handles requests in several threads; SQLite must allow that
     kwargs = {"connect_args": {"check_same_thread": False}}
     if url in ("sqlite://", "sqlite:///:memory:"):
@@ -56,8 +68,16 @@ def make_session_factory(engine: Engine) -> sessionmaker:
 
 
 def init_db(engine: Engine) -> None:
-    """Create all tables that do not exist yet."""
-    # Import the models so they are registered on Base before creating tables
-    from billbuddy.expenses import models  # noqa: F401
+    """Bring the database up to date by applying all migrations in migrations/.
 
-    Base.metadata.create_all(engine)
+    Migrations change the tables step by step and keep the existing data, so
+    the app can evolve while real expenses are stored in it.
+    """
+    from alembic import command
+    from alembic.config import Config
+
+    config = Config()
+    config.set_main_option("script_location", str(MIGRATIONS_DIR))
+    with engine.begin() as connection:
+        config.attributes["connection"] = connection
+        command.upgrade(config, "head")

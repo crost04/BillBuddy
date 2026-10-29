@@ -7,6 +7,7 @@ would add up when expenses are summed and split.
 
 import datetime as dt
 import enum
+import secrets
 from decimal import Decimal
 
 from sqlalchemy import CheckConstraint, ForeignKey, String, UniqueConstraint
@@ -21,11 +22,18 @@ class SplitMethod(str, enum.Enum):
     INCOME = "income"  # proportional to the members' monthly income
 
 
+def new_invite_code() -> str:
+    """A random, hard-to-guess code for invitation links."""
+    return secrets.token_urlsafe(12)
+
+
 class Group(Base):
     __tablename__ = "groups"
 
     id: Mapped[int] = mapped_column(primary_key=True)
     name: Mapped[str] = mapped_column(String(100))
+    # Whoever knows this code can join the group (see the invitation link)
+    invite_code: Mapped[str] = mapped_column(String(32), unique=True, default=new_invite_code)
     created_at: Mapped[dt.datetime] = mapped_column(default=dt.datetime.now)
 
     members: Mapped[list["Member"]] = relationship(
@@ -47,6 +55,9 @@ class Member(Base):
     name: Mapped[str] = mapped_column(String(100))
     # Only needed for the "split by income" method
     monthly_income_cents: Mapped[int | None]
+    # The account of this person, if they use the app themselves. Members without
+    # an account are possible, e.g. a friend who never logs in.
+    user_id: Mapped[int | None] = mapped_column(ForeignKey("users.id", ondelete="SET NULL"))
 
     group: Mapped[Group] = relationship(back_populates="members")
 
