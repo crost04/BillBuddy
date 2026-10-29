@@ -164,6 +164,26 @@ def test_retraining_runs_in_the_background(session):
     assert categorizer.suggest(session, group.id, "Vereinsbeitrag Tennis", 15).category == "Leisure"
 
 
+def test_retraining_happens_at_most_once_a_minute(session, monkeypatch):
+    group = expenses.create_group(session, "Home", ["Anna"])
+    add_expense(session, group, "Rewe", "Groceries")
+    categorizer.model_for_group(session, group.id)
+    categorizer.wait_for_training(group.id)
+    trained = categorizer.model_for_group(session, group.id)
+
+    # A new category right after the last training: the old model stays for now
+    add_expense(session, group, "Vereinsbeitrag Tennis", "Leisure")
+    assert categorizer.model_for_group(session, group.id) is trained
+    categorizer.wait_for_training(group.id)
+    assert categorizer.model_for_group(session, group.id) is trained
+
+    # A minute later the group is retrained
+    monkeypatch.setattr(categorizer, "MIN_SECONDS_BETWEEN_TRAININGS", 0)
+    categorizer.model_for_group(session, group.id)
+    categorizer.wait_for_training(group.id)
+    assert categorizer.model_for_group(session, group.id) is not trained
+
+
 def test_service_learns_from_the_groups_choices(session, synchronous_training):
     group = expenses.create_group(session, "Home", ["Anna"])
     assert categorizer.suggest(session, group.id, "Vereinsbeitrag Tennis", 15) is None

@@ -49,6 +49,7 @@ def fresh_categorizer_models():
     from billbuddy.ml.categorizer import service
 
     service._models.clear()
+    service._last_training.clear()
     yield
     for thread in list(service._training.values()):
         thread.join()

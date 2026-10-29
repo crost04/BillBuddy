@@ -69,10 +69,13 @@ Full numbers: [categorizer-report.md](categorizer-report.md) (regenerate with
   needed for the cold start.
 
 ### Deployment
-- The model is trained per group in the server's memory (0.2 s) from the sample data plus the group's
-  categorized expenses. It is retrained automatically as soon as the group's categories change, so
-  every correction is used immediately. No model file is stored, so no personal data ends up on disk
-  or in the repository.
+- The model is trained per group in the server's memory from the sample data plus the group's
+  categorized expenses. No model file is stored, so no personal data ends up on disk or in the
+  repository.
+- When the group's categories change, the model is retrained in a background thread (at most once a
+  minute) while the previous model keeps answering. Reason: on the free server (a fraction of one CPU)
+  training takes seconds, and in real use it slowed down saving – a finding from the user's own testing.
+  So a correction is used within about a minute instead of immediately.
 - The expense form asks the API for a suggestion while the user types and shows it with its
   confidence; the user can always change it.
 - The suggested category is stored with each expense, so the acceptance rate (suggestion kept vs.

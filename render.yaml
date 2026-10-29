@@ -14,6 +14,14 @@ services:
     envVars:
       - key: PYTHON_VERSION
         value: "3.11.9"
+      # The free server has only a fraction of one CPU: numerical libraries must not
+      # start several threads that would only slow each other down
+      - key: OMP_NUM_THREADS
+        value: "1"
+      - key: OPENBLAS_NUM_THREADS
+        value: "1"
+      - key: MKL_NUM_THREADS
+        value: "1"
       # Login cookies only over HTTPS
       - key: BILLBUDDY_SECURE_COOKIES
         value: "true"
