@@ -60,7 +60,7 @@ def forecast_month(records: list[Record], today: dt.date, month: str | None = No
     day = today.day if is_current else days_in_month
     key = f"{year:04d}-{month_number:02d}"
 
-    history = _history_months(records, key)
+    history = history_months(records, key)
     total = _forecast(records, None, key, day, history, is_current, all_categories=True)
     categories = sorted({r.category for r in records if _month(r.date) in (key, *history)}, key=str)
     rows = [_forecast(records, c, key, day, history, is_current) for c in categories]
@@ -70,18 +70,18 @@ def forecast_month(records: list[Record], today: dt.date, month: str | None = No
 
 def _forecast(records, category, month, day, history, is_current, all_categories=False) -> Forecast:
     selected = [r for r in records if all_categories or r.category == category]
-    spent = _spent(selected, month, day)
+    spent = spent_until(selected, month, day)
     result = Forecast(category, spent)
     if not history:
         return result
 
-    totals = [_spent(selected, h, 31) for h in history]
+    totals = [spent_until(selected, h, 31) for h in history]
     result.average_cents = round(mean(totals))
     if not is_current:
         return result
 
     # What was spent after `day` in each history month
-    rests = [total - _spent(selected, h, day) for h, total in zip(history, totals)]
+    rests = [total - spent_until(selected, h, day) for h, total in zip(history, totals)]
     typical, spread = median(rests), pstdev(rests)
     result.forecast_cents = spent + round(typical)
     result.low_cents = spent + round(max(typical - spread, 0))
@@ -89,7 +89,7 @@ def _forecast(records, category, month, day, history, is_current, all_categories
     return result
 
 
-def _history_months(records: list[Record], month: str) -> list[str]:
+def history_months(records: list[Record], month: str) -> list[str]:
     """Up to 6 complete months before `month`.
 
     The first month with expenses is left out, because the group probably did
@@ -113,7 +113,7 @@ def _months_between(start: str, end: str) -> list[str]:
     return result
 
 
-def _spent(records: list[Record], month: str, day: int) -> int:
+def spent_until(records: list[Record], month: str, day: int) -> int:
     return sum(r.amount_cents for r in records if _month(r.date) == month and r.date.day <= day)
 
 
