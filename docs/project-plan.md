@@ -13,7 +13,8 @@ AI categorization and the month-end forecast with the overview screen (both CRIS
 evaluated and live in the app) are done as well – **M2 (submission-ready) reached on 29 Oct**.
 Recurring-cost and anomaly detection are done too (all four planned AI modules for the submission).
 After the first real use: faster saving and standing orders (fixed costs entered automatically).
-Next: German notes for the oral statement; later the receipt scan.
+Receipt scan (OCR on the phone, parser, item assignment) is done as well – all five AI modules are live.
+Next: German notes for the oral statement.
 
 | Week | Dates | Focus | Modules |
 |------|-------|-------|---------|
@@ -26,7 +27,7 @@ Next: German notes for the oral statement; later the receipt scan.
 | **M2** | **02 Dec** | **Submission-ready** – core features, categorization, forecast, statistics | |
 | 6 | 03 Dec – 12 Dec | Anomaly and recurring-cost detection (statistical methods, DAS); docs polish; German bullet points for the oral statement; buffer | `ml/anomaly`, `ml/recurring`, `docs` |
 | **M3** | **12 Dec** | **Submission** | |
-| after | from Dec 2026 | Receipt scan (OCR), improvements based on real use | `ml/receipt_ocr` |
+| after | from Dec 2026 | Improvements based on real use; evaluation with real receipts | |
 
 ## DAS – data analysis and statistics
 How the DAS quality criteria show up in the project:

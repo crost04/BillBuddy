@@ -21,7 +21,7 @@ read receipts, detect recurring costs and anomalies, and forecast spending.
 1. Automatic categorization from the description, learning from corrections
 2. Receipt scan (photo → OCR → prefilled expense)
 3. Forecast of spending until the end of the month
-4. Detection of recurring (fixed) costs
+4. Detection of recurring (fixed) costs, entered automatically as standing orders
 5. Detection of duplicates and unusually high expenses
 
 ## Tech stack
@@ -117,6 +117,13 @@ sample data it is off by 9.6 % on average (simple extrapolation: 69.5 %). Detail
   unusually high amounts (IQR rule on log amounts per category, e.g. "10.8 × as much as usual – typo?").
   The overview lists the anomalies of the month. [Evaluation report](docs/anomaly-report.md)
 
+## AI: receipt scan
+"📷 Kassenbon scannen" in the expense form: the photo is read **on the phone** with Tesseract.js (the
+image never leaves the device), the server parses the recognized text into store, date, total and items
+and suggests a category. Items can be assigned to single people; the app turns that into the split.
+In an evaluation with synthetic receipts and simulated OCR noise (5 %), the total is right in 94.5 %
+of the cases. [Evaluation report](docs/receipt-report.md)
+
 ## How settlement works
 1. **Split:** every expense is divided among its participants (equally, by percentage or
    by income). Parts are exact to the cent: leftover cents go to the parts with the largest
@@ -154,6 +161,7 @@ and only return groups the user belongs to.
 | PUT/DELETE | `/api/recurring-rules/{id}` | change the amount / stop |
 | POST | `/api/groups/{id}/check-expense` | duplicate and outlier check before saving |
 | GET | `/api/groups/{id}/anomalies?month=2026-10` | anomalies of a month |
+| POST | `/api/groups/{id}/parse-receipt` | turn recognized receipt text into store, date, total, items |
 
 ## Privacy
 Only generated sample data is part of this repository. Real expenses, databases and
@@ -166,4 +174,5 @@ secrets are excluded via `.gitignore`.
 - [Forecast evaluation report](docs/forecast-report.md)
 - [Recurring-cost evaluation report](docs/recurring-report.md)
 - [Anomaly evaluation report](docs/anomaly-report.md)
+- [Receipt scan evaluation report](docs/receipt-report.md)
 - [Deployment guide](docs/deployment.md)

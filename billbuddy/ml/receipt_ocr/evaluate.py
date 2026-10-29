@@ -113,8 +113,9 @@ def main() -> None:
             ],
         ),
         "",
-        "Without noise the parser is almost perfect; with growing noise the date and the items suffer first, "
-        "because a single wrong character breaks a date or an amount.",
+        "Without noise the parser is almost perfect. With growing noise the store and the date suffer first: a "
+        "single wrong character breaks a date, and a lost header line loses the store. The total holds up best "
+        "because its keyword is matched tolerantly (see section 3).",
         "",
         "## 3. Iteration: what the first evaluation changed",
         "",

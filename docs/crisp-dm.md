@@ -231,11 +231,61 @@ Full numbers: [anomaly-report.md](anomaly-report.md) (regenerate with
 - Statistics are calculated on the fly from the group's expenses.
 
 ## 5. Receipt scan (`ml/receipt_ocr`)
-| Phase | What we did / decided |
-|-------|-----------------------|
-| Business Understanding | _TBD_ |
-| Data Understanding | _TBD_ |
-| Data Preparation | _TBD_ |
-| Modeling | _TBD_ |
-| Evaluation | _TBD_ |
-| Deployment | _TBD_ |
+Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
+`python -m billbuddy.ml.receipt_ocr.evaluate`).
+
+### Business Understanding
+- **Problem:** typing in a long receipt is tedious, and splitting it ("the beer is mine, the shampoo
+  hers") is even more so.
+- **Goal:** take a photo → amount, store, date and category are filled in, and single items can be
+  assigned to people, which turns into the split of the expense.
+- **Success criteria:** the total is right in most scans; the app tells the user when to double-check.
+- **Constraint:** the free server (a fraction of one CPU, 512 MB) is far too weak for text recognition.
+
+### Data Understanding
+- No real receipts yet (cold start), and real receipts contain personal data. So synthetic receipts
+  imitate the layouts of German shop types (supermarket, discounter, drugstore, bakery): quantity lines,
+  deposit, discounts, cash with change, VAT lines, two date formats.
+- Typical OCR mistakes on receipt photos were simulated: confused characters (0↔O, 1↔l, 5↔S),
+  missing or extra spaces, lost lines – in noise levels from 0 to 10 %.
+
+### Data Preparation
+- Every recognized line is cleaned: letters inside numbers are turned back into digits ("l,99" → "1,99"),
+  spaces inside amounts removed, capitals made readable ("BIER 6ER" → "Bier 6er").
+- On the phone, the photo is scaled down and turned into a high-contrast grayscale image before the
+  recognition.
+
+### Modeling
+- **Architecture decision:** text recognition with **Tesseract.js in the browser of the phone** (fast,
+  free, and the photo never leaves the phone); the server only receives the text. Server-side
+  Tesseract or EasyOCR would not fit the free server.
+- **Parser** with rules: known shop names (tolerant of OCR mistakes), the first plausible date, the total
+  line found by keywords ("zu zahlen", "Summe", "Gesamt", …), items = lines with an amount above the
+  total (quantity lines are skipped).
+- Plausibility check: do the items add up to the total?
+- Category: the store name goes through the categorizer (module 1).
+- Item assignment: items for one person are charged to that person, the rest (and any difference to
+  the total) is shared; the result becomes a percentage split, exact to the cent.
+
+### Evaluation
+- Without noise everything is right; at 5 % noise: total 94.5 %, items F1 97.5 %, store 86.8 %,
+  date 86.8 %.
+- **Iteration:** the first parser version found the total in only 79.0 % of the receipts at 5 % noise,
+  because OCR split "SUMME" into "S UMME". Tolerant keyword matching (spaces ignored, one wrong letter
+  allowed) and digit repair in dates raised it to 94.5 %.
+- Naive approaches are much worse: "largest amount = total" 29–38 % (fails with cash payments),
+  "first line = store" 35–50 %.
+- When the plausibility check passes, the total was right in every case – so the app can say
+  "✅ die Summe passt" or "⚠️ bitte prüfen".
+- End-to-end test in the browser: a drawn receipt image went through Tesseract.js, the parser and the
+  form in about 5 seconds, all fields correct.
+- Limit: real photos (folds, shadows, faded thermal paper) are harder than the simulation; the real
+  accuracy has to be measured with real receipts.
+
+### Deployment
+- "📷 Kassenbon scannen" in the expense form opens the camera; Tesseract.js (about 3 MB incl. German
+  language data) is loaded from a CDN on first use and then cached by the browser.
+- The server endpoint `/api/groups/{id}/parse-receipt` parses the text and adds a category suggestion.
+- The photo is not stored anywhere; only the resulting expense is saved.
+- Next steps: collect a few real receipts (locally, never in the repository) to measure the real
+  accuracy; possibly let the user crop the photo before recognition.

@@ -314,6 +314,9 @@ input:disabled { opacity: 0.7; }
 .swatch.avg { width: 2px; height: 14px; border-radius: 0; background: var(--text); vertical-align: -3px; }
 
 .subhead { font-size: 0.9rem; margin: 16px 0 8px; }
+.scan-button { margin-top: 0; }
+#scan-status:empty { display: none; }
+.receipt-item select { width: auto; max-width: 45%; padding: 8px; }
 .item-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 14px 12px; }
 
 .cat-row { margin-bottom: 14px; }

@@ -71,6 +71,7 @@ export const api = {
   deleteRecurringRule: (id) => request("DELETE", `/recurring-rules/${id}`),
   checkExpense: (groupId, data) => request("POST", `/groups/${groupId}/check-expense`, data),
   anomalies: (groupId, month) => request("GET", `/groups/${groupId}/anomalies?month=${month}`),
+  parseReceipt: (groupId, text) => request("POST", `/groups/${groupId}/parse-receipt`, { text }),
 
   settlement: (groupId) => request("GET", `/groups/${groupId}/settlement`),
   payments: (groupId) => request("GET", `/groups/${groupId}/payments`),

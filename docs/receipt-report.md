@@ -39,7 +39,7 @@ Datum: 28.10.2026 Uhrzeit: 20:10
 | 5.0 % | 86.8 % | 86.8 % | 94.5 % | 97.5 % | 74.5 % |
 | 10.0 % | 77.8 % | 75.2 % | 87.8 % | 93.8 % | 50.7 % |
 
-Without noise the parser is almost perfect; with growing noise the date and the items suffer first, because a single wrong character breaks a date or an amount.
+Without noise the parser is almost perfect. With growing noise the store and the date suffer first: a single wrong character breaks a date, and a lost header line loses the store. The total holds up best because its keyword is matched tolerantly (see section 3).
 
 ## 3. Iteration: what the first evaluation changed
 

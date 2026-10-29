@@ -4,6 +4,7 @@ import { api } from "../api.js";
 import {
   categoryEmoji, categoryLabel, esc, formatAmountInput, formatDay, formatMoney, parseAmount, todayISO,
 } from "../format.js";
+import { percentsFromShares, recognizeReceipt, sharesFromItems } from "../receipt.js";
 import { myMember, state, storage } from "../state.js";
 import { setTitle, showError } from "../ui.js";
 import { showMonth } from "./expenses.js";
@@ -32,6 +33,12 @@ export async function renderExpenseForm(container, id) {
 
   container.innerHTML = `
     <form id="expense-form" class="card" novalidate>
+      ${editing ? "" : `
+        <label class="btn secondary scan-button">📷 Kassenbon scannen
+          <input type="file" id="receipt-photo" accept="image/*" capture="environment" hidden>
+        </label>
+        <p class="muted small center" id="scan-status"></p>`}
+
       <label for="amount">Betrag in €</label>
       <input type="text" id="amount" class="amount-input" inputmode="decimal" autocomplete="off"
              placeholder="0,00" value="${expense ? formatAmountInput(expense.amount) : ""}">
@@ -80,6 +87,7 @@ export async function renderExpenseForm(container, id) {
           </div>`).join("")}
       </div>
       <p class="muted small" id="split-hint"></p>
+      <div id="receipt-items"></div>
 
       <div id="error"></div>
       <button type="submit" class="btn">${editing ? "Speichern" : "Hinzufügen"}</button>
@@ -235,6 +243,103 @@ export async function renderExpenseForm(container, id) {
     const corrected = suggestedCategory && $("#category").value !== suggestedCategory;
     $("#category-hint").textContent = corrected ? "Danke! BillBuddy lernt aus deiner Auswahl." : "";
   });
+  // --- Receipt scan (billbuddy.ml.receipt_ocr) ---
+  let receipt = null; // the parsed receipt; its items can be assigned to people
+  let assignments = []; // item index -> member id, or null = shared by everyone
+  let baseParticipants = []; // who shares the items nobody was chosen for
+
+  $("#receipt-photo")?.addEventListener("change", async (event) => {
+    const file = event.target.files[0];
+    event.target.value = "";
+    if (!file) return;
+    const status = $("#scan-status");
+    try {
+      const text = await recognizeReceipt(file, (message) => { status.textContent = message; });
+      status.textContent = "Werte den Kassenbon aus …";
+      applyReceipt(await api.parseReceipt(state.group.id, text));
+    } catch (e) {
+      status.textContent = `⚠️ ${e.message}`;
+    }
+  });
+
+  function applyReceipt(result) {
+    receipt = result;
+    assignments = result.items.map(() => null);
+    baseParticipants = checkedIds();
+    if (result.total) $("#amount").value = formatAmountInput(result.total);
+    if (result.store) $("#description").value = result.store;
+    if (result.date) $("#date").value = result.date;
+    if (result.category && !categoryChosenByUser) {
+      suggestedCategory = result.category;
+      $("#category").value = result.category;
+      $("#category-hint").textContent =
+        `✨ Vorschlag der KI (${Math.round(result.confidence * 100)} % sicher) – du kannst ihn jederzeit ändern.`;
+    }
+    $("#scan-status").textContent = scanSummary(result);
+    renderReceiptItems();
+    updateSplit();
+    checkInAdvance();
+  }
+
+  function scanSummary(r) {
+    if (!r.total && r.items.length === 0) {
+      return "⚠️ Kein Kassenbon erkannt. Versuch es mit mehr Licht, gerade von oben und mit dem ganzen Bon im Bild.";
+    }
+    if (r.items_match_total) return `✅ ${r.items.length} Artikel gelesen – die Summe passt.`;
+    if (!r.total) return "⚠️ Keine Summe gefunden – bitte den Betrag prüfen.";
+    return `⚠️ Bitte prüfen: Die erkannten Artikel ergeben ${formatMoney(r.items_sum)}, auf dem Bon steht ${formatMoney(r.total)}.`;
+  }
+
+  function renderReceiptItems() {
+    const box = $("#receipt-items");
+    if (!receipt?.items.length || members.length < 2) {
+      box.innerHTML = "";
+      return;
+    }
+    box.innerHTML = `
+      <label>Artikel vom Kassenbon</label>
+      <p class="muted small">Gehört ein Artikel nur einer Person? Dann wähle sie aus – alles andere wird geteilt.</p>
+      <ul class="list">
+        ${receipt.items.map((item, i) => `
+          <li class="row receipt-item">
+            <div class="main">
+              <div class="title">${esc(item.name)}</div>
+              <div class="muted small">${formatMoney(item.amount)}</div>
+            </div>
+            <select data-item="${i}" aria-label="Wer hat ${esc(item.name)} gekauft?">
+              <option value="">Alle</option>
+              ${members.map((m) => `<option value="${m.id}" ${assignments[i] === m.id ? "selected" : ""}>${esc(m.name)}</option>`).join("")}
+            </select>
+          </li>`).join("")}
+      </ul>`;
+    box.querySelectorAll("[data-item]").forEach((select) => select.addEventListener("change", () => {
+      assignments[Number(select.dataset.item)] = select.value ? Number(select.value) : null;
+      applyItemSplit();
+    }));
+  }
+
+  // Turn the assignment of items into a percentage split of the expense
+  function applyItemSplit() {
+    const amount = parseAmount($("#amount").value);
+    if (!(amount > 0)) return;
+    if (assignments.every((a) => a === null)) {
+      form.querySelector('input[name="split"][value="equal"]').checked = true;
+      for (const m of members) form.querySelector(`.participant[value="${m.id}"]`).checked = baseParticipants.includes(m.id);
+      updateSplit();
+      return;
+    }
+    const shares = sharesFromItems(receipt.items, Math.round(amount * 100), assignments, baseParticipants);
+    const percents = percentsFromShares(shares);
+    form.querySelector('input[name="split"][value="percent"]').checked = true;
+    for (const m of members) {
+      form.querySelector(`.participant[value="${m.id}"]`).checked = percents.has(m.id);
+      percentInput(m.id).value = percents.has(m.id) ? formatAmountInput(percents.get(m.id)) : "";
+    }
+    updateSplit();
+    $("#split-hint").textContent += ` · ${[...shares].filter(([, c]) => c > 0)
+      .map(([memberId, cents]) => `${members.find((m) => m.id === memberId).name} ${formatMoney(cents / 100)}`).join(" · ")}`;
+  }
+
   if (!editing) $("#amount").focus();
 
   form.addEventListener("submit", async (event) => {

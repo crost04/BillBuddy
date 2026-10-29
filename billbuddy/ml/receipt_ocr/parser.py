@@ -106,12 +106,12 @@ def find_store(lines: list[str]) -> str | None:
         for store in KNOWN_STORES:
             if re.search(rf"(?<![a-zäöüß]){re.escape(_ocr_normalized(store))}(?![a-zäöüß])", lowered):
                 if store in GENERIC_SHOPS and not _amount_at_end(line):
-                    return line.title() if line.isupper() else line
+                    return _readable(line)
                 return store
     for line in lines[:5]:
         letters = sum(c.isalpha() for c in line)
         if letters >= 3 and letters > len(line) / 2:
-            return line.title() if line.isupper() else line
+            return _readable(line)
     return None
 
 
@@ -160,9 +160,15 @@ def find_items(lines: list[str]) -> list[ReceiptItem]:
         name = line[: match.start()].strip(" .:-*")
         if sum(c.isalpha() for c in name) < 2:
             continue
-        name = name.title() if name.isupper() else name
-        items.append(ReceiptItem(name, _to_cents(match.group("amount"))))
+        items.append(ReceiptItem(_readable(name), _to_cents(match.group("amount"))))
     return items
+
+
+def _readable(text: str) -> str:
+    """Receipts print in capitals: "BIER 6ER" -> "Bier 6er" (mixed case stays as it is)."""
+    if not text.isupper():
+        return text
+    return " ".join(word[:1] + word[1:].lower() if word[:1].isalpha() else word.lower() for word in text.split())
 
 
 def _has_word(line: str, words: list[str]) -> bool:

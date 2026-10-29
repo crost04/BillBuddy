@@ -88,6 +88,11 @@ def test_clean_line(raw, cleaned):
     assert clean_line(raw) == cleaned
 
 
+def test_capital_letters_become_readable():
+    receipt = parse_receipt("REWE\nBIER 6ER 5,49 A\nBIO HAFERDRINK 1,49 B\nSumme 6,98", TODAY)
+    assert [i.name for i in receipt.items] == ["Bier 6er", "Bio Haferdrink"]
+
+
 def test_unknown_store_uses_the_first_line_with_words():
     receipt = parse_receipt("BÄCKEREI MÜLLER\nBrezel 0,90\nGesamt 0,90", TODAY)
     assert receipt.store == "Bäckerei Müller"
