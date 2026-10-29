@@ -9,7 +9,7 @@ import datetime as dt
 from dataclasses import dataclass
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from billbuddy.expenses.categories import CATEGORIES
 from billbuddy.expenses.models import Expense, ExpenseShare, Group, Member, SplitMethod
@@ -133,7 +133,8 @@ def list_expenses(
 ) -> list[Expense]:
     """Expenses of a group, newest first, optionally limited to start..end (inclusive)."""
     get_group(session, group_id)
-    query = select(Expense).where(Expense.group_id == group_id)
+    # selectinload: fetch the shares of all expenses in one extra query instead of one per expense
+    query = select(Expense).options(selectinload(Expense.shares)).where(Expense.group_id == group_id)
     if start:
         query = query.where(Expense.date >= start)
     if end:

@@ -5,7 +5,7 @@ account. New people join through the group's invitation link.
 """
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from billbuddy.auth.models import User
 from billbuddy.expenses.models import Expense, Group, Member, Payment
@@ -13,12 +13,18 @@ from billbuddy.expenses.service import NotFoundError, ValidationError
 
 
 def user_groups(session: Session, user: User) -> list[Group]:
-    query = select(Group).join(Member).where(Member.user_id == user.id).order_by(Group.name)
+    query = (
+        select(Group)
+        .options(selectinload(Group.members))
+        .join(Member)
+        .where(Member.user_id == user.id)
+        .order_by(Group.name)
+    )
     return list(session.scalars(query))
 
 
 def require_group(session: Session, user: User, group_id: int) -> Group:
-    group = session.get(Group, group_id)
+    group = session.get(Group, group_id, options=[selectinload(Group.members)])
     if group is None or not any(m.user_id == user.id for m in group.members):
         # "Not found" instead of "forbidden": strangers should not even learn that it exists
         raise NotFoundError(f"Group {group_id} not found")
