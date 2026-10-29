@@ -48,9 +48,31 @@ async function render() {
   }
 }
 
+// The free server sleeps after a longer pause and needs up to a minute to wake
+// up. Explain that after a few seconds, and keep trying in the meantime.
+async function waitForServer() {
+  const hint = setTimeout(() => {
+    container.innerHTML = `
+      <p class="empty">⏳ Der Server wird gerade geweckt.<br>
+      Nach einer längeren Pause dauert das bis zu einer Minute …</p>`;
+  }, 3000);
+  try {
+    for (let attempt = 1; ; attempt++) {
+      try {
+        return await api.categories();
+      } catch (error) {
+        if (attempt >= 30) throw error;
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+      }
+    }
+  } finally {
+    clearTimeout(hint);
+  }
+}
+
 async function start() {
   try {
-    state.categories = await api.categories();
+    state.categories = await waitForServer();
   } catch (error) {
     container.innerHTML = `<div class="error">Server nicht erreichbar: ${esc(error.message)}</div>`;
     return;

@@ -8,13 +8,14 @@ BillBuddy runs on two free services:
 | Database (PostgreSQL) | [Neon](https://neon.com) – free plan | Keeps the data permanently; Render's free instances lose files on restart and its free database is deleted after 30 days |
 
 ```
-Phone ──HTTPS──▶ Render (billbuddy.onrender.com) ──▶ Neon PostgreSQL
+Phone ──HTTPS──▶ Render (billbuddy-fr85.onrender.com) ──▶ Neon PostgreSQL
 ```
 
 ## Limits of the free plans
 - **Sleep:** Render stops the app after about 15 minutes without requests. The next visit
   wakes it up, which takes roughly one minute. After that it is fast again.
-- **Storage:** Neon's free plan offers 0.5–1 GB per project – years of expenses.
+  BillBuddy works around this (see *Keeping the server awake* below).
+- **Storage:** Neon's free plan offers 1 GB per project – years of expenses.
 - **Restore window:** Neon can only restore the database to a point within the last few hours,
   so this is no replacement for an export/backup.
 
@@ -45,9 +46,21 @@ Render deploys from a GitHub repository, so the code has to be pushed there firs
    or Chrome → ⋮ → *Add to Home screen* (Android).
 3. Invite the others: *Gruppe → Link teilen*.
 
+## Keeping the server awake
+- **Keep-alive:** the GitHub Actions workflow `.github/workflows/keep-alive.yml` calls
+  `/api/health` every 10 minutes, so Render does not put the app to sleep. One service running
+  all month fits into Render's 750 free instance hours (a month has at most 744 hours).
+  The health endpoint does not touch the database, so Neon can still sleep when nobody uses the app.
+  GitHub sometimes starts scheduled runs late, so a short sleep can still happen.
+  The workflow can also be started by hand: *GitHub → Actions → Keep server awake → Run workflow*.
+- **Instant start:** the service worker serves the app files from the phone's cache right away
+  and updates them in the background. If the server is still waking up, the app shows a hint and
+  retries automatically.
+
 ## Updates
 Every `git push` to the `main` branch makes Render build and deploy the new version.
 Database migrations (`migrations/`) run automatically when the app starts, so the data is kept.
+Because of the cache, a phone shows a new version from the next start of the app on.
 
 ## Configuration
 | Variable | Meaning |

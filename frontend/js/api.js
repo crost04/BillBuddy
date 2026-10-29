@@ -2,7 +2,8 @@
 // or throws an Error with a readable message.
 
 async function request(method, path, body) {
-  const options = { method, headers: {} };
+  // Ask for JSON, so a waking-up server never answers with an HTML waiting page
+  const options = { method, headers: { Accept: "application/json" } };
   if (body !== undefined) {
     options.headers["Content-Type"] = "application/json";
     options.body = JSON.stringify(body);
@@ -11,6 +12,9 @@ async function request(method, path, body) {
   const response = await fetch(`/api${path}`, options);
   if (response.status === 204) return null;
 
+  if (response.ok && !response.headers.get("Content-Type")?.includes("application/json")) {
+    throw new Error("Der Server antwortet noch nicht richtig.");
+  }
   const data = await response.json().catch(() => null);
   // Session expired or logged out elsewhere: let the app show the login screen
   if (response.status === 401 && !path.startsWith("/auth/")) {

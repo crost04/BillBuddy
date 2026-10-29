@@ -36,6 +36,14 @@ def create_app(engine: Engine | None = None) -> FastAPI:
     app.state.session_factory = make_session_factory(engine)
     app.state.login_limiter = LoginLimiter()
 
+    @app.middleware("http")
+    async def mark_responses(request: Request, call_next):
+        # Lets the service worker tell real answers of this app apart from
+        # waiting or error pages of the hosting provider
+        response = await call_next(request)
+        response.headers["X-BillBuddy"] = __version__
+        return response
+
     @app.get("/api/health")
     def health():
         """For the hosting provider: answers without touching the database."""

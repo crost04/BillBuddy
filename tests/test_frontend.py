@@ -25,3 +25,9 @@ def test_manifest_makes_the_app_installable(client):
 def test_api_still_works_next_to_the_frontend(client):
     assert client.get("/api/categories").status_code == 200
     assert client.get("/api/does-not-exist").status_code == 404
+
+
+@pytest.mark.parametrize("path", ["/", "/js/app.js", "/api/health", "/api/categories"])
+def test_responses_are_marked_as_coming_from_the_app(anon_client, path):
+    # The service worker only caches responses with this header
+    assert "x-billbuddy" in anon_client.get(path).headers
