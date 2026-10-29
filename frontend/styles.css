@@ -265,6 +265,14 @@ input.amount-input { font-size: 2rem; font-weight: 700; text-align: center; }
   margin-top: 16px;
 }
 
+.warning {
+  background: color-mix(in srgb, #d97706 14%, transparent);
+  border: 1px solid color-mix(in srgb, #d97706 45%, transparent);
+  border-radius: 10px;
+  padding: 10px 12px;
+  margin-top: 16px;
+}
+
 .inline-form { display: flex; gap: 8px; margin-top: 12px; }
 .inline-form input { flex: 1; min-width: 0; }
 .inline-form input.income { flex: 0 0 110px; }

@@ -2,7 +2,7 @@
 
 import { api } from "../api.js";
 import {
-  categoryEmoji, categoryLabel, esc, formatAmountInput, formatMoney, parseAmount, todayISO,
+  categoryEmoji, categoryLabel, esc, formatAmountInput, formatDay, formatMoney, parseAmount, todayISO,
 } from "../format.js";
 import { myMember, state, storage } from "../state.js";
 import { setTitle, showError } from "../ui.js";
@@ -132,6 +132,39 @@ export async function renderExpenseForm(container, id) {
   form.addEventListener("input", updateSplit);
   updateSplit();
 
+  // --- Anomaly check (billbuddy.ml.anomaly) ---
+  // Before saving, the server checks for duplicates and unusual amounts. If it
+  // warns, the first tap only shows the warning; tapping again saves anyway.
+  let warningShown = false;
+  form.addEventListener("input", () => {
+    if (!warningShown) return;
+    warningShown = false;
+    showError(error, "");
+    $('button[type="submit"]').textContent = editing ? "Speichern" : "Hinzufügen";
+  });
+
+  async function warnings(body) {
+    const result = await api.checkExpense(state.group.id, {
+      expense_id: editing ? Number(id) : null,
+      amount: body.amount,
+      date: body.date,
+      description: body.description,
+      category: body.category,
+    });
+    const messages = [];
+    const [first] = result.duplicates;
+    if (first) {
+      const count = result.duplicates.length > 1 ? ` (${result.duplicates.length}×)` : "";
+      messages.push(`Diese Ausgabe gibt es vielleicht schon${count}: „${first.description}“ über
+        ${formatMoney(first.amount)} am ${formatDay(first.date)}.`);
+    }
+    if (result.outlier.is_outlier) {
+      messages.push(`Ungewöhnlich hoch: ${result.outlier.ratio.toLocaleString("de-DE")}× so viel wie sonst in der
+        Kategorie „${categoryLabel(body.category)}“ (meist etwa ${formatMoney(result.outlier.typical)}). Tippfehler?`);
+    }
+    return messages;
+  }
+
   // --- Category suggestion (billbuddy.ml.categorizer) ---
   // A suggestion only fills the field until the user picks a category themselves
   let categoryChosenByUser = Boolean(expense?.category);
@@ -199,6 +232,18 @@ export async function renderExpenseForm(container, id) {
         percent: split === "percent" ? parseAmount(percentInput(memberId).value) : null,
       })),
     };
+
+    if (!warningShown) {
+      const messages = await warnings(body).catch(() => []);
+      if (messages.length) {
+        error.innerHTML = `
+          <div class="warning">⚠️ ${messages.map(esc).join("<br>")}
+            <br><span class="small">Prüfe die Angaben – oder tippe auf „Trotzdem speichern“.</span></div>`;
+        $('button[type="submit"]').textContent = "Trotzdem speichern";
+        warningShown = true;
+        return;
+      }
+    }
 
     try {
       if (editing) await api.updateExpense(id, body);

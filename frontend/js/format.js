@@ -45,6 +45,11 @@ export function formatDay(isoDate) {
   return new Date(year, m - 1, d).toLocaleDateString("de-DE", { weekday: "long", day: "numeric", month: "long" });
 }
 
+export function formatShortDate(isoDate) {
+  const [year, m, d] = isoDate.split("-").map(Number);
+  return new Date(year, m - 1, d).toLocaleDateString("de-DE", { day: "numeric", month: "short" });
+}
+
 function pad(n) {
   return String(n).padStart(2, "0");
 }

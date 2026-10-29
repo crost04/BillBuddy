@@ -3,7 +3,7 @@
 
 import { api } from "../api.js";
 import {
-  categoryEmoji, categoryLabel, currentMonth, esc, formatMoney, formatMonth, shiftMonth,
+  categoryEmoji, categoryLabel, currentMonth, esc, formatMoney, formatMonth, formatShortDate, shiftMonth,
 } from "../format.js";
 import { memberName, state } from "../state.js";
 import { setTitle } from "../ui.js";
@@ -12,7 +12,12 @@ let month = currentMonth();
 
 export async function renderOverview(container) {
   setTitle("Übersicht");
-  const data = await api.overview(state.group.id, month);
+  const groupId = state.group.id;
+  const [data, recurring, anomalies] = await Promise.all([
+    api.overview(groupId, month),
+    api.recurring(groupId).catch(() => []),
+    api.anomalies(groupId, month).catch(() => []),
+  ]);
 
   container.innerHTML = `
     <div class="month-switcher">
@@ -21,9 +26,17 @@ export async function renderOverview(container) {
       <button class="btn icon secondary" id="next" aria-label="Nächster Monat">›</button>
     </div>
     ${totalCard(data)}
+    ${anomaliesCard(anomalies)}
     ${categoriesCard(data)}
+    ${fixedCostsCard(recurring)}
     ${historyCard(data)}
     ${membersCard(data)}`;
+
+  container.querySelectorAll("[data-mark-fixed]").forEach((button) => button.addEventListener("click", async () => {
+    button.disabled = true;
+    await api.markFixed(groupId, button.dataset.markFixed);
+    renderOverview(container);
+  }));
 
   container.querySelector("#prev").addEventListener("click", () => {
     month = shiftMonth(month, -1);
@@ -69,6 +82,68 @@ function totalCard(data) {
       ${legend(t.average !== null)}
       ${data.history_months < 3
         ? `<p class="muted small">Noch wenig Daten (${data.history_months} ${data.history_months === 1 ? "Monat" : "Monate"}) – die Prognose ist unsicher.</p>`
+        : ""}
+    </div>`;
+}
+
+// Duplicates and unusually high amounts of the month (billbuddy.ml.anomaly)
+function anomaliesCard(anomalies) {
+  if (anomalies.length === 0) return "";
+  return `
+    <div class="card">
+      <h2>⚠️ Auffälligkeiten</h2>
+      <ul class="list">
+        ${anomalies.map((a) => {
+          const e = a.expense;
+          const what = `„${esc(e.description)}“ ${formatMoney(e.amount)} am ${formatShortDate(e.date)}`;
+          const [title, detail] = a.kind === "duplicate"
+            ? ["Doppelt eingetragen?", `${what} – sieht aus wie „${esc(a.other.description)}“ am ${formatShortDate(a.other.date)}`]
+            : ["Ungewöhnlich hoch", `${what} – ${a.ratio.toLocaleString("de-DE")}× so viel wie sonst in der
+                Kategorie „${categoryLabel(a.category)}“ (meist etwa ${formatMoney(a.typical)})`];
+          return `
+            <li>
+              <a class="row" href="#/edit/${e.id}">
+                <div class="main"><div class="title">${title}</div><div class="muted small">${detail}</div></div>
+                <span class="muted">›</span>
+              </a>
+            </li>`;
+        }).join("")}
+      </ul>
+      <p class="muted small">Tippe auf einen Eintrag, um ihn zu prüfen, zu korrigieren oder zu löschen.</p>
+    </div>`;
+}
+
+// Recognized fixed costs (billbuddy.ml.recurring)
+function fixedCostsCard(recurring) {
+  const active = recurring.filter((r) => r.active);
+  if (active.length === 0) {
+    return `
+      <div class="card">
+        <h2>Fixkosten</h2>
+        <p class="muted small">Noch keine erkannt. BillBuddy erkennt Fixkosten, sobald eine Zahlung dreimal im
+          Monatsabstand mit ähnlichem Betrag vorkam.</p>
+      </div>`;
+  }
+  const perMonth = active.reduce((sum, r) => sum + r.typical_amount, 0);
+  return `
+    <div class="card">
+      <h2>Fixkosten</h2>
+      <p class="muted small">Erkannte regelmäßige Zahlungen – zusammen etwa <strong>${formatMoney(perMonth)}</strong> pro Monat.</p>
+      <ul class="list">
+        ${active.map((r) => `
+          <li class="row">
+            <div class="main">
+              <div class="title">${esc(r.description)}</div>
+              <div class="muted small">jeden ${r.day_of_month}. · nächste am ${formatShortDate(r.next_date)}</div>
+            </div>
+            <div class="amount">${formatMoney(r.typical_amount)}</div>
+            ${r.already_fixed
+              ? '<span class="badge">Fix</span>'
+              : `<button class="btn small" data-mark-fixed="${esc(r.key)}">Markieren</button>`}
+          </li>`).join("")}
+      </ul>
+      ${active.some((r) => !r.already_fixed)
+        ? '<p class="muted small">„Markieren“ setzt bei allen bisherigen Zahlungen das Häkchen „Fixkosten“.</p>'
         : ""}
     </div>`;
 }

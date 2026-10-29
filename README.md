@@ -104,6 +104,15 @@ sample data it is off by 9.6 % on average (simple extrapolation: 69.5 %). Detail
 [CRISP-DM documentation](docs/crisp-dm.md) and [evaluation report](docs/forecast-report.md)
 (`python -m billbuddy.ml.forecast.evaluate`).
 
+## AI: fixed costs and anomalies
+- **Recognized fixed costs:** payments that come back every month with a similar amount
+  (same cleaned description, ~monthly gaps with little variation, amount variation ≤ 15 %). The overview
+  lists them with the next due date and marks them as fixed costs with one tap.
+  [Evaluation report](docs/recurring-report.md)
+- **Anomalies:** before saving, the form warns about likely duplicates (same purchase entered twice) and
+  unusually high amounts (IQR rule on log amounts per category, e.g. "10.8 × as much as usual – typo?").
+  The overview lists the anomalies of the month. [Evaluation report](docs/anomaly-report.md)
+
 ## How settlement works
 1. **Split:** every expense is divided among its participants (equally, by percentage or
    by income). Parts are exact to the cent: leftover cents go to the parts with the largest
@@ -136,6 +145,9 @@ and only return groups the user belongs to.
 | GET | `/api/categories` | available categories |
 | GET | `/api/groups/{id}/suggest-category?description=…` | AI category suggestion |
 | GET | `/api/groups/{id}/overview?month=2026-10` | overview per category, person and month, with forecast |
+| GET/POST | `/api/groups/{id}/recurring`, `…/recurring/mark-fixed` | recognized fixed costs / mark them |
+| POST | `/api/groups/{id}/check-expense` | duplicate and outlier check before saving |
+| GET | `/api/groups/{id}/anomalies?month=2026-10` | anomalies of a month |
 
 ## Privacy
 Only generated sample data is part of this repository. Real expenses, databases and
@@ -146,4 +158,6 @@ secrets are excluded via `.gitignore`.
 - [CRISP-DM documentation](docs/crisp-dm.md)
 - [Categorizer evaluation report](docs/categorizer-report.md)
 - [Forecast evaluation report](docs/forecast-report.md)
+- [Recurring-cost evaluation report](docs/recurring-report.md)
+- [Anomaly evaluation report](docs/anomaly-report.md)
 - [Deployment guide](docs/deployment.md)

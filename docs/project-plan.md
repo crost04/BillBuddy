@@ -11,7 +11,8 @@ database migrations, user accounts with invitation links and the hosting setup (
 are done.
 AI categorization and the month-end forecast with the overview screen (both CRISP-DM documented,
 evaluated and live in the app) are done as well – **M2 (submission-ready) reached on 29 Oct**.
-Next: recurring-cost and anomaly detection, German notes for the oral statement.
+Recurring-cost and anomaly detection are done too (all four planned AI modules for the submission).
+Next: German notes for the oral statement; later the receipt scan.
 
 | Week | Dates | Focus | Modules |
 |------|-------|-------|---------|

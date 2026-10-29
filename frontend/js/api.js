@@ -61,6 +61,10 @@ export const api = {
   ),
 
   overview: (groupId, month) => request("GET", `/groups/${groupId}/overview?month=${month}`),
+  recurring: (groupId) => request("GET", `/groups/${groupId}/recurring`),
+  markFixed: (groupId, key) => request("POST", `/groups/${groupId}/recurring/mark-fixed`, { key }),
+  checkExpense: (groupId, data) => request("POST", `/groups/${groupId}/check-expense`, data),
+  anomalies: (groupId, month) => request("GET", `/groups/${groupId}/anomalies?month=${month}`),
 
   settlement: (groupId) => request("GET", `/groups/${groupId}/settlement`),
   payments: (groupId) => request("GET", `/groups/${groupId}/payments`),
