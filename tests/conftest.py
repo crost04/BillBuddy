@@ -41,3 +41,15 @@ def client(anon_client):
     )
     assert response.status_code == 201
     return anon_client
+
+
+@pytest.fixture(autouse=True)
+def fresh_categorizer_models():
+    """Group ids start at 1 in every test database, so cached models must not leak between tests."""
+    from billbuddy.ml.categorizer import service
+
+    service._models.clear()
+    yield
+    for thread in list(service._training.values()):
+        thread.join()
+    service._models.clear()

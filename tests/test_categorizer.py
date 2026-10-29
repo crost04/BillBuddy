@@ -115,6 +115,11 @@ def test_learns_from_user_categories():
 # --- Service (one cached model per group) ---
 
 
+@pytest.fixture
+def synchronous_training(monkeypatch):
+    monkeypatch.setattr(categorizer, "TRAIN_IN_BACKGROUND", False)
+
+
 def add_expense(session, group, description, category):
     member = group.members[0]
     return expenses.create_expense(
@@ -131,8 +136,9 @@ def add_expense(session, group, description, category):
     )
 
 
-def test_service_reuses_the_model_until_categories_change(session):
+def test_service_reuses_the_model_until_categories_change(session, synchronous_training):
     group = expenses.create_group(session, "Home", ["Anna"])
+    add_expense(session, group, "Rewe", "Groceries")
     first = categorizer.model_for_group(session, group.id)
     assert categorizer.model_for_group(session, group.id) is first
 
@@ -140,7 +146,25 @@ def test_service_reuses_the_model_until_categories_change(session):
     assert categorizer.model_for_group(session, group.id) is not first
 
 
-def test_service_learns_from_the_groups_choices(session):
+def test_group_without_own_data_uses_the_base_model(session):
+    group = expenses.create_group(session, "Home", ["Anna"])
+    assert categorizer.model_for_group(session, group.id) is categorizer.base_model()
+
+
+def test_retraining_runs_in_the_background(session):
+    """A request never waits for training: it gets the previous model right away."""
+    group = expenses.create_group(session, "Home", ["Anna"])
+    add_expense(session, group, "Vereinsbeitrag Tennis", "Leisure")
+    add_expense(session, group, "Tennis Vereinsbeitrag", "Leisure")
+
+    immediate = categorizer.suggest(session, group.id, "Vereinsbeitrag Tennis", 15)
+    assert immediate is None  # still the base model, which does not know the word yet
+
+    categorizer.wait_for_training(group.id)
+    assert categorizer.suggest(session, group.id, "Vereinsbeitrag Tennis", 15).category == "Leisure"
+
+
+def test_service_learns_from_the_groups_choices(session, synchronous_training):
     group = expenses.create_group(session, "Home", ["Anna"])
     assert categorizer.suggest(session, group.id, "Vereinsbeitrag Tennis", 15) is None
 

@@ -5,6 +5,7 @@ Web app:    http://127.0.0.1:8000
 API docs:   http://127.0.0.1:8000/docs
 """
 
+import threading
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI, Request
@@ -27,6 +28,7 @@ from billbuddy.auth.limiter import LoginLimiter, TooManyAttemptsError
 from billbuddy.auth.service import AuthError
 from billbuddy.db import PROJECT_ROOT, init_db, make_engine, make_session_factory
 from billbuddy.expenses.service import NotFoundError, ValidationError
+from billbuddy.ml.categorizer import service as categorizer
 
 FRONTEND_DIR = PROJECT_ROOT / "frontend"
 
@@ -38,6 +40,8 @@ def create_app(engine: Engine | None = None) -> FastAPI:
     @asynccontextmanager
     async def lifespan(app: FastAPI):
         init_db(engine)
+        # Train the categorizer's base model now, so the first suggestion does not wait for it
+        threading.Thread(target=categorizer.warm_up, daemon=True).start()
         yield
 
     app = FastAPI(title="BillBuddy API", version=__version__, lifespan=lifespan)
