@@ -21,6 +21,7 @@ from billbuddy.api import (
     categorizer_routes,
     expense_routes,
     forecast_routes,
+    receipt_routes,
     recurring_routes,
     settlement_routes,
 )
@@ -72,6 +73,7 @@ def create_app(engine: Engine | None = None) -> FastAPI:
     app.include_router(forecast_routes.router)
     app.include_router(recurring_routes.router)
     app.include_router(anomaly_routes.router)
+    app.include_router(receipt_routes.router)
     # The web app itself; mounted last so the /api routes above take priority
     app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
 

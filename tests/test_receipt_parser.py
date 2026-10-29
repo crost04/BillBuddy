@@ -128,3 +128,26 @@ def test_date_with_confused_digits():
 
 def test_store_with_confused_characters():
     assert parse_receipt("R0SSMANN\nSumme 1,00", TODAY).store == "Rossmann"
+
+
+# --- API ---
+
+
+def test_api_parses_a_receipt(client, monkeypatch):
+    from billbuddy.api import receipt_routes
+
+    monkeypatch.setattr(receipt_routes, "today", lambda: TODAY)
+    group = client.post("/api/groups", json={"name": "Home", "members": ["Ben"]}).json()
+
+    body = client.post(f"/api/groups/{group['id']}/parse-receipt", json={"text": REWE}).json()
+
+    assert (body["store"], body["date"], body["total"]) == ("Rewe", "2026-10-28", 6.36)
+    assert [i["amount"] for i in body["items"]] == [1.99, 1.15, 1.18, 1.79, 0.25]
+    assert body["items_match_total"]
+    assert body["category"] == "Groceries"
+
+
+def test_api_needs_access_to_the_group(client, anon_client):
+    assert client.post("/api/groups/999/parse-receipt", json={"text": REWE}).status_code == 404
+    client.post("/api/auth/logout")
+    assert anon_client.post("/api/groups/1/parse-receipt", json={"text": REWE}).status_code == 401

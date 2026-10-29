@@ -296,3 +296,29 @@ class AnomalyOut(BaseModel):
     # outlier: typical amount in the category and how many times as much
     typical: float | None = None
     ratio: float | None = None
+
+
+# --- Receipt scan ---
+
+
+class ReceiptTextIn(BaseModel):
+    # Text recognized on the phone (Tesseract.js); the photo itself never leaves the phone
+    text: str = Field(max_length=20000)
+
+
+class ReceiptItemOut(BaseModel):
+    name: str
+    amount: float
+
+
+class ReceiptOut(BaseModel):
+    store: str | None
+    date: dt.date | None
+    total: float | None
+    items: list[ReceiptItemOut]
+    items_sum: float
+    # True if the items add up to the total – the scan is then very likely complete
+    items_match_total: bool
+    # Category suggestion for the store (billbuddy.ml.categorizer)
+    category: str | None
+    confidence: float | None
