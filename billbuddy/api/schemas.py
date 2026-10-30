@@ -6,6 +6,7 @@ to cents for the database.
 
 import datetime as dt
 from decimal import Decimal
+from typing import Annotated
 
 from pydantic import BaseModel, ConfigDict, Field
 
@@ -302,8 +303,11 @@ class AnomalyOut(BaseModel):
 
 
 class ReceiptTextIn(BaseModel):
-    # Text recognized on the phone (Tesseract.js); the photo itself never leaves the phone
-    text: str = Field(max_length=20000)
+    # Text recognized on the phone (Tesseract.js); the photo itself never leaves the phone.
+    # texts: several readings of the same photo, combined here; text: a single reading
+    # (sent by app versions before 30 Oct 2026, until the phone has loaded the new one)
+    texts: list[Annotated[str, Field(max_length=20000)]] = Field(default=[], max_length=5)
+    text: str | None = Field(default=None, max_length=20000)
 
 
 class ReceiptItemOut(BaseModel):
@@ -319,6 +323,8 @@ class ReceiptOut(BaseModel):
     items_sum: float
     # True if the items add up to the total – the scan is then very likely complete
     items_match_total: bool
+    # Which of the sent texts the items come from (shown under "Erkannten Text anzeigen")
+    reading: int | None
     # Category suggestion for the store (billbuddy.ml.categorizer)
     category: str | None
     confidence: float | None

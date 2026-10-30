@@ -5,11 +5,13 @@ leaves it; only the recognized text comes here. OCR text is noisy: "0" becomes
 "O", "1" becomes "l", spaces appear inside numbers. So every line is cleaned
 first, then rules find the parts:
 
-- store: a known shop name in the first lines, otherwise the first line with words
+- store: a known shop name in the first lines (or printed again further down,
+  "ALDI SÜD - Gutes für alle"), otherwise the first line with words
 - date: the first plausible date (not in the future, not older than two years)
 - total: the line with "zu zahlen", "Summe", "Gesamt", ... and an amount
-- items: lines above the total that end with an amount (skipping quantity
-  lines like "2 Stk x 0,59", which belong to the line above)
+- items: lines above the total and above the card-payment slip that end with
+  an amount (skipping quantity lines like "2 Stk x 0,59", which belong to the
+  line above); article numbers in front of the names are removed
 """
 
 import datetime as dt
@@ -19,17 +21,23 @@ from dataclasses import dataclass, field
 from billbuddy.data.generator import VARIABLE_COSTS
 
 AMOUNT = r"-?\d{1,4}[.,]\d{2}"
-# An amount at the end of a line, optionally followed by "€"/"EUR" and a tax code (A, B, *)
-LINE_AMOUNT = re.compile(rf"(?P<amount>{AMOUNT})\s*(?:€|EUR)?\s*(?:[A-Z*]{{1,2}})?\s*$")
+# An amount at the end of a line, optionally followed by "€"/"EUR" and a tax code
+# (A, B, *; OCR also reads the "B" as "ß" or "8")
+LINE_AMOUNT = re.compile(rf"(?P<amount>{AMOUNT})\s*(?:€|EUR)?[\s.]*(?:[A-Za-zß*]{{1,2}}|8)?\s*$")
 DATE = re.compile(r"(?<!\d)(\d{1,2})[./-](\d{1,2})[./-](\d{4}|\d{2})(?!\d)")
 # Date-shaped text with letters OCR confuses with digits ("28.1O.2O26")
 DATE_LIKE = re.compile(r"(?<![A-Za-z])[\dOoQlIiSB]{1,2}[./-][\dOoQlIiSB]{1,2}[./-][\dOoQlIiSB]{2,4}(?![A-Za-z])")
 DIGIT_FIXES = str.maketrans("OoQlIiSB", "00011158")
 # Lines that only explain the line above: "2 Stk x 0,59", "0,846 kg x 1,99 EUR/kg"
 QUANTITY = re.compile(r"^\s*\d+([.,]\d+)?\s*(x|stk|st\b|kg)|\bx\s*\d+[.,]\d{2}\b|eur\s*/\s*kg", re.IGNORECASE)
+QUANTITY_UNITS = re.compile(r"stk|st|eur|kg|x", re.IGNORECASE)
+# Discounters print an article number in front of the name ("123456 Mineralwasser");
+# OCR sometimes reads stray characters from the paper edge before it ("Es 345678 Joghurt")
+ARTICLE_NUMBER = re.compile(r"^(?:.*?\s)?\d{5,8}\s+")
 
 # Total lines, best first ("Zwischensumme" is not the total)
 TOTAL_WORDS = ["zu zahlen", "summe", "gesamtbetrag", "gesamt", "endbetrag", "total", "zahlbetrag", "betrag"]
+TAX_WORDS = ["mwst", "ust", "netto", "brutto", "steuer"]
 # Lines below the items that are no items
 NOT_ITEM_WORDS = [
     "summe",
@@ -59,6 +67,13 @@ NOT_ITEM_WORDS = [
     "bon-nr",
     "beleg",
 ]
+
+CARD_PAYMENT_WORDS = ["ec-cash", "ec cash", "girocard", "kartenzahlung", "maestro", "visa", "mastercard", "kreditkarte"]
+CASH_WORDS = ["bar", "gegeben"]
+CHANGE_WORDS = ["rückgeld", "rueckgeld", "wechselgeld"]
+# Some shops print the card-payment slip between the items and the total
+# ("K-U-N-D-E-N-B-E-L-E-G ... Kartenzahlung ... Betrag"); no items come after it
+PAYMENT_SLIP_WORDS = ["kundenbeleg", "kartenzahlung", "zahlung erfolgt"]
 
 KNOWN_STORES = sorted(
     {merchant for _, _, _, merchants in VARIABLE_COSTS.values() for merchant in merchants},
@@ -123,12 +138,12 @@ def parse_receipt(text: str, today: dt.date) -> Receipt:
     lines = [clean_line(line) for line in text.splitlines()]
     lines = [line for line in lines if line]
     total_index, total = find_total(lines)
-    return Receipt(
-        store=find_store(lines),
-        date=find_date(lines, today),
-        total_cents=total,
-        items=find_items(lines[:total_index] if total_index is not None else lines),
-    )
+    items = find_items(lines[: items_end(lines, total_index)])
+    if total is not None and sum(_amount_at_end(line) == total for line in lines) >= 2:
+        # The total is printed twice (e.g. "Summe" and the card payment), so it is
+        # reliable – and no single item can cost more than the whole receipt
+        items = [item for item in items if abs(item.amount_cents) <= total]
+    return Receipt(store=find_store(lines), date=find_date(lines, today), total_cents=total, items=items)
 
 
 def clean_line(line: str) -> str:
@@ -144,16 +159,31 @@ def clean_line(line: str) -> str:
     line = re.sub(r"(?<![A-Za-zÄÖÜäöüß])[\dOoQlIiSB]+[.,][\dOoQlIiSB]{2}(?![A-Za-zÄÖÜäöüß])", fix_token, line)
     # "1, 29" or "1 ,29" -> "1,29"
     line = re.sub(r"(\d)\s*([.,])\s*(\d{2})(?!\d)", r"\1\2\3", line)
-    return " ".join(line.split())
+    line = " ".join(line.split())
+    # Decimal separators read as other marks: "1'49" -> "1,49"; "1:09 A" -> "1,09 A"
+    # (a colon only before a tax code, so times like "19:24" stay times)
+    line = re.sub(r"(\d)['’‘´`](\d{2})(?!\d)", r"\1,\2", line)
+    line = re.sub(r"(\d):(\d{2}) ([AB])$", r"\1,\2 \3", line)
+    # Lost decimal separator in front of a tax code: "Schokolade 119 A" -> "1,19 A"
+    return re.sub(r"(?<![\d.,])(\d)(\d{2}) ([AB])$", r"\1,\2 \3", line)
 
 
 def find_store(lines: list[str]) -> str | None:
-    for line in lines[:8]:
-        lowered = _ocr_normalized(line)
-        for store in KNOWN_STORES:
-            if re.search(rf"(?<![a-zäöüß]){re.escape(_ocr_normalized(store))}(?![a-zäöüß])", lowered):
-                if store in GENERIC_SHOPS and not _amount_at_end(line):
-                    return _readable(line)
+    header = lines[:8]
+    for fuzzy in (False, True):
+        for line in header:
+            store = _known_store(line, KNOWN_STORES, fuzzy)
+            if store:
+                return _readable(line) if store in GENERIC_SHOPS and not _amount_at_end(line) else store
+    # The name at the top may be unreadable, but many shops print it again further
+    # down ("ALDI SÜD - Gutes für alle"). Only brands with longer names here: short
+    # words like "Netto" also appear in the tax lines.
+    footer = [line for line in lines[8:] if _amount_at_end(line) is None and not _has_word(line, TAX_WORDS)]
+    brands = [s for s in KNOWN_STORES if s not in GENERIC_SHOPS and len(letters_only(ocr_normalized(s))) >= 5]
+    for fuzzy in (False, True):
+        for line in footer:
+            store = _known_store(line, brands, fuzzy)
+            if store:
                 return store
     for line in lines[:5]:
         letters = sum(c.isalpha() for c in line)
@@ -177,9 +207,18 @@ def find_date(lines: list[str], today: dt.date) -> dt.date | None:
     return min(candidates, key=lambda c: c[0])[1] if candidates else None
 
 
-CARD_PAYMENT_WORDS = ["ec-cash", "ec cash", "girocard", "kartenzahlung", "maestro", "visa", "mastercard", "kreditkarte"]
-CASH_WORDS = ["bar", "gegeben"]
-CHANGE_WORDS = ["rückgeld", "rueckgeld", "wechselgeld"]
+def _known_store(line: str, stores: list[str], fuzzy: bool) -> str | None:
+    """A store name in the line; fuzzy allows one wrong letter ("ALDI SOD"), only for
+    names with at least 7 letters, because short names would match ordinary words."""
+    normalized = ocr_normalized(line)
+    for store in stores:
+        name = ocr_normalized(store)
+        if fuzzy:
+            if len(letters_only(name)) >= 7 and _sounds_like(normalized, name):
+                return store
+        elif re.search(rf"(?<![a-z]){re.escape(name)}(?![a-z])", normalized):
+            return store
+    return None
 
 
 def find_total(lines: list[str]) -> tuple[int | None, int | None]:
@@ -232,19 +271,38 @@ def _total_from_keywords(lines: list[str]) -> tuple[int | None, int | None]:
     return (best[1], best[2]) if best else (None, None)
 
 
+def items_end(lines: list[str], total_index: int | None) -> int:
+    """Index of the first line after the items: the total or the card-payment slip."""
+    end = len(lines) if total_index is None else total_index
+    for index, line in enumerate(lines[:end]):
+        if any(_sounds_like(line, w) for w in PAYMENT_SLIP_WORDS) or _has_word(line, CARD_PAYMENT_WORDS):
+            return index
+    return end
+
+
 def find_items(lines: list[str]) -> list[ReceiptItem]:
     items = []
     for line in lines:
-        if QUANTITY.search(line) or _has_word(line, NOT_ITEM_WORDS) or DATE.search(line):
+        if _is_quantity_line(line) or _has_word(line, NOT_ITEM_WORDS) or DATE.search(line):
             continue
         match = LINE_AMOUNT.search(line)
         if not match:
             continue
-        name = line[: match.start()].strip(" .:-*")
+        # Marks OCR reads from the paper edge or dirt: "Spaghetti 500g]", "Pfand °"
+        name = ARTICLE_NUMBER.sub("", line[: match.start()]).strip(" .,:;-*=_—»«„“\"'‘’`´°|[]")
         if sum(c.isalpha() for c in name) < 2:
             continue
         items.append(ReceiptItem(_readable(name), _to_cents(match.group("amount"))))
     return items
+
+
+def _is_quantity_line(line: str) -> bool:
+    """ "2 Stk x 0,59" explains the line above; "6x Mineralwasser 6x1,5l 2,94" is an item itself."""
+    if not QUANTITY.search(line):
+        return False
+    # Only units are left once numbers are removed ("Stkx" when OCR lost the spaces)
+    words = re.findall(r"[A-Za-zÄÖÜäöüß]{3,}", line)
+    return all(not QUANTITY_UNITS.sub("", word) for word in words)
 
 
 def _readable(text: str) -> str:
@@ -260,17 +318,23 @@ def _has_word(line: str, words: list[str]) -> bool:
     return any(re.search(rf"(?<![a-zäöüß]){re.escape(w)}(?![a-zäöüß])", lowered) for w in words)
 
 
-def _ocr_normalized(text: str) -> str:
+def ocr_normalized(text: str) -> str:
     """Lower case with letters/digits OCR confuses mapped to one form, for comparing names.
-    Umlauts are written out, because receipt printers often print "SUED" for "SÜD"."""
-    text = text.lower().replace("ä", "ae").replace("ö", "oe").replace("ü", "ue").replace("ß", "ss")
+    "SÜD", "SUED" (printers without umlauts) and "SUD" (OCR lost the dots) become the same."""
+    text = text.lower()
+    for umlaut, plain in (("ä", "a"), ("ö", "o"), ("ü", "u"), ("ae", "a"), ("oe", "o"), ("ue", "u"), ("ß", "ss")):
+        text = text.replace(umlaut, plain)
     return text.translate(str.maketrans("0158cav", "olsbeou"))
+
+
+def letters_only(text: str) -> str:
+    return re.sub(r"[^a-zäöüß]", "", text.lower())
 
 
 def _sounds_like(line: str, keyword: str) -> bool:
     """Keyword in the line even with broken spaces and one wrong letter ("S UMME", "SUMMC" ~ "summe")."""
-    letters = re.sub(r"[^a-zäöüß]", "", line.lower())
-    target = keyword.replace(" ", "")
+    letters = letters_only(line)
+    target = letters_only(keyword)
     if target in letters:
         return True
     if len(target) < 5:

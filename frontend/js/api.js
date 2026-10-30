@@ -71,7 +71,8 @@ export const api = {
   deleteRecurringRule: (id) => request("DELETE", `/recurring-rules/${id}`),
   checkExpense: (groupId, data) => request("POST", `/groups/${groupId}/check-expense`, data),
   anomalies: (groupId, month) => request("GET", `/groups/${groupId}/anomalies?month=${month}`),
-  parseReceipt: (groupId, text) => request("POST", `/groups/${groupId}/parse-receipt`, { text }),
+  // texts: the readings of one photo (a single string from a not yet updated receipt.js also works)
+  parseReceipt: (groupId, texts) => request("POST", `/groups/${groupId}/parse-receipt`, { texts: [texts].flat() }),
 
   settlement: (groupId) => request("GET", `/groups/${groupId}/settlement`),
   payments: (groupId) => request("GET", `/groups/${groupId}/payments`),

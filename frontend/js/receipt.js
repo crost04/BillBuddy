@@ -20,21 +20,29 @@ export function loadTesseract() {
   return tesseractLoading;
 }
 
+// The photo as a bitmap, turned the right way round
+export function loadPhoto(file) {
+  return createImageBitmap(file, { imageOrientation: "from-image" });
+}
+
 // Prepare a photo for the text recognition:
+// - cut away the table left and right of the receipt: it otherwise turns into
+//   fantasy text (wood grain read as letters), and the receipt gets more pixels
 // - scale by the width, so the letters stay large enough (a long receipt must
 //   not shrink to tiny print)
 // - grayscale
 // - adaptive threshold: every pixel is compared with the brightness of its
 //   surroundings instead of one value for the whole image, so shadows and
 //   uneven light do not turn half of the receipt black
-export async function prepareImage(file, { maxWidth = 2000, adaptive = true, windowFraction = 1 / 16, darkerBy = 0.15 } = {}) {
-  const bitmap = await createImageBitmap(file, { imageOrientation: "from-image" });
-  const scale = Math.min(1, maxWidth / bitmap.width);
+export function prepareImage(bitmap, { crop = true, targetWidth = 1200, adaptive = true, windowFraction = 1 / 16, darkerBy = 0.15 } = {}) {
+  const box = (crop && findReceipt(bitmap)) || { x: 0, width: bitmap.width };
+  // At most twice the size, and at most 8 million pixels (iPhones refuse very large canvases)
+  const scale = Math.min(2, targetWidth / box.width, Math.sqrt(8e6 / (box.width * bitmap.height)));
   const canvas = document.createElement("canvas");
-  canvas.width = Math.round(bitmap.width * scale);
+  canvas.width = Math.round(box.width * scale);
   canvas.height = Math.round(bitmap.height * scale);
   const context = canvas.getContext("2d", { willReadFrequently: true });
-  context.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+  context.drawImage(bitmap, box.x, 0, box.width, bitmap.height, 0, 0, canvas.width, canvas.height);
   if (adaptive) {
     const image = context.getImageData(0, 0, canvas.width, canvas.height);
     adaptiveThreshold(image, windowFraction, darkerBy);
@@ -43,15 +51,98 @@ export async function prepareImage(file, { maxWidth = 2000, adaptive = true, win
   return canvas;
 }
 
+// Find the receipt's left and right edge: paper is bright and colourless, a table
+// usually darker or coloured. Works on a small copy of the photo:
+// 1. bright = brighter than Otsu's threshold (the value that separates the
+//    brightness histogram best into two groups); paper = bright and not colourful
+// 2. the columns where much of the height is paper are the receipt
+// Only left and right are cut: top to bottom a shadow could look like the end of
+// the receipt and cut off the total. Returns {x, width} (with a small margin) or
+// null when the receipt fills the width anyway or no clear receipt was found.
+export function findReceipt(bitmap, size = 400) {
+  const scale = size / Math.max(bitmap.width, bitmap.height);
+  const w = Math.round(bitmap.width * scale);
+  const h = Math.round(bitmap.height * scale);
+  const canvas = document.createElement("canvas");
+  canvas.width = w;
+  canvas.height = h;
+  const context = canvas.getContext("2d", { willReadFrequently: true });
+  context.drawImage(bitmap, 0, 0, w, h);
+  const { data } = context.getImageData(0, 0, w, h);
+
+  const gray = new Uint8Array(w * h);
+  const colourful = new Uint8Array(w * h);
+  for (let i = 0; i < w * h; i++) {
+    const r = data[i * 4], g = data[i * 4 + 1], b = data[i * 4 + 2];
+    const max = Math.max(r, g, b);
+    gray[i] = Math.round(0.299 * r + 0.587 * g + 0.114 * b);
+    colourful[i] = max > 0 && (max - Math.min(r, g, b)) / max > 0.3 ? 1 : 0;
+  }
+  const threshold = otsuThreshold(gray);
+  const columns = Array.from({ length: w }, (_, x) => {
+    let paper = 0;
+    for (let y = 0; y < h; y++) paper += gray[y * w + x] > threshold && !colourful[y * w + x] ? 1 : 0;
+    return paper / h;
+  });
+  const [x1, x2] = longestRun(columns);
+
+  const width = x2 - x1 + 1;
+  if (width < 0.15 * w || width > 0.9 * w) return null;
+  const margin = 0.04 * width;
+  const left = Math.max(0, x1 - margin);
+  return { x: left / scale, width: (Math.min(w, x2 + 1 + margin) - left) / scale };
+}
+
+function otsuThreshold(gray) {
+  const histogram = new Array(256).fill(0);
+  gray.forEach((value) => histogram[value]++);
+  const total = gray.length;
+  const sumAll = histogram.reduce((sum, count, value) => sum + value * count, 0);
+  let sumDark = 0, countDark = 0, best = 0, threshold = 128;
+  for (let t = 0; t < 256; t++) {
+    countDark += histogram[t];
+    const countBright = total - countDark;
+    if (!countDark || !countBright) continue;
+    sumDark += t * histogram[t];
+    const meanDark = sumDark / countDark;
+    const meanBright = (sumAll - sumDark) / countBright;
+    const between = countDark * countBright * (meanDark - meanBright) ** 2;
+    if (between > best) {
+      best = between;
+      threshold = t;
+    }
+  }
+  return threshold;
+}
+
+// Longest stretch of values at least half the maximum; small gaps (a fold, a
+// dark logo) do not end it. Returns [first index, last index].
+function longestRun(values, gapFraction = 0.02) {
+  const limit = 0.5 * Math.max(...values);
+  const gap = Math.max(1, Math.round(values.length * gapFraction));
+  let best = [0, values.length - 1], bestLength = -1, start = -1, last = -1;
+  values.forEach((value, i) => {
+    if (value < limit) return;
+    if (start < 0 || i - last > gap) start = i;
+    last = i;
+    if (last - start > bestLength) {
+      bestLength = last - start;
+      best = [start, last];
+    }
+  });
+  return best;
+}
+
 // Bradley–Roth adaptive threshold with an integral image (fast enough for phone photos)
 function adaptiveThreshold(image, windowFraction, darkerBy) {
   const { width, height, data } = image;
-  const gray = new Float32Array(width * height);
+  const gray = new Uint8Array(width * height);
   for (let i = 0; i < gray.length; i++) {
     gray[i] = 0.299 * data[i * 4] + 0.587 * data[i * 4 + 1] + 0.114 * data[i * 4 + 2];
   }
-  // integral[y][x] = sum of all gray values above and left of (x, y)
-  const integral = new Float64Array((width + 1) * (height + 1));
+  // integral[y][x] = sum of all gray values above and left of (x, y);
+  // whole numbers up to 255 × 8 million pixels fit into 32 bits
+  const integral = new Uint32Array((width + 1) * (height + 1));
   for (let y = 0; y < height; y++) {
     let rowSum = 0;
     for (let x = 0; x < width; x++) {
@@ -76,22 +167,19 @@ function adaptiveThreshold(image, windowFraction, darkerBy) {
   }
 }
 
-// Several ways of reading the photo. No single setting was best for all test
-// photos, so the app tries them one after another and keeps the most plausible
-// result – judged by the parser's own check (do the items add up to the total?).
-// Page modes: 4 = one column of text, 3 = automatic layout, 6 = one block of text.
-const ATTEMPTS = [
+// Several ways of reading the photo. Each reading loses or misreads other lines,
+// so the app reads the photo up to three times and the server combines the
+// readings (billbuddy.ml.receipt_ocr.combine): total, store and date by majority,
+// the items from the reading whose items add up to the total.
+// Page modes: 4 = one column of text, 6 = one block of text. (3 = automatic
+// layout read the prices of a real receipt as a separate column.)
+export const ATTEMPTS = [
   { pageMode: "4", adaptive: true },
-  { pageMode: "3", adaptive: true },
   { pageMode: "6", adaptive: false },
+  { pageMode: "4", adaptive: false },
 ];
 
-function plausibility(result) {
-  return (result.items_match_total ? 100 : 0) + (result.total ? 10 : 0) + (result.store ? 5 : 0)
-    + (result.date ? 3 : 0) + result.items.length;
-}
-
-// parse: text -> parsed receipt (the server). Returns {text, result} of the best attempt.
+// parse: list of texts -> combined receipt (the server). Returns {text, result}.
 export async function recognizeReceipt(file, onProgress, parse) {
   onProgress("Texterkennung wird geladen …");
   const Tesseract = await loadTesseract();
@@ -104,22 +192,25 @@ export async function recognizeReceipt(file, onProgress, parse) {
       }
     },
   });
+  const photo = await loadPhoto(file);
   try {
     onProgress("Bereite das Foto vor …");
     const images = {};
-    let best = null;
+    const texts = [];
+    let result;
     for (const { pageMode, adaptive } of ATTEMPTS) {
       attempt++;
-      images[adaptive] ??= await prepareImage(file, { adaptive });
+      images[adaptive] ??= prepareImage(photo, { adaptive });
       await worker.setParameters({ tessedit_pageseg_mode: pageMode, preserve_interword_spaces: "1" });
       // rotateAuto straightens slightly tilted photos before reading
       const { data } = await worker.recognize(images[adaptive], { rotateAuto: true });
-      const result = await parse(data.text);
-      if (!best || plausibility(result) > plausibility(best.result)) best = { text: data.text, result };
+      texts.push(data.text);
+      result = await parse(texts);
       if (result.items_match_total) break; // the check passed: good enough
     }
-    return best;
+    return { text: texts[result.reading ?? 0], result };
   } finally {
+    photo.close();
     await worker.terminate();
   }
 }

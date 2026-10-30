@@ -255,6 +255,14 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
 - On the phone, the photo is scaled by its width (so the print stays large enough), turned into grayscale
   and binarized with an **adaptive threshold** (Bradley–Roth), which copes with shadows and uneven
   light; Tesseract straightens tilted photos (`rotateAuto`).
+- Since the third iteration the phone first **cuts away the table left and right of the receipt**:
+  paper = brighter than Otsu's threshold and not colourful; the columns that are mostly paper are the
+  receipt. Only left and right are cut, because top to bottom a shadow could look like the end of the
+  receipt and cut off the total.
+- Item lines: article numbers in front of the names are removed ("123456 Mineralwasser" →
+  "Mineralwasser"), decimal separators misread as other marks are repaired ("1:09 A", "1'79" → 1,09 /
+  1,79; "119 A" → 1,19), and
+  "ß"/"8" are accepted as the tax code "B".
 
 ### Modeling
 - **Architecture decision:** text recognition with **Tesseract.js in the browser of the phone** (fast,
@@ -263,14 +271,22 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
 - **Parser** with rules: known shop names (tolerant of OCR mistakes), the first plausible date, the total
   line found by keywords ("zu zahlen", "Summe", "Gesamt", …), items = lines with an amount above the
   total (quantity lines are skipped).
+- Items end at the total line **or at the card-payment slip**, whichever comes first (some discounters print
+  "K-U-N-D-E-N-B-E-L-E-G … Kartenzahlung … Betrag" between the items and "Summe"). If the total appears
+  twice (e.g. "Summe" and the card payment), no item may cost more than the total.
+- The store is also searched further down the receipt ("ALDI SÜD - Gutes für alle"), and long store
+  names may have one wrong letter ("ALDI SOD"). "SÜD", "SUED" and "SUD" count as the same.
+- **Ensemble of readings** (`combine.py`): the phone reads the photo up to three times; total, store
+  and date are decided by majority, the items come from the reading whose items add up to the total
+  (otherwise the one with the most items).
 - Plausibility check: do the items add up to the total?
 - Category: the store name goes through the categorizer (module 1).
 - Item assignment: items for one person are charged to that person, the rest (and any difference to
   the total) is shared; the result becomes a percentage split, exact to the cent.
 
 ### Evaluation
-- Without noise everything is right; at 5 % noise: total 97.8 %, items F1 97.6 %, store 86.8 %,
-  date 86.8 %.
+- Without noise everything is right; at 5 % noise (current version): total 97.8 %, items F1 97.5 %,
+  store 89.2 %, date 86.8 %.
 - **Iteration:** the first parser version found the total in only 79.0 % of the receipts at 5 % noise,
   because OCR split "SUMME" into "S UMME". Tolerant keyword matching (spaces ignored, one wrong letter
   allowed) and digit repair in dates raised it to 94.5 %; taking the total from the payment line when
@@ -300,6 +316,38 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
   now works better on the same receipt.
 - Simulated photos are only a rough stand-in for real ones; a systematic measurement with several real
   receipts is still open.
+- **Third real test (receipt from a discounter, 30 Oct 2026): "noch nicht optimal".** The items added
+  up to many times the total, not all products were found, and the store name was read without its
+  umlaut and not recognized. The photo was examined locally (it stays out of the repository, like all
+  amounts and products on it) and run through the same recognition as on the phone. Findings:
+  - the receipt covered only a third of the photo's width; the wood grain of the table was read as
+    fantasy text (e.g. "EZ REES a SZ Sn") and the letters were small;
+  - the text recognition itself was mostly right – most losses came from the **parser**: article
+    numbers in front of the names, "ß" instead of the tax code "B", ":" instead of the decimal comma,
+    an item line starting with "6x" taken for a quantity line, the umlaut-less store name;
+  - page mode 3 (automatic layout) read all prices as a separate column after the names – useless for
+    receipts, so it was replaced by page mode 4 on the unprocessed image.
+- **Measurement** (true values typed off the receipt: 28 item lines, total, date, store; the photo in 4
+  variants – original 24 MP, 12 MP, tilted 2°, darker – so that the settings are not tuned to one
+  single picture):
+
+  | Version | Items found (of 28, mean) | Total | Date | Store |
+  |---|---|---|---|---|
+  | before | 23.5 | 4 of 4 | 4 of 4 | 0 of 4 |
+  | new parser only | 25.5 | 4 of 4 | 4 of 4 | 4 of 4 |
+  | new parser + cut-out receipt (1200 px wide) + new page modes **(chosen)** | 25.8 | 4 of 4 | 4 of 4 | 4 of 4 |
+
+  The parser brought most of the gain; the cut-out added little on this receipt (within the
+  variation between photo variants) but removes the fantasy text from the background. The two lines
+  still missing (the same product twice) are hard to read in every variant. On the synthetic receipts the
+  new parser is as good as before (items F1 at 5 % noise 97.5 % vs 97.6 %) and finds the store more
+  often (89.2 % vs 86.8 %).
+- **Discarded idea:** taking single items from different readings (aligning the item lists and filling
+  gaps) made the result *worse* on the real receipt: a misread amount from another reading sometimes
+  happened to bring the sum closer to the total and was taken over. So only total, store and date are
+  voted on.
+- Shown to the user when items are missing: "Betrag laut Bon: 12,34 € – bitte kurz prüfen", so it is
+  clear that the amount comes from the receipt's total and the items only matter for the split.
 
 ### Deployment
 - "📷 Kassenbon scannen" in the expense form opens the camera; Tesseract.js (about 3 MB incl. German
@@ -308,5 +356,5 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
 - The photo is not stored anywhere; only the resulting expense is saved.
 - Transparency: after a scan, "Erkannten Text anzeigen" shows what the phone read, and the app shows
   photo tips (flat, from above, good light, whole receipt).
-- Next steps: collect a few real receipts (locally, never in the repository) to measure the real
-  accuracy; possibly let the user crop the photo before recognition.
+- Next steps: collect more real receipts from other shops (locally, never in the repository) to
+  measure the real accuracy; one receipt is not enough to judge the image settings.

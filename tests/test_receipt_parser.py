@@ -40,6 +40,37 @@ Rückgeld         4,53
 27.10.26 09:12
 """
 
+# Discounter layout (invented content): article numbers in front of the names, tax
+# codes misread by OCR, and the card-payment slip printed *between* items and total
+DISCOUNTER = """
+ALDI SÜD
+Musterstraße 1
+12345 Musterstadt
+                                 EUR
+Eigenmarke: Pfand             -0,25 B
+6x 123456 Mineralwasser 6x1,5l 2,94 B
+6 x 0,25
+80000123 Pfand                 1,50 ß
+234567 Kartoffeln festk.       2,49 A
+Es 345678 Joghurt 500g         1:09 A
+456789 Schokolade Vollmilch    119 A
+567890 Äpfel                   1,62 A
+0,810 kg x 1,99 EUR/kg
+K-U-N-D-E-N-B-E-L-E-G
+ALDI SÜD 001-002
+Kartenzahlung girocard
+Betrag                    10,58 EUR
+28.10.2026   18:12   T-ID 11111111
+VU-Nummer                1234567890
+** Zahlung erfolgt **
+S u m m e                     10,58
+7 Artikel
+girocard          EUR         10,58
+A 07,0% Netto 6,15 MwSt 0,43
+B 19,0% Netto 3,36 MwSt 0,64
+Mo - Sa: 7:00 Uhr - 20:00 Uhr
+"""
+
 
 def test_rewe_receipt():
     receipt = parse_receipt(REWE, TODAY)
@@ -82,6 +113,11 @@ def test_ocr_noise_in_numbers_is_repaired():
         ("Summe 2O,5O", "Summe 20,50"),
         ("Brot 1, 29", "Brot 1,29"),
         ("BIO HAFERDRINK 1,49", "BIO HAFERDRINK 1,49"),  # letters in words stay letters
+        ("Joghurt 500g 1:09 A", "Joghurt 500g 1,09 A"),
+        ("Tortilla Wraps 1'79 A", "Tortilla Wraps 1,79 A"),
+        ("Schokolade 119 A", "Schokolade 1,19 A"),  # lost decimal comma before the tax code
+        ("29.10.2026 19:24", "29.10.2026 19:24"),  # times stay times
+        ("Mo - Sa: 7:00 Uhr - 20:00 Uhr", "Mo - Sa: 7:00 Uhr - 20:00 Uhr"),
     ],
 )
 def test_clean_line(raw, cleaned):
@@ -146,6 +182,58 @@ def test_date_with_confused_digits():
 
 def test_store_printed_without_umlauts():
     assert parse_receipt("ALDI SUED\nSumme 1,00", TODAY).store == "Aldi Süd"
+    assert parse_receipt("ALDI SUD\nSumme 1,00", TODAY).store == "Aldi Süd"  # OCR lost the dots
+
+
+def test_store_with_one_wrong_letter():
+    assert parse_receipt("ALDI SOD\nSumme 1,00", TODAY).store == "Aldi Süd"
+
+
+def test_store_printed_again_at_the_bottom():
+    items = "\n".join(f"Artikel {n} 1,00 A" for n in range(9))
+    text = f"~~ ### ~~\n{items}\nSumme 9,00\nB 19% Netto 7,56 MwSt 1,44 x\nALDI SÜD - Gutes für alle."
+    assert parse_receipt(text, TODAY).store == "Aldi Süd"
+
+
+def test_tax_line_at_the_bottom_is_not_the_store_netto():
+    items = "\n".join(f"Artikel {n} 1,00 A" for n in range(9))
+    receipt = parse_receipt(f"~~ ### ~~\n{items}\nSumme 9,00\nB 19% Netto 7,56 MwSt 1,44 x", TODAY)
+    assert receipt.store != "Netto"
+
+
+def test_discounter_receipt_with_card_slip_before_the_total():
+    receipt = parse_receipt(DISCOUNTER, TODAY)
+    assert receipt.store == "Aldi Süd"
+    assert receipt.date == dt.date(2026, 10, 28)
+    assert receipt.total_cents == 1058
+    assert [(i.name, i.amount_cents) for i in receipt.items] == [
+        ("Eigenmarke: Pfand", -25),
+        ("Mineralwasser 6x1,5l", 294),
+        ("Pfand", 150),
+        ("Kartoffeln festk", 249),
+        ("Joghurt 500g", 109),
+        ("Schokolade Vollmilch", 119),
+        ("Äpfel", 162),
+    ]
+    assert receipt.items_match_total
+
+
+def test_quantity_lines_are_skipped_but_items_with_a_quantity_kept():
+    receipt = parse_receipt("Rewe\n2 x Milch 1,98 A\n2Stkx0,99\n0,5 kg x 2,00 EUR/kg\nSumme 1,98", TODAY)
+    assert [(i.name, i.amount_cents) for i in receipt.items] == [("2 x Milch", 198)]
+
+
+def test_item_dearer_than_a_confirmed_total_is_dropped():
+    # The total is printed twice (Summe + card payment), so "451,20" must be misread
+    text = "Rewe\nBrot 1,29 A\nKontaktlos 451,20\nKäse 2,00 A\nSumme 3,29\nGeg. EC-Cash 3,29"
+    receipt = parse_receipt(text, TODAY)
+    assert [i.amount_cents for i in receipt.items] == [129, 200]
+
+
+def test_items_are_kept_when_the_total_is_printed_only_once():
+    # "zu zahlen 2 0,97" was read as 0,97: the items must not be thrown away because of it
+    receipt = parse_receipt("Rossmann\nShampoo 4,48 A\nDuschgel 1,60 B\nzu zahlen 2 0,97", TODAY)
+    assert [i.amount_cents for i in receipt.items] == [448, 160]
 
 
 def test_store_with_confused_characters():
@@ -156,6 +244,7 @@ def test_store_with_confused_characters():
 
 
 def test_api_parses_a_receipt(client, monkeypatch):
+    # A single "text" is what app versions before 30 Oct 2026 send
     from billbuddy.api import receipt_routes
 
     monkeypatch.setattr(receipt_routes, "today", lambda: TODAY)
@@ -167,6 +256,20 @@ def test_api_parses_a_receipt(client, monkeypatch):
     assert [i["amount"] for i in body["items"]] == [1.99, 1.15, 1.18, 1.79, 0.25]
     assert body["items_match_total"]
     assert body["category"] == "Groceries"
+
+
+def test_api_combines_several_readings(client, monkeypatch):
+    from billbuddy.api import receipt_routes
+
+    monkeypatch.setattr(receipt_routes, "today", lambda: TODAY)
+    group = client.post("/api/groups", json={"name": "Home", "members": ["Ben"]}).json()
+    incomplete = REWE.replace("BARILLA SPAGHETTI    1,79 B\n", "")
+
+    body = client.post(f"/api/groups/{group['id']}/parse-receipt", json={"texts": [incomplete, REWE]}).json()
+
+    assert body["reading"] == 1  # the complete reading, whose items add up to the total
+    assert body["items_match_total"]
+    assert len(body["items"]) == 5
 
 
 def test_api_needs_access_to_the_group(client, anon_client):

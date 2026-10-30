@@ -259,7 +259,7 @@ export async function renderExpenseForm(container, id) {
       const { text, result } = await recognizeReceipt(
         file,
         (message) => { status.textContent = message; },
-        (recognized) => api.parseReceipt(state.group.id, recognized),
+        (texts) => api.parseReceipt(state.group.id, texts),
       );
       $("#scan-text pre").textContent = text;
       $("#scan-text").hidden = false;
@@ -294,7 +294,11 @@ export async function renderExpenseForm(container, id) {
     }
     if (r.items_match_total) return `✅ ${r.items.length} Artikel gelesen – die Summe passt.`;
     if (!r.total) return "⚠️ Keine Summe gefunden – bitte den Betrag prüfen.";
-    return `⚠️ Bitte prüfen: Die erkannten Artikel ergeben ${formatMoney(r.items_sum)}, auf dem Bon steht ${formatMoney(r.total)}.`;
+    // The amount always comes from the receipt's total; the items only matter for the split
+    const found = `${r.items.length} Artikel erkannt (zusammen ${formatMoney(r.items_sum)})`;
+    return r.items_sum < r.total
+      ? `⚠️ Betrag laut Bon: ${formatMoney(r.total)} – bitte kurz prüfen. ${found}, ein paar fehlen; der Rest wird unter allen aufgeteilt.`
+      : `⚠️ Betrag laut Bon: ${formatMoney(r.total)} – bitte kurz prüfen. ${found}, einzelne Preise sind wohl falsch gelesen.`;
   }
 
   function renderReceiptItems() {

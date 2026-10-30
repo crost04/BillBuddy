@@ -124,9 +124,11 @@ sample data it is off by 9.6 % on average (simple extrapolation: 69.5 %). Detail
 "📷 Kassenbon scannen" in the expense form: the photo is read **on the phone** with Tesseract.js (the
 image never leaves the device), the server parses the recognized text into store, date, total and items
 and suggests a category. Items can be assigned to single people; the app turns that into the split.
-The phone tries several reading settings and keeps the most plausible result (do the items add up to the
-total?). With simulated OCR noise (5 %) the parser finds the total in 97.8 % of the receipts; on
-simulated phone photos the whole chain found it in 5 of 6. [Evaluation report](docs/receipt-report.md)
+The phone cuts away the table around the receipt and reads the photo up to three times; the server
+combines the readings (total, store and date by majority, items from the reading that adds up to the
+total). With simulated OCR noise (5 %) the parser finds the total in 97.8 % of the receipts; on a real
+discounter receipt (28 item lines, 4 photo variants) total, date and store were right every time and
+25.8 of 28 items were found. [Evaluation report](docs/receipt-report.md) · [CRISP-DM](docs/crisp-dm.md)
 
 ## How settlement works
 1. **Split:** every expense is divided among its participants (equally, by percentage or
