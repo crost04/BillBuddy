@@ -5,6 +5,7 @@ Web app:    http://127.0.0.1:8000
 API docs:   http://127.0.0.1:8000/docs
 """
 
+import datetime as dt
 import threading
 from contextlib import asynccontextmanager
 
@@ -21,6 +22,7 @@ from billbuddy.api import (
     categorizer_routes,
     expense_routes,
     forecast_routes,
+    keep_awake,
     receipt_routes,
     recurring_routes,
     settlement_routes,
@@ -43,7 +45,10 @@ def create_app(engine: Engine | None = None) -> FastAPI:
         init_db(engine)
         # Train the categorizer's base model now, so the first suggestion does not wait for it
         threading.Thread(target=categorizer.warm_up, daemon=True).start()
+        stop_keep_awake = threading.Event()
+        keep_awake.start(stop_keep_awake)
         yield
+        stop_keep_awake.set()
 
     app = FastAPI(title="BillBuddy API", version=__version__, lifespan=lifespan)
     app.state.session_factory = make_session_factory(engine)
@@ -61,10 +66,13 @@ def create_app(engine: Engine | None = None) -> FastAPI:
             response.headers.setdefault("Cache-Control", "no-cache")
         return response
 
+    started = dt.datetime.now(dt.UTC)
+
     @app.get("/api/health")
     def health():
-        """For the hosting provider: answers without touching the database."""
-        return {"status": "ok"}
+        """For the hosting provider: answers without touching the database.
+        running_since shows whether the free server slept in between (it restarts when woken)."""
+        return {"status": "ok", "running_since": started.isoformat(timespec="seconds")}
 
     app.include_router(auth_routes.router)
     app.include_router(expense_routes.router)

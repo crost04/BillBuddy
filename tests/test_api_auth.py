@@ -88,7 +88,7 @@ def test_data_needs_a_login(anon_client, method, path):
 
 
 def test_public_endpoints(anon_client):
-    assert anon_client.get("/api/health").json() == {"status": "ok"}
+    assert anon_client.get("/api/health").json()["status"] == "ok"
     assert anon_client.get("/api/categories").status_code == 200
     assert anon_client.get("/").status_code == 200
 

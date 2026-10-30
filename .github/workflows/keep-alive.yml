@@ -1,8 +1,9 @@
-# Keeps the free Render server awake, so the app opens without waiting.
-# Render puts free services to sleep after ~15 minutes without requests;
-# this calls the health endpoint every 10 minutes. The endpoint does not touch
-# the database, so the Neon database can still sleep when nobody uses the app.
-# Note: GitHub sometimes starts scheduled runs late, so a short sleep can still happen.
+# Backup for keeping the free Render server awake (the main keep-alive is the
+# app itself, see billbuddy/api/keep_awake.py). Render puts free services to
+# sleep after ~15 minutes without requests; this calls the health endpoint and
+# wakes the server up again, e.g. after a restart. GitHub delays scheduled runs
+# of small repositories (only 4 runs in the first 24 hours), so this alone was
+# not enough. The endpoint does not touch the database, so Neon can still sleep.
 name: Keep server awake
 
 on:

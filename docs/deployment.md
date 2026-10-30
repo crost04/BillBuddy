@@ -47,12 +47,17 @@ Render deploys from a GitHub repository, so the code has to be pushed there firs
 3. Invite the others: *Gruppe → Link teilen*.
 
 ## Keeping the server awake
-- **Keep-alive:** the GitHub Actions workflow `.github/workflows/keep-alive.yml` calls
-  `/api/health` every 10 minutes, so Render does not put the app to sleep. One service running
-  all month fits into Render's 750 free instance hours (a month has at most 744 hours).
+- **Keep-alive:** while it runs, the app calls its own public address (`/api/health`) every
+  10 minutes (`billbuddy/api/keep_awake.py`), so Render does not put it to sleep. Render sets the
+  address in `RENDER_EXTERNAL_URL` automatically, so nothing has to be configured; locally the ping is off.
+  One service running all month fits into Render's 750 free instance hours (a month has at most
+  744 hours) – so no second free service should run in the same Render account.
   The health endpoint does not touch the database, so Neon can still sleep when nobody uses the app.
-  GitHub sometimes starts scheduled runs late, so a short sleep can still happen.
-  The workflow can also be started by hand: *GitHub → Actions → Keep server awake → Run workflow*.
+- **Check:** `https://<your-app>.onrender.com/api/health` shows `running_since`. If that time stays
+  the same for hours, the server has not slept (after waking up it would show a new start time).
+- **Backup:** the GitHub Actions workflow `.github/workflows/keep-alive.yml` also calls `/api/health`
+  every 10 minutes and wakes the server after a restart. On its own it was not enough: GitHub delays
+  scheduled runs of small repositories, and in the first 24 hours it ran only 4 times instead of 144.
 - **Instant start:** the service worker serves the app files from the phone's cache right away
   and updates them in the background. If the server is still waking up, the app shows a hint and
   retries automatically.

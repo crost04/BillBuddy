@@ -171,6 +171,8 @@ and only return groups the user belongs to.
 
 ## Quality assurance
 - **Tests:** pytest, run automatically on GitHub for every push (badge at the top).
+- **No waiting:** the hosted app pings itself every 10 minutes so the free server does not fall asleep
+  ([deployment guide](docs/deployment.md#keeping-the-server-awake)).
 - **Code style:** ruff (linter and formatter, settings in `pyproject.toml`), also checked on GitHub.
 - **Backup:** *Gruppe → Daten sichern* downloads all expenses and payments as a CSV file.
 
