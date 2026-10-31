@@ -9,21 +9,26 @@ first, then rules find the parts:
   "ALDI SÜD - Gutes für alle"), otherwise the first line with words
 - date: the first plausible date (not in the future, not older than two years)
 - total: the line with "zu zahlen", "Summe", "Gesamt", ... and an amount
+  (an amount the payment lines confirm more often wins over a misread one)
 - items: lines above the total and above the card-payment slip that end with
-  an amount (skipping quantity lines like "2 Stk x 0,59", which belong to the
-  line above); article numbers in front of the names are removed
+  an amount and maybe a tax code (skipping quantity lines like "2 Stk x 0,59",
+  which belong to the line above, and the subtotal); article numbers in front
+  of the names are removed; a price is checked against quantity × unit price
 """
 
 import datetime as dt
 import re
+from collections import Counter
 from dataclasses import dataclass, field
 
 from billbuddy.data.generator import VARIABLE_COSTS
 
 AMOUNT = r"-?\d{1,4}[.,]\d{2}"
-# An amount at the end of a line, optionally followed by "€"/"EUR" and a tax code
-# (A, B, *; OCR also reads the "B" as "ß" or "8")
-LINE_AMOUNT = re.compile(rf"(?P<amount>{AMOUNT})\s*(?:€|EUR)?[\s.]*(?:[A-Za-zß*]{{1,2}}|8)?\s*$")
+# An amount at the end of a line, optionally followed by "€"/"EUR" and a tax code:
+# letters (A, B, *; OCR also reads the "B" as "ß" or "8") or digits (drugstores:
+# "2,45 1"), plus marks OCR reads from the paper edge or the table ("2,35 | I", "4,60 ;")
+TAIL_MARK = r"(?:\s+\d(?!\d)|8(?!\d)|\s*[A-Za-zß*]{1,2}(?![A-Za-zß])|\s*[|\[\]:;!.,'‘’\"_~-]+)"
+LINE_AMOUNT = re.compile(rf"(?P<amount>{AMOUNT})\s*(?:€|EUR)?{TAIL_MARK}{{0,3}}\s*$")
 DATE = re.compile(r"(?<!\d)(\d{1,2})[./-](\d{1,2})[./-](\d{4}|\d{2})(?!\d)")
 # Date-shaped text with letters OCR confuses with digits ("28.1O.2O26")
 DATE_LIKE = re.compile(r"(?<![A-Za-z])[\dOoQlIiSB]{1,2}[./-][\dOoQlIiSB]{1,2}[./-][\dOoQlIiSB]{2,4}(?![A-Za-z])")
@@ -34,6 +39,8 @@ QUANTITY_UNITS = re.compile(r"stk|st|eur|kg|x", re.IGNORECASE)
 # Discounters print an article number in front of the name ("123456 Mineralwasser");
 # OCR sometimes reads stray characters from the paper edge before it ("Es 345678 Joghurt")
 ARTICLE_NUMBER = re.compile(r"^(?:.*?\s)?\d{5,8}\s+")
+# Quantity and unit price in front of the name: "3x 0,85 Fruchtgummi 2,55"
+UNIT_PRICE = re.compile(rf"(?<![\w,.])\w?\s?[xX×]\s?(?P<unit>{AMOUNT})(?!\d)")
 
 # Total lines, best first ("Zwischensumme" is not the total)
 TOTAL_WORDS = ["zu zahlen", "summe", "gesamtbetrag", "gesamt", "endbetrag", "total", "zahlbetrag", "betrag"]
@@ -141,8 +148,9 @@ def parse_receipt(text: str, today: dt.date) -> Receipt:
     items = find_items(lines[: items_end(lines, total_index)])
     if total is not None and sum(_amount_at_end(line) == total for line in lines) >= 2:
         # The total is printed twice (e.g. "Summe" and the card payment), so it is
-        # reliable – and no single item can cost more than the whole receipt
-        items = [item for item in items if abs(item.amount_cents) <= total]
+        # reliable – and no single item can cost more than the whole receipt plus its discounts
+        limit = total - sum(item.amount_cents for item in items if item.amount_cents < 0)
+        items = [item for item in items if abs(item.amount_cents) <= limit]
     return Receipt(store=find_store(lines), date=find_date(lines, today), total_cents=total, items=items)
 
 
@@ -184,6 +192,12 @@ def find_store(lines: list[str]) -> str | None:
         for line in footer:
             store = _known_store(line, brands, fuzzy)
             if store:
+                return store
+    # Short names like "dm" are too risky for that, but their web address is clear
+    # ("Öffnungszeiten auf dm.de")
+    for line in footer:
+        for store in [s for s in KNOWN_STORES if s not in GENERIC_SHOPS]:
+            if re.search(rf"(?<![a-z0-9-]){re.escape(letters_only(store))}\.de\b", line.lower()):
                 return store
     for line in lines[:5]:
         letters = sum(c.isalpha() for c in line)
@@ -235,10 +249,9 @@ def find_total(lines: list[str]) -> tuple[int | None, int | None]:
 
 
 def _total_from_payment(lines: list[str]) -> tuple[int | None, int | None]:
-    for index, line in enumerate(lines):
-        amount = _amount_at_end(line)
-        if amount and amount > 0 and any(_sounds_like(line, w) or _has_word(line, [w]) for w in CARD_PAYMENT_WORDS):
-            return index, amount
+    card = _card_payments(lines)
+    if card:
+        return next(iter(card.items()))
     given = change = None
     for index, line in enumerate(lines):
         amount = _amount_at_end(line)
@@ -253,10 +266,23 @@ def _total_from_payment(lines: list[str]) -> tuple[int | None, int | None]:
     return None, None
 
 
-def _total_from_keywords(lines: list[str]) -> tuple[int | None, int | None]:
-    best = None
+def _card_payments(lines: list[str]) -> dict[int, int]:
+    """Lines of card payments with their amount ("girocard EUR 12,50"): {index: cents}."""
+    payments = {}
     for index, line in enumerate(lines):
-        if _sounds_like(line, "zwischensumme") or _has_word(line, ["mwst", "netto", "steuer"]):
+        amount = _amount_at_end(line)
+        if amount and amount > 0 and any(_sounds_like(line, w) or _has_word(line, [w]) for w in CARD_PAYMENT_WORDS):
+            payments[index] = amount
+    return payments
+
+
+def _total_from_keywords(lines: list[str]) -> tuple[int | None, int | None]:
+    """The best keyword wins ("zu zahlen" before "Summe" before "Betrag") – unless
+    another amount is confirmed more often: "Summe 812,50" (a mark read as "8") loses
+    against "Betrag 12,50" and "girocard 12,50"."""
+    candidates = []  # (rank, index, amount)
+    for index, line in enumerate(lines):
+        if _is_subtotal(line) or _has_word(line, ["mwst", "netto", "steuer"]):
             continue
         for rank, word in enumerate(TOTAL_WORDS):
             if not (_has_word(line, [word]) or _sounds_like(line, word)):
@@ -265,10 +291,15 @@ def _total_from_keywords(lines: list[str]) -> tuple[int | None, int | None]:
             # OCR sometimes puts the amount on the next line
             if amount is None and index + 1 < len(lines):
                 amount = _amount_at_end(lines[index + 1])
-            if amount is not None and amount > 0 and (best is None or rank < best[0]):
-                best = (rank, index, amount)
+            if amount is not None and amount > 0:
+                candidates.append((rank, index, amount))
             break
-    return (best[1], best[2]) if best else (None, None)
+    if not candidates:
+        return None, None
+    printed = {index: amount for _, index, amount in candidates} | _card_payments(lines)
+    confirmations = Counter(printed.values())
+    _, index, amount = max(candidates, key=lambda c: (confirmations[c[2]], -c[0], -c[1]))
+    return index, amount
 
 
 def items_end(lines: list[str], total_index: int | None) -> int:
@@ -283,7 +314,7 @@ def items_end(lines: list[str], total_index: int | None) -> int:
 def find_items(lines: list[str]) -> list[ReceiptItem]:
     items = []
     for line in lines:
-        if _is_quantity_line(line) or _has_word(line, NOT_ITEM_WORDS) or DATE.search(line):
+        if _is_quantity_line(line) or _has_word(line, NOT_ITEM_WORDS) or _is_subtotal(line) or DATE.search(line):
             continue
         match = LINE_AMOUNT.search(line)
         if not match:
@@ -292,8 +323,27 @@ def find_items(lines: list[str]) -> list[ReceiptItem]:
         name = ARTICLE_NUMBER.sub("", line[: match.start()]).strip(" .,:;-*=_—»«„“\"'‘’`´°|[]")
         if sum(c.isalpha() for c in name) < 2:
             continue
-        items.append(ReceiptItem(_readable(name), _to_cents(match.group("amount"))))
+        items.append(ReceiptItem(_readable(name), _checked_by_unit_price(name, _to_cents(match.group("amount")))))
     return items
+
+
+def _checked_by_unit_price(name: str, cents: int) -> int:
+    """ "3x 0,85 Fruchtgummi 2,59": 3 × 0,85 is 2,55, so one digit of the price was
+    misread (5 and 9 look alike on receipts). Corrected only when the price differs
+    from a multiple of the unit price in exactly one digit."""
+    match = UNIT_PRICE.search(name)
+    unit = _to_cents(match.group("unit")) if match else 0
+    if unit <= 0 or cents <= 0:
+        return cents
+    expected = round(cents / unit) * unit
+    printed, wanted = str(cents), str(expected)
+    differ = len(printed) == len(wanted) and sum(a != b for a, b in zip(printed, wanted, strict=True)) == 1
+    return expected if expected >= 2 * unit and differ else cents
+
+
+def _is_subtotal(line: str) -> bool:
+    """ "Zwischensumme 4,60": the items above added up, no item itself (discounts may follow)."""
+    return _sounds_like(line, "zwischensumme")
 
 
 def _is_quantity_line(line: str) -> bool:

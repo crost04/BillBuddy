@@ -53,7 +53,7 @@ STORES = [
     ("Lidl", ["LIDL", "Lidl sagt Danke"], "groceries", "lidl"),
     ("Aldi Süd", ["ALDI SÜD", "Filiale 0815"], "groceries", "aldi"),
     ("Penny", ["PENNY Markt", "Am Ring 3"], "groceries", "aldi"),
-    ("dm", ["dm-drogerie markt", "Königstr. 40"], "drugstore", "rewe"),
+    ("dm", ["dm-drogerie markt", "Königstr. 40"], "drugstore", "drugstore"),
     ("Rossmann", ["ROSSMANN", "Ihr Drogeriemarkt"], "drugstore", "lidl"),
     ("Bäckerei Müller", ["BÄCKEREI MÜLLER", "seit 1952"], "bakery", "bakery"),
 ]
@@ -89,10 +89,15 @@ def generate_receipt(rng: random.Random, today: dt.date) -> SyntheticReceipt:
         quantity = rng.choice([1, 1, 1, 2, 3])
         amount = unit * quantity
         shown = name.upper() if style in ("rewe", "aldi") else name
-        lines.append(
-            f"{shown:<22}{euro(amount):>7} {rng.choice('AB')}" if style != "bakery" else f"{shown} {euro(amount)}"
-        )
-        if quantity > 1:
+        if style == "drugstore":
+            # quantity and unit price in front of the name, the tax rate as a digit behind the price
+            shown = f"{quantity}x {euro(unit)} {name}" if quantity > 1 else name
+            lines.append(f"{shown:<30}{euro(amount):>6} {rng.choice('12')}")
+        elif style == "bakery":
+            lines.append(f"{shown} {euro(amount)}")
+        else:
+            lines.append(f"{shown:<22}{euro(amount):>7} {rng.choice('AB')}")
+        if quantity > 1 and style != "drugstore":
             lines.append(f"   {quantity} Stk x {euro(unit)}")
         items.append(TrueItem(shown.title() if shown.isupper() else shown, amount))
     if kind == "groceries" and rng.random() < 0.4:
@@ -101,9 +106,21 @@ def generate_receipt(rng: random.Random, today: dt.date) -> SyntheticReceipt:
     if style == "lidl" and rng.random() < 0.5:
         lines.append(f"{'Rabatt':<22}{euro(-50):>7} A")
         items.append(TrueItem("Rabatt", -50))
+    if style == "drugstore" and rng.random() < 0.5:
+        # the subtotal of the items, then a discount on one of them
+        lines.append(f"{'Zwischensumme':<30}{euro(sum(i.amount_cents for i in items)):>6}")
+        discount = -round(rng.choice(items).amount_cents * 0.3)
+        lines.append(f"{'Sonderartikelrabatt 30 %':<30}{euro(discount):>6}")
+        items.append(TrueItem("Sonderartikelrabatt 30 %", discount))
 
     total = sum(i.amount_cents for i in items)
-    total_label = {"rewe": "SUMME           EUR", "lidl": "zu zahlen", "aldi": "Summe", "bakery": "Gesamt"}[style]
+    total_label = {
+        "rewe": "SUMME           EUR",
+        "lidl": "zu zahlen",
+        "aldi": "Summe",
+        "drugstore": "SUMME EUR",
+        "bakery": "Gesamt",
+    }[style]
     lines += ["-" * 26, f"{total_label} {euro(total)}"]
     if rng.random() < 0.5:
         given = (total // 1000 + 1) * 1000

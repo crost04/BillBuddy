@@ -245,7 +245,9 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
 ### Data Understanding
 - No real receipts yet (cold start), and real receipts contain personal data. So synthetic receipts
   imitate the layouts of German shop types (supermarket, discounter, drugstore, bakery): quantity lines,
-  deposit, discounts, cash with change, VAT lines, two date formats.
+  deposit, discounts, cash with change, VAT lines, two date formats. Since the fourth real test the
+  drugstore layout has its own style: the tax rate as a digit behind the price ("2,45 1"), quantity and
+  unit price in front of the name ("3x 0,85 Fruchtgummi"), a subtotal with a discount below it.
 - Typical OCR mistakes on receipt photos were simulated: confused characters (0↔O, 1↔l, 5↔S),
   missing or extra spaces, lost lines – in noise levels from 0 to 10 %.
 
@@ -262,7 +264,9 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
 - Item lines: article numbers in front of the names are removed ("123456 Mineralwasser" →
   "Mineralwasser"), decimal separators misread as other marks are repaired ("1:09 A", "1'79" → 1,09 /
   1,79; "119 A" → 1,19), and
-  "ß"/"8" are accepted as the tax code "B".
+  "ß"/"8" are accepted as the tax code "B". Tax codes printed as digits ("2,45 1") and up to three
+  marks OCR reads from the paper edge behind the price ("2,35 | I", "4,60 ;") are accepted too;
+  a number followed by a word ("3x 0,85 Fruchtgummi") or a weight with three decimals stays no price.
 
 ### Modeling
 - **Architecture decision:** text recognition with **Tesseract.js in the browser of the phone** (fast,
@@ -273,20 +277,27 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
   total (quantity lines are skipped).
 - Items end at the total line **or at the card-payment slip**, whichever comes first (some discounters print
   "K-U-N-D-E-N-B-E-L-E-G … Kartenzahlung … Betrag" between the items and "Summe"). If the total appears
-  twice (e.g. "Summe" and the card payment), no item may cost more than the total.
+  twice (e.g. "Summe" and the card payment), no item may cost more than the total plus the discounts.
+  "Zwischensumme" is no item; discounts below it are (negative), so the items still add up to the total.
+- The total: the best keyword wins ("zu zahlen" before "Summe" before "Betrag") – unless another
+  amount is confirmed more often: "Summe 812,50" (a mark read as "8") loses against "Betrag 12,50" and
+  "girocard 12,50".
 - The store is also searched further down the receipt ("ALDI SÜD - Gutes für alle"), and long store
-  names may have one wrong letter ("ALDI SOD"). "SÜD", "SUED" and "SUD" count as the same.
-- **Ensemble of readings** (`combine.py`): the phone reads the photo up to three times; total, store
+  names may have one wrong letter ("ALDI SOD"). "SÜD", "SUED" and "SUD" count as the same. Short names
+  like "dm" are only taken from the top or from the web address at the bottom ("dm.de").
+- **Ensemble of readings** (`combine.py`): the phone reads the photo up to four times; total, store
   and date are decided by majority, the items come from the reading whose items add up to the total
   (otherwise the one with the most items).
-- Plausibility check: do the items add up to the total?
+- Plausibility checks: do the items add up to the total? Is a price with quantity and unit price in
+  front of the name a multiple of the unit price? ("3x 0,85 … 2,59" → 2,55: corrected only when
+  exactly one digit differs, because 5 and 9 look alike on thermal paper.)
 - Category: the store name goes through the categorizer (module 1).
 - Item assignment: items for one person are charged to that person, the rest (and any difference to
   the total) is shared; the result becomes a percentage split, exact to the cent.
 
 ### Evaluation
-- Without noise everything is right; at 5 % noise (current version): total 97.8 %, items F1 97.5 %,
-  store 89.2 %, date 86.8 %.
+- Without noise everything is right; at 5 % noise (current version, with the drugstore layout since
+  31 Oct 2026): total 97.5 %, items F1 97.0 %, store 88.8 %, date 85.8 %.
 - **Iteration:** the first parser version found the total in only 79.0 % of the receipts at 5 % noise,
   because OCR split "SUMME" into "S UMME". Tolerant keyword matching (spaces ignored, one wrong letter
   allowed) and digit repair in dates raised it to 94.5 %; taking the total from the payment line when
@@ -346,6 +357,31 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
   gaps) made the result *worse* on the real receipt: a misread amount from another reading sometimes
   happened to bring the sum closer to the total and was taken over. So only total, store and date are
   voted on.
+- **Fourth real test (drugstore receipt, 31 Oct 2026): "erkennt nicht alle Bestandteile".** Four
+  products and a discount, but the app showed only the discount, so nothing could be assigned to a
+  person. The photo was examined locally again (it stays out of the repository). Findings:
+  - the text recognition read all four prices correctly – the **parser** threw them away: the shop
+    prints the tax rate as a digit behind the price ("2,45 1"), and only letters were allowed there;
+  - "Zwischensumme" was taken for an item and then dropped by the "no item dearer than the total"
+    rule – which itself was wrong for receipts with a discount (found by the synthetic drugstore
+    receipts: an item may cost more than the total when a discount follows);
+  - on the photo variants, single digits were misread ("5" as "9"), and which image size read them
+    right differed from variant to variant.
+- **Measurement** on this receipt (true values typed off: 5 item lines incl. the discount; the same
+  4 photo variants as before; the phone stops as soon as the items add up to the total):
+
+  | Version | Items found (of 5, mean) | All items right | Total, date, store |
+  |---|---|---|---|
+  | before | 1.0 | 0 of 4 | 4 of 4 |
+  | new parser | 4.0 | 2 of 4 | 4 of 4 |
+  | new parser + second reading at 1600 px instead of 1200 px **(chosen)** | 4.75 | 3 of 4 | 4 of 4 |
+
+  The original photo is read completely in the first attempt (about 5 seconds). The discounter receipt
+  stays at 26 of 28 items (26.3 before: one item less over 4 variants, within the variation). Six attempt
+  lists were compared on both receipts; smoother downscaling of the photo ("high" image smoothing) was
+  tried and made the results worse at 1200 px.
+- Synthetic receipts with the new drugstore layout, previous vs new parser: items F1 without noise
+  87.7 % → 100 %, at 5 % noise 88.8 % → 97.0 %.
 - Shown to the user when items are missing: "Betrag laut Bon: 12,34 € – bitte kurz prüfen", so it is
   clear that the amount comes from the receipt's total and the items only matter for the split.
 
@@ -357,4 +393,5 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
 - Transparency: after a scan, "Erkannten Text anzeigen" shows what the phone read, and the app shows
   photo tips (flat, from above, good light, whole receipt).
 - Next steps: collect more real receipts from other shops (locally, never in the repository) to
-  measure the real accuracy; one receipt is not enough to judge the image settings.
+  measure the real accuracy; two receipts are not enough to judge the image settings. Item names are
+  still taken as recognized and are sometimes garbled at the start of the line.

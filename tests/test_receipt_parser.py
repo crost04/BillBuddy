@@ -71,6 +71,28 @@ B 19,0% Netto 3,36 MwSt 0,64
 Mo - Sa: 7:00 Uhr - 20:00 Uhr
 """
 
+# Drugstore layout: tax rate as a digit behind the price, quantity in front of the
+# name, a subtotal with a discount below it
+DRUGSTORE = """
+dm drogerie markt
+Musterweg 3
+12345 Musterstadt
+28.10.2026 17:45 ABCD/1 123456/2 1234
+Spülmittel Zitrone              1,45 1
+Zahnbürste mittel               2,75 1
+3x 0,85 Fruchtgummi Bären       2,55 2
+Kaugummi Minze 10St             1,20 2
+Zwischensumme                   7,95
+dm-Rabatte auf rabattfähige Artikel
+Sonderartikelrabatt 30 %       -0,36
+SUMME EUR                       7,59
+KARTENZAHLUNG EUR              -7,59
+MwSt-Satz   Brutto   Netto   MwSt
+1=19,00%      4,20    3,53   0,67
+2=7,00%       3,39    3,17   0,22
+Öffnungszeiten auf dm.de
+"""
+
 
 def test_rewe_receipt():
     receipt = parse_receipt(REWE, TODAY)
@@ -230,6 +252,13 @@ def test_item_dearer_than_a_confirmed_total_is_dropped():
     assert [i.amount_cents for i in receipt.items] == [129, 200]
 
 
+def test_item_dearer_than_the_total_is_kept_when_a_discount_explains_it():
+    text = "dm\nKaffee 7,52 2\nRabatt 30 % -2,26\nSUMME EUR 5,26\nGeg. EC-Cash EUR 5,26"
+    receipt = parse_receipt(text, TODAY)
+    assert [i.amount_cents for i in receipt.items] == [752, -226]
+    assert receipt.items_match_total
+
+
 def test_items_are_kept_when_the_total_is_printed_only_once():
     # "zu zahlen 2 0,97" was read as 0,97: the items must not be thrown away because of it
     receipt = parse_receipt("Rossmann\nShampoo 4,48 A\nDuschgel 1,60 B\nzu zahlen 2 0,97", TODAY)
@@ -238,6 +267,50 @@ def test_items_are_kept_when_the_total_is_printed_only_once():
 
 def test_store_with_confused_characters():
     assert parse_receipt("R0SSMANN\nSumme 1,00", TODAY).store == "Rossmann"
+
+
+def test_drugstore_receipt_with_tax_digits_and_subtotal():
+    receipt = parse_receipt(DRUGSTORE, TODAY)
+    assert receipt.store == "dm"
+    assert receipt.date == dt.date(2026, 10, 28)
+    assert receipt.total_cents == 759
+    assert [(i.name, i.amount_cents) for i in receipt.items] == [
+        ("Spülmittel Zitrone", 145),
+        ("Zahnbürste mittel", 275),
+        ("3x 0,85 Fruchtgummi Bären", 255),
+        ("Kaugummi Minze 10St", 120),
+        ("Sonderartikelrabatt 30 %", -36),
+    ]
+    assert receipt.items_match_total
+
+
+@pytest.mark.parametrize("ending", ["2,35 | I", "2,35 ;", "2,35 2 I", "2,35 ]", "2,35 €"])
+def test_marks_behind_the_price_are_ignored(ending):
+    # OCR reads the paper edge or the table next to the receipt as extra marks
+    receipt = parse_receipt(f"Rewe\nDuschgel {ending}\nSumme 2,35", TODAY)
+    assert [i.amount_cents for i in receipt.items] == [235]
+
+
+def test_words_and_weights_behind_a_number_are_no_price():
+    text = "Rewe\n3x 0,85 Gummibärchen\nÄpfel lose 0,810\nBrot 2,00 A\nSumme 2,00"
+    assert [i.name for i in parse_receipt(text, TODAY).items] == ["Brot"]
+
+
+def test_price_checked_against_quantity_times_unit_price():
+    # 3 x 0,85 is 2,55: "2,59" has one misread digit; "4,99" is too far off to correct
+    receipt = parse_receipt("Rewe\n3x 0,85 Fruchtgummi 2,59 2\n3x 0,85 Lakritz 4,99 2\nSumme 7,54", TODAY)
+    assert [i.amount_cents for i in receipt.items] == [255, 499]
+
+
+def test_total_confirmed_by_the_payment_lines_wins():
+    # "Summe" was misread (a mark in front read as "8"); card slip and payment line agree
+    text = "Aldi Süd\nBrot 2,10 A\nBetrag 12,50 EUR\nSumme 812,50\ngirocard EUR 12,50"
+    assert parse_receipt(text, TODAY).total_cents == 1250
+
+
+def test_store_from_its_web_address_at_the_bottom():
+    receipt = parse_receipt(DRUGSTORE.replace("dm drogerie markt", "~~ ### ~~"), TODAY)
+    assert receipt.store == "dm"
 
 
 # --- API ---

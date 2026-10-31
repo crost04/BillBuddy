@@ -93,8 +93,10 @@ def main() -> None:
         "## 1. Data understanding and preparation",
         "",
         "No real receipts are available yet (cold start). `synthetic.py` generates receipts in the layouts of "
-        "German shop types (Rewe/Edeka/dm style, Lidl/Rossmann style, Aldi/Penny style, bakery) with quantity lines "
-        '("2 Stk x 0,59"), deposit, discounts, cash payment with change, VAT lines and two date formats. '
+        "German shop types (Rewe/Edeka style, Lidl/Rossmann style, Aldi/Penny style, dm style, bakery) with quantity "
+        'lines ("2 Stk x 0,59"), deposit, discounts, cash payment with change, VAT lines and two date formats. The '
+        'dm style prints the tax rate as a digit behind the price ("2,45 1"), the quantity in front of the name '
+        '("3x 0,85 Fruchtgummi") and a subtotal with a discount below it. '
         '`ocr_noise` then simulates typical text-recognition mistakes: confused characters (0↔O, 1↔l, 5↔S, ","→"."), '
         "missing or extra spaces and lost lines. Noise level = probability per character.",
         "",
@@ -191,9 +193,10 @@ def main() -> None:
         "## 6. Limits",
         "",
         "- Synthetic receipts are tidier than real photos (folds, shadows, faded thermal paper, tilted shots). "
-        "The real accuracy has to be measured with real receipts. A first real receipt (discounter, 28 item "
-        "lines, photographed on a table) is evaluated in docs/crisp-dm.md: after the third iteration "
-        "25.8 of 28 items, total, date and store right in all 4 photo variants.",
+        "The real accuracy has to be measured with real receipts. Two real receipts (photographed on a table, "
+        "each in 4 photo variants) are evaluated in docs/crisp-dm.md: a discounter receipt with 28 item lines "
+        "(26 of 28 items found) and a drugstore receipt with 5 item lines (4.75 of 5, complete in 3 of 4 "
+        "variants); total, date and store were right in every variant.",
         "- Item names are kept as recognized; the evaluation matches items by amount.",
         "",
     ]

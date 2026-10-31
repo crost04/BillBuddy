@@ -168,15 +168,18 @@ function adaptiveThreshold(image, windowFraction, darkerBy) {
 }
 
 // Several ways of reading the photo. Each reading loses or misreads other lines,
-// so the app reads the photo up to three times and the server combines the
+// so the app reads the photo up to four times and the server combines the
 // readings (billbuddy.ml.receipt_ocr.combine): total, store and date by majority,
 // the items from the reading whose items add up to the total.
 // Page modes: 4 = one column of text, 6 = one block of text. (3 = automatic
 // layout read the prices of a real receipt as a separate column.)
+// Width: the receipt scaled to 1200 or 1600 pixels. Which size reads single digits
+// right differs from photo to photo, so the second attempt tries the other size.
 export const ATTEMPTS = [
-  { pageMode: "4", adaptive: true },
-  { pageMode: "6", adaptive: false },
-  { pageMode: "4", adaptive: false },
+  { pageMode: "4", adaptive: true, width: 1200 },
+  { pageMode: "4", adaptive: true, width: 1600 },
+  { pageMode: "6", adaptive: false, width: 1200 },
+  { pageMode: "4", adaptive: false, width: 1200 },
 ];
 
 // parse: list of texts -> combined receipt (the server). Returns {text, result}.
@@ -198,12 +201,13 @@ export async function recognizeReceipt(file, onProgress, parse) {
     const images = {};
     const texts = [];
     let result;
-    for (const { pageMode, adaptive } of ATTEMPTS) {
+    for (const { pageMode, adaptive, width } of ATTEMPTS) {
       attempt++;
-      images[adaptive] ??= prepareImage(photo, { adaptive });
+      const key = `${adaptive}-${width}`;
+      images[key] ??= prepareImage(photo, { adaptive, targetWidth: width });
       await worker.setParameters({ tessedit_pageseg_mode: pageMode, preserve_interword_spaces: "1" });
       // rotateAuto straightens slightly tilted photos before reading
-      const { data } = await worker.recognize(images[adaptive], { rotateAuto: true });
+      const { data } = await worker.recognize(images[key], { rotateAuto: true });
       texts.push(data.text);
       result = await parse(texts);
       if (result.items_match_total) break; // the check passed: good enough
