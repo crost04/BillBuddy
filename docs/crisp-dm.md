@@ -249,7 +249,10 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
   drugstore layout has its own style: the tax rate as a digit behind the price ("2,45 1"), quantity and
   unit price in front of the name ("3x 0,85 Fruchtgummi"), a subtotal with a discount below it.
 - Typical OCR mistakes on receipt photos were simulated: confused characters (0↔O, 1↔l, 5↔S),
-  missing or extra spaces, lost lines – in noise levels from 0 to 10 %.
+  missing or extra spaces, lost lines – in noise levels from 0 to 10 %. Since the fifth real test the
+  noise also swaps look-alike digits (3↔2, 5↔9, 6↔8): the real phone scans showed exactly this kind of
+  mistake, which no parser rule can repair. Comparisons with the first parser version keep the old noise
+  model, so they stay fair.
 
 ### Data Preparation
 - Every recognized line is cleaned: letters inside numbers are turned back into digits ("l,99" → "1,99"),
@@ -267,6 +270,10 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
   "ß"/"8" are accepted as the tax code "B". Tax codes printed as digits ("2,45 1") and up to three
   marks OCR reads from the paper edge behind the price ("2,35 | I", "4,60 ;") are accepted too;
   a number followed by a word ("3x 0,85 Fruchtgummi") or a weight with three decimals stays no price.
+- Since the fifth iteration the phone **re-reads lost prices**: prices stand right-aligned in one column,
+  found from the prices read with high confidence (Tesseract returns every word with its position and
+  confidence). Where a line has no price in that column ("Waschmittel 3, ]"), only that part of the
+  line is read once more, with only digits, comma and minus allowed. Lines below the total are skipped.
 
 ### Modeling
 - **Architecture decision:** text recognition with **Tesseract.js in the browser of the phone** (fast,
@@ -288,6 +295,12 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
 - **Ensemble of readings** (`combine.py`): the phone reads the photo up to four times; total, store
   and date are decided by majority, the items come from the reading whose items add up to the total
   (otherwise the one with the most items).
+- **Repair by the receipt's own arithmetic** (since the fifth iteration): if those items do not add up,
+  up to two of them may be replaced by what another reading saw in the same line, or a line the best
+  reading lost is added – but only if the items then add up to the total **to the cent**. Lines of two
+  readings are matched by similar names in the same order (longest common subsequence). Fewer changes
+  win; among equal ones the change most readings saw; a tie changes nothing, because a visible gap is
+  better than a wrong guess.
 - Plausibility checks: do the items add up to the total? Is a price with quantity and unit price in
   front of the name a multiple of the unit price? ("3x 0,85 … 2,59" → 2,55: corrected only when
   exactly one digit differs, because 5 and 9 look alike on thermal paper.)
@@ -296,8 +309,9 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
   the total) is shared; the result becomes a percentage split, exact to the cent.
 
 ### Evaluation
-- Without noise everything is right; at 5 % noise (current version, with the drugstore layout since
-  31 Oct 2026): total 97.5 %, items F1 97.0 %, store 88.8 %, date 85.8 %.
+- Without noise everything is right; at 5 % noise (current version, a single reading, with the
+  drugstore layout and look-alike digits since 31 Oct 2026): total 94.8 %, items F1 94.0 %, store
+  88.2 %, date 82.2 %. With 3 readings and the repair, 98.2 % of the receipts are complete.
 - **Iteration:** the first parser version found the total in only 79.0 % of the receipts at 5 % noise,
   because OCR split "SUMME" into "S UMME". Tolerant keyword matching (spaces ignored, one wrong letter
   allowed) and digit repair in dates raised it to 94.5 %; taking the total from the payment line when
@@ -384,6 +398,32 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
   87.7 % → 100 %, at 5 % noise 88.8 % → 97.0 %.
 - Shown to the user when items are missing: "Betrag laut Bon: 12,34 € – bitte kurz prüfen", so it is
   clear that the amount comes from the receipt's total and the items only matter for the split.
+- **Fifth real test (the same drugstore receipt scanned on the iPhone, 31 Oct 2026): "ich bin nicht
+  zufrieden".** The total was right, but one price had one wrong digit, one item was missing and the
+  names were garbled. The photo taken in the app was not available, so the phone conditions were
+  imitated with the 4 photo variants of both real receipts.
+  - **Decision with the user:** reading receipts with a vision language model (Claude API) was offered
+    as the more reliable option – the photo would go to Anthropic and cost a few cents per receipt. The
+    user decided to **stay free and private** (Tesseract on the phone), so the parser and the
+    combination of readings had to get better instead.
+  - Re-reading every price word a second time (digits only) brought **no gain** (discounter receipt,
+    first reading: 105 → 103 items): the second reading of the same pixels makes the same mistakes.
+  - Re-reading the **price column** where a price was lost helps on the 12-megapixel variant (first
+    reading 1 → 4 of 5 items), but most remaining errors were single wrong digits.
+  - Those are what the **exact-sum repair** fixes. Measured with the phone's procedure (stop as soon as
+    the items add up):
+
+    | Version | Drugstore: items (of 20) | Drugstore: complete | Discounter: items (of 112) | Discounter: complete |
+    |---|---|---|---|---|
+    | before (parser of 31 Oct, morning) | 19 (1 wrong) | 3 of 4 | 104 | 0 of 4 |
+    | + price-column re-read + repair **(chosen)** | 20 | 4 of 4 | 107 | 2 of 4 |
+
+  - Risk of the repair, measured on 400 synthetic receipts read 3 times each (with look-alike digits):
+    complete scans at 10 % noise 71.5 % → 90.8 %, scans that add up but are wrong 1.2 % → 1.5 % (about
+    one receipt in 400 more). Details in receipt-report.md, section 6.
+  - A finding on the way: Tesseract.js turns a canvas into an image with `canvas.toBlob()`, which the
+    browser slows down to about a second per call when the page is in the background – 50 small price
+    images took 36 seconds instead of one. The images are now handed over as PNG data URLs (16 ms each).
 
 ### Deployment
 - "📷 Kassenbon scannen" in the expense form opens the camera; Tesseract.js (about 3 MB incl. German
@@ -392,6 +432,11 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
 - The photo is not stored anywhere; only the resulting expense is saved.
 - Transparency: after a scan, "Erkannten Text anzeigen" shows what the phone read, and the app shows
   photo tips (flat, from above, good light, whole receipt).
+- **Correction in seconds** (since the fifth iteration): every item's name and price can be edited,
+  items can be removed or added, and a live check below the list says "✅ Die Artikel ergeben genau den
+  Betrag" or how much is still missing. Text recognition will never be perfect, so fixing a scan has to
+  be quick.
 - Next steps: collect more real receipts from other shops (locally, never in the repository) to
   measure the real accuracy; two receipts are not enough to judge the image settings. Item names are
-  still taken as recognized and are sometimes garbled at the start of the line.
+  still taken as recognized and are sometimes garbled at the start of the line; an item's category
+  (per item instead of per receipt) is a wish of the user for later.

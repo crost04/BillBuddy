@@ -295,13 +295,13 @@ export async function renderExpenseForm(container, id) {
     if (r.items_match_total) return `✅ ${r.items.length} Artikel gelesen – die Summe passt.`;
     if (!r.total) return "⚠️ Keine Summe gefunden – bitte den Betrag prüfen.";
     // The amount always comes from the receipt's total; the items only matter for the split
-    const found = `${r.items.length} Artikel erkannt (zusammen ${formatMoney(r.items_sum)})`;
-    return r.items_sum < r.total
-      ? `⚠️ Betrag laut Bon: ${formatMoney(r.total)} – bitte kurz prüfen. ${found}, ein paar fehlen; der Rest wird unter allen aufgeteilt.`
-      : `⚠️ Betrag laut Bon: ${formatMoney(r.total)} – bitte kurz prüfen. ${found}, einzelne Preise sind wohl falsch gelesen.`;
+    const fix = members.length > 1 ? " Unten kannst du Preise korrigieren und fehlende Artikel ergänzen." : "";
+    return `⚠️ Betrag laut Bon: ${formatMoney(r.total)} – bitte kurz prüfen. ${r.items.length} Artikel erkannt, zusammen ${formatMoney(r.items_sum)}.${fix}`;
   }
 
-  function renderReceiptItems() {
+  // The items can be corrected: OCR misreads single digits or loses a line, and the
+  // receipt's total tells how much is still missing
+  function renderReceiptItems(focusIndex) {
     const box = $("#receipt-items");
     if (!receipt?.items.length || members.length < 2) {
       box.innerHTML = "";
@@ -309,25 +309,82 @@ export async function renderExpenseForm(container, id) {
     }
     box.innerHTML = `
       <label>Artikel vom Kassenbon</label>
-      <p class="muted small">Gehört ein Artikel nur einer Person? Dann wähle sie aus – alles andere wird geteilt.</p>
+      <p class="muted small">Stimmt ein Name oder Preis nicht? Antippen und ändern. Gehört ein Artikel nur einer Person? Dann wähle sie aus – alles andere wird geteilt.</p>
       <ul class="list">
         ${receipt.items.map((item, i) => `
-          <li class="row receipt-item">
-            <div class="main">
-              <div class="title">${esc(item.name)}</div>
-              <div class="muted small">${formatMoney(item.amount)}</div>
-            </div>
-            <select data-item="${i}" aria-label="Wer hat ${esc(item.name)} gekauft?">
+          <li class="receipt-item" data-index="${i}">
+            <input type="text" class="item-name" value="${esc(item.name)}" placeholder="Artikel" aria-label="Name von Artikel ${i + 1}">
+            <button type="button" class="item-remove" aria-label="Artikel ${i + 1} entfernen">×</button>
+            <input type="text" class="item-amount" inputmode="decimal" value="${formatAmountInput(item.amount)}" aria-label="Preis von Artikel ${i + 1} in €">
+            <select class="item-person" aria-label="Wer hat Artikel ${i + 1} gekauft?">
               <option value="">Alle</option>
               ${members.map((m) => `<option value="${m.id}" ${assignments[i] === m.id ? "selected" : ""}>${esc(m.name)}</option>`).join("")}
             </select>
           </li>`).join("")}
-      </ul>`;
-    box.querySelectorAll("[data-item]").forEach((select) => select.addEventListener("change", () => {
-      assignments[Number(select.dataset.item)] = select.value ? Number(select.value) : null;
+      </ul>
+      <p class="small items-check" id="items-check"></p>
+      <button type="button" class="btn secondary small" id="add-item">+ Artikel hinzufügen</button>`;
+
+    // One listener for the whole list ("event delegation") instead of one per field
+    const list = box.querySelector("ul");
+    const indexOf = (element) => Number(element.closest(".receipt-item").dataset.index);
+    list.addEventListener("input", (event) => {
+      const i = indexOf(event.target);
+      if (event.target.classList.contains("item-name")) receipt.items[i].name = event.target.value;
+      if (event.target.classList.contains("item-amount")) {
+        receipt.items[i].amount = parseAmount(event.target.value) || 0;
+        itemsChanged();
+      }
+    });
+    list.addEventListener("change", (event) => {
+      if (!event.target.classList.contains("item-person")) return;
+      assignments[indexOf(event.target)] = event.target.value ? Number(event.target.value) : null;
       applyItemSplit();
-    }));
+    });
+    list.addEventListener("click", (event) => {
+      if (!event.target.classList.contains("item-remove")) return;
+      const i = indexOf(event.target);
+      receipt.items.splice(i, 1);
+      assignments.splice(i, 1);
+      renderReceiptItems();
+      applyItemSplit(); // the removed item may have belonged to someone
+    });
+    $("#add-item").addEventListener("click", () => {
+      receipt.items.push({ name: "", amount: 0 });
+      assignments.push(null);
+      renderReceiptItems(receipt.items.length - 1);
+    });
+    updateItemsCheck();
+    if (focusIndex !== undefined) list.querySelectorAll(".item-name")[focusIndex]?.focus();
   }
+
+  function itemsChanged() {
+    updateItemsCheck();
+    if (assignments.some((a) => a !== null)) applyItemSplit();
+  }
+
+  // Compare the items with the amount: ✅ when they add up, otherwise how much is missing
+  function updateItemsCheck() {
+    const check = $("#items-check");
+    if (!check) return;
+    const totalCents = Math.round((parseAmount($("#amount").value) || 0) * 100);
+    const itemsCents = receipt.items.reduce((sum, item) => sum + Math.round(item.amount * 100), 0);
+    const missing = totalCents - itemsCents;
+    const fits = Math.abs(missing) <= 1;
+    check.classList.toggle("fits", fits);
+    check.textContent = fits
+      ? "✅ Die Artikel ergeben genau den Betrag."
+      : missing > 0
+        ? `⚠️ Es fehlen noch ${formatMoney(missing / 100)}: ein Preis ist falsch gelesen oder ein Artikel fehlt. Was keinem Artikel zugeordnet ist, wird unter allen aufgeteilt.`
+        : `⚠️ Die Artikel sind ${formatMoney(-missing / 100)} mehr als der Betrag – ein Preis ist wohl falsch gelesen.`;
+    const status = $("#scan-status");
+    if (fits && !status.textContent.startsWith("✅")) status.textContent = "✅ Artikel korrigiert – die Summe passt.";
+    else if (!fits && status.textContent.startsWith("✅")) status.textContent = "⚠️ Die Artikel unten ergeben noch nicht genau den Betrag.";
+  }
+
+  $("#amount").addEventListener("input", () => {
+    if (receipt) itemsChanged();
+  });
 
   // Turn the assignment of items into a percentage split of the expense
   function applyItemSplit() {

@@ -335,7 +335,28 @@ input:disabled { opacity: 0.7; }
 #scan-status:empty { display: none; }
 .scan-tip { margin: 6px 0 0; }
 #scan-text pre { white-space: pre-wrap; font-size: 0.75rem; background: var(--bg); padding: 8px; border-radius: 8px; max-height: 240px; overflow: auto; }
-.receipt-item select { width: auto; max-width: 45%; padding: 8px; }
+/* Receipt items: name and remove button on top, price and person below */
+.receipt-item {
+  display: grid;
+  grid-template-columns: 96px 1fr 36px;
+  gap: 6px 8px;
+  padding: 10px 14px;
+  align-items: center;
+}
+.receipt-item .item-name { grid-column: 1 / 3; }
+.receipt-item input[type="text"], .receipt-item select { padding: 8px; }
+.receipt-item .item-amount { text-align: right; }
+.item-remove {
+  border: none;
+  background: none;
+  color: var(--muted);
+  font-size: 1.5rem;
+  line-height: 1;
+  padding: 4px;
+  cursor: pointer;
+}
+.items-check { margin: 10px 2px; }
+.items-check.fits { color: var(--success); }
 .item-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 14px 12px; }
 
 .cat-row { margin-bottom: 14px; }

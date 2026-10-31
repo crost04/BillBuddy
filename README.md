@@ -124,11 +124,13 @@ sample data it is off by 9.6 % on average (simple extrapolation: 69.5 %). Detail
 "📷 Kassenbon scannen" in the expense form: the photo is read **on the phone** with Tesseract.js (the
 image never leaves the device), the server parses the recognized text into store, date, total and items
 and suggests a category. Items can be assigned to single people; the app turns that into the split.
-The phone cuts away the table around the receipt and reads the photo up to four times (two image sizes);
-the server combines the readings (total, store and date by majority, items from the reading that adds up
-to the total). With simulated OCR noise (5 %) the parser finds the total in 97.5 % of the receipts. Two
-real receipts, each in 4 photo variants: total, date and store were right every time; on a discounter
-receipt 26 of 28 items were found, on a drugstore receipt all items in 3 of 4 variants.
+The phone cuts away the table around the receipt, reads the photo up to four times (two image sizes) and
+reads lost prices once more from the price column; the server combines the readings (total, store and date
+by majority, items from the reading that adds up to the total) and may repair up to two items from other
+readings – only if the items then add up to the total to the cent. After a scan every item can be
+corrected, and the app shows how much is still missing. Two real receipts, each in 4 photo variants:
+total, date and store were right every time; a drugstore receipt was complete in all 4 variants, a
+discounter receipt (28 item lines) in 2 of 4, with 26.75 of 28 items on average.
 [Evaluation report](docs/receipt-report.md) · [CRISP-DM](docs/crisp-dm.md)
 
 ## How settlement works

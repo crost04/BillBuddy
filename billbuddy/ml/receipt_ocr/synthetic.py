@@ -139,10 +139,14 @@ def generate_receipt(rng: random.Random, today: dt.date) -> SyntheticReceipt:
 
 # Characters text recognition typically confuses on receipt photos
 CONFUSIONS = {"0": "O", "1": "l", "5": "S", "8": "B", "O": "0", "l": "1", ",": ".", "e": "c", "a": "o", "u": "v"}
+# Digits that look alike on thermal paper (seen on real receipts: 3 read as 2, 5 as 9).
+# Unlike the confusions above, no parser rule can repair them.
+DIGIT_SWAPS = {"2": "3", "3": "2", "5": "9", "9": "5", "6": "8", "8": "6"}
 
 
-def ocr_noise(text: str, level: float, rng: random.Random) -> str:
-    """Simulate OCR mistakes: confused characters, extra/missing spaces, lost lines."""
+def ocr_noise(text: str, level: float, rng: random.Random, digit_swaps: bool = True) -> str:
+    """Simulate OCR mistakes: confused characters and digits, extra/missing spaces, lost lines.
+    digit_swaps=False is the noise model of the first evaluation (for comparisons with it)."""
     lines = []
     for line in text.splitlines():
         if rng.random() < level / 2:
@@ -150,7 +154,9 @@ def ocr_noise(text: str, level: float, rng: random.Random) -> str:
         chars = []
         for c in line:
             r = rng.random()
-            if r < level and c in CONFUSIONS:
+            if digit_swaps and r < level / 3 and c in DIGIT_SWAPS:
+                chars.append(DIGIT_SWAPS[c])
+            elif r < level and c in CONFUSIONS:
                 chars.append(CONFUSIONS[c])
             elif r < level * 1.3 and c == " ":
                 continue

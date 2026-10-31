@@ -167,10 +167,89 @@ function adaptiveThreshold(image, windowFraction, darkerBy) {
   }
 }
 
+// Prices stand right-aligned in one column. Where a reading lost a price
+// ("Waschmittel 3, ]"), the price column of that line is read once more on its
+// own, with only digits, comma and minus allowed. The column is found from the
+// prices that were read with high confidence.
+const PRICE = /^-?\d{1,4}[,.]\d{2}$/;
+const TOTAL_LINE = /(^|[^a-zäöü])(summe|zu zahlen|gesamt)/i;
+let checkingPrices = false; // keeps the progress display quiet during these small readings
+
+async function fillLostPrices(worker, data) {
+  const lines = (data.blocks ?? []).flatMap((block) => block.paragraphs.flatMap((p) => p.lines));
+  // The image as Tesseract read it (straightened), so the word positions fit
+  const image = data.imageGrey && (await createImageBitmap(await (await fetch(data.imageGrey)).blob()));
+  const prices = lines
+    .flatMap((line) => line.words)
+    .filter((w) => PRICE.test(w.text) && w.confidence > 80 && image && w.bbox.x0 > image.width / 2);
+  if (prices.length < 2) {
+    image?.close();
+    return data.text;
+  }
+  const right = median(prices.map((w) => w.bbox.x1));
+  const wide = Math.max(...prices.map((w) => w.bbox.x1 - w.bbox.x0));
+  const left = right - 1.5 * wide; // room for "-12,34"
+  checkingPrices = true;
+  await worker.setParameters({ tessedit_pageseg_mode: "7", tessedit_char_whitelist: "0123456789,-" });
+  try {
+    const result = [];
+    let belowTotal = false; // no items below "Summe" (tax table, card slip): nothing to check there
+    for (const line of lines) {
+      const text = line.text.trimEnd();
+      const inColumn = line.words.filter((w) => w.bbox.x1 > left && w.bbox.x0 < right).map((w) => w.text).join(" ");
+      const skip = belowTotal || line.bbox.x1 < left || /\d\s?[,.:]\s?\d\d/.test(inColumn);
+      belowTotal ||= TOTAL_LINE.test(text); // the total line itself may still be checked
+      if (skip) {
+        result.push(text); // nothing in the price column, or a price was read
+        continue;
+      }
+      const pad = 0.2 * (line.bbox.y1 - line.bbox.y0);
+      const { data: again } = await worker.recognize(
+        crop(image, left - pad, line.bbox.y0 - pad, right + pad, line.bbox.y1 + pad),
+        { rotateAuto: false },
+      );
+      const price = again.text.trim();
+      if (!/^-?\d{1,4},\d{2}$/.test(price)) {
+        result.push(text);
+        continue;
+      }
+      const before = line.words.filter((w) => w.bbox.x1 <= left + 0.1 * wide).map((w) => w.text).join(" ");
+      const after = line.words.filter((w) => w.bbox.x0 >= right - 0.1 * wide).map((w) => w.text).join(" ");
+      result.push(`${before}     ${price} ${after}`.trim());
+    }
+    return result.join("\n");
+  } finally {
+    checkingPrices = false;
+    await worker.setParameters({ tessedit_char_whitelist: "" });
+    image.close();
+  }
+}
+
+function median(values) {
+  const sorted = [...values].sort((a, b) => a - b);
+  return sorted[Math.floor(sorted.length / 2)];
+}
+
+// A part of the image, twice as large (small print reads better that way), as a
+// PNG data URL: handing Tesseract a canvas makes it call canvas.toBlob(), which
+// browsers slow down to about a second per call when the page is in the background
+function crop(image, x0, y0, x1, y1, scale = 2) {
+  x0 = Math.max(0, x0);
+  y0 = Math.max(0, y0);
+  x1 = Math.min(image.width, x1);
+  y1 = Math.min(image.height, y1);
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.round((x1 - x0) * scale);
+  canvas.height = Math.round((y1 - y0) * scale);
+  canvas.getContext("2d").drawImage(image, x0, y0, x1 - x0, y1 - y0, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/png");
+}
+
 // Several ways of reading the photo. Each reading loses or misreads other lines,
 // so the app reads the photo up to four times and the server combines the
 // readings (billbuddy.ml.receipt_ocr.combine): total, store and date by majority,
-// the items from the reading whose items add up to the total.
+// the items from the reading whose items add up to the total; up to two items may
+// then be taken from other readings if the items then add up to the total exactly.
 // Page modes: 4 = one column of text, 6 = one block of text. (3 = automatic
 // layout read the prices of a real receipt as a separate column.)
 // Width: the receipt scaled to 1200 or 1600 pixels. Which size reads single digits
@@ -189,7 +268,7 @@ export async function recognizeReceipt(file, onProgress, parse) {
   let attempt = 0;
   const worker = await Tesseract.createWorker("deu", 1, {
     logger: (message) => {
-      if (message.status === "recognizing text") {
+      if (message.status === "recognizing text" && !checkingPrices) {
         const round = attempt > 1 ? ` (Versuch ${attempt})` : "";
         onProgress(`Lese Kassenbon${round} … ${Math.round(message.progress * 100)} %`);
       }
@@ -206,9 +285,11 @@ export async function recognizeReceipt(file, onProgress, parse) {
       const key = `${adaptive}-${width}`;
       images[key] ??= prepareImage(photo, { adaptive, targetWidth: width });
       await worker.setParameters({ tessedit_pageseg_mode: pageMode, preserve_interword_spaces: "1" });
-      // rotateAuto straightens slightly tilted photos before reading
-      const { data } = await worker.recognize(images[key], { rotateAuto: true });
-      texts.push(data.text);
+      // rotateAuto straightens slightly tilted photos before reading; blocks = the
+      // words with their positions, imageGrey = the straightened image (both for fillLostPrices)
+      const { data } = await worker.recognize(images[key], { rotateAuto: true }, { text: true, blocks: true, imageGrey: true });
+      onProgress("Prüfe die Preise …");
+      texts.push(await fillLostPrices(worker, data));
       result = await parse(texts);
       if (result.items_match_total) break; // the check passed: good enough
     }
