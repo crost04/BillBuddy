@@ -346,6 +346,13 @@ class ReceiptItemOut(BaseModel):
     amount: float
 
 
+class ShoppingMatchOut(BaseModel):
+    # The shopping-list entry and the receipt item it was found as
+    id: int
+    name: str
+    receipt_item: str
+
+
 class ReceiptOut(BaseModel):
     store: str | None
     date: dt.date | None
@@ -359,3 +366,5 @@ class ReceiptOut(BaseModel):
     # Category suggestion for the store (billbuddy.ml.categorizer)
     category: str | None
     confidence: float | None
+    # Shopping-list entries that were bought, according to the items (billbuddy.shopping.matching)
+    shopping_matches: list[ShoppingMatchOut] = []

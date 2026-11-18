@@ -90,6 +90,7 @@ export async function renderExpenseForm(container, id) {
       </div>
       <p class="muted small" id="split-hint"></p>
       <div id="receipt-items"></div>
+      <div id="shopping-matches"></div>
 
       <div id="error"></div>
       <button type="submit" class="btn">${editing ? "Speichern" : "Hinzufügen"}</button>
@@ -284,8 +285,31 @@ export async function renderExpenseForm(container, id) {
     }
     $("#scan-status").textContent = scanSummary(result);
     renderReceiptItems();
+    renderShoppingMatches(result.shopping_matches ?? []);
     updateSplit();
     checkInAdvance();
+  }
+
+  // Entries of the shopping list that are on the receipt: ticked off and removed
+  // when the expense is saved (not right away, in case the scan is thrown away)
+  function renderShoppingMatches(matches) {
+    const box = $("#shopping-matches");
+    if (!matches.length) {
+      box.innerHTML = "";
+      return;
+    }
+    box.innerHTML = `
+      <label>🛒 Vom Einkaufszettel gekauft</label>
+      <p class="muted small">Wird beim Speichern abgehakt und vom Einkaufszettel entfernt.</p>
+      <ul class="list">
+        ${matches.map((m) => `
+          <li class="row shopping-item">
+            <label>
+              <input type="checkbox" class="bought" value="${m.id}" checked>
+              <span class="name">${esc(m.name)} <span class="muted small">(${esc(m.receipt_item)})</span></span>
+            </label>
+          </li>`).join("")}
+      </ul>`;
   }
 
   function scanSummary(r) {
@@ -465,6 +489,9 @@ export async function renderExpenseForm(container, id) {
       } else {
         const created = await api.createExpense(state.group.id, body);
         if (body.is_fixed && $("#repeat-monthly")?.checked) await api.createRecurringRule(state.group.id, created.id);
+        // The expense is saved; if removing from the shopping list fails, the entries simply stay
+        const bought = [...form.querySelectorAll(".bought:checked")].map((box) => Number(box.value));
+        if (bought.length) await api.removeShoppingItems(state.group.id, bought).catch(() => {});
       }
       storage.set(lastPayerKey, body.payer_id);
       showMonth(body.date.slice(0, 7));

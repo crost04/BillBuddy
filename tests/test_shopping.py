@@ -5,6 +5,7 @@ import pytest
 from billbuddy.expenses.models import Group, Member
 from billbuddy.expenses.service import ValidationError
 from billbuddy.shopping import service
+from billbuddy.shopping.matching import bought_entries
 
 
 @pytest.fixture
@@ -91,3 +92,58 @@ def test_api_list_of_another_group_is_not_visible(client, api_group):
     assert client.get(f"/api/groups/{api_group['id']}/shopping-items").status_code == 404
     assert client.put(f"/api/shopping-items/{item['id']}", json={"checked": True}).status_code == 404
     assert client.delete(f"/api/shopping-items/{item['id']}").status_code == 404
+
+
+# --- Which entries a receipt shows as bought (billbuddy.shopping.matching) ---
+
+
+def bought(entries, receipt_items):
+    return [(m.entry, m.receipt_item) for m in bought_entries(list(enumerate(entries)), receipt_items)]
+
+
+@pytest.mark.parametrize(
+    "entry, receipt_item",
+    [
+        ("Milch", "Vollmilch 3,5% 1l"),  # compound: the main part is at the end
+        ("Brot", "TOASTBROT"),
+        ("Zwiebeln", "Speisezwiebeln rot"),
+        ("Tomaten", "Tomate Rispe"),  # plural
+        ("Äpfel", "AEPFEL ELSTAR"),  # printed without umlauts
+        ("frische Milch", "H-Milch"),  # the entry's last word counts
+        ("Vollmilch", "Vollmilsch 1l"),  # one letter misread
+    ],
+)
+def test_entry_found_on_the_receipt(entry, receipt_item):
+    assert bought([entry], [receipt_item]) == [(entry, receipt_item)]
+
+
+@pytest.mark.parametrize(
+    "entry, receipt_item",
+    [
+        ("Butter", "Buttermilch"),  # buttermilk is milk, not butter
+        ("Eis", "Basmati Reis"),  # too short a prefix for a compound
+        ("Brot", "Brötchen"),
+        ("Klopapier", "Toilettenpapier"),  # synonyms are not known
+    ],
+)
+def test_entry_not_confused_with_another_product(entry, receipt_item):
+    assert bought([entry], [receipt_item]) == []
+
+
+def test_api_receipt_scan_reports_bought_entries(client, api_group, monkeypatch):
+    from billbuddy.api import receipt_routes
+    from tests.test_receipt_parser import REWE, TODAY
+
+    monkeypatch.setattr(receipt_routes, "today", lambda: TODAY)
+    url = f"/api/groups/{api_group['id']}/shopping-items"
+    milk = client.post(url, json={"name": "Milch"}).json()
+    bananas = client.post(url, json={"name": "Bananen"}).json()
+    client.put(f"/api/shopping-items/{bananas['id']}", json={"checked": True})  # ticked off in the shop
+    client.post(url, json={"name": "Käse"})
+
+    body = client.post(f"/api/groups/{api_group['id']}/parse-receipt", json={"texts": [REWE]}).json()
+
+    assert body["shopping_matches"] == [
+        {"id": milk["id"], "name": "Milch", "receipt_item": "Vollmilch 3,5%"},
+        {"id": bananas["id"], "name": "Bananen", "receipt_item": "Bio Bananen"},
+    ]

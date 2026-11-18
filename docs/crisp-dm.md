@@ -432,6 +432,9 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
 - The photo is not stored anywhere; only the resulting expense is saved.
 - Transparency: after a scan, "Erkannten Text anzeigen" shows what the phone read, and the app shows
   photo tips (flat, from above, good light, whole receipt).
+- **Shopping list** (since 18 Nov 2026): after a scan, the receipt items are compared with the group's
+  shopping list (rules in `billbuddy/shopping/matching.py`, no trained model); the bought entries are
+  shown in the form and removed when the expense is saved.
 - **Correction in seconds** (since the fifth iteration): every item's name and price can be edited,
   items can be removed or added, and a live check below the list says "✅ Die Artikel ergeben genau den
   Betrag" or how much is still missing. Text recognition will never be perfect, so fixing a scan has to

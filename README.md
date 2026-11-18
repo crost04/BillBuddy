@@ -16,6 +16,7 @@ read receipts, detect recurring costs and anomalies, and forecast spending.
 - Splitting: 50/50, custom percentages, by income, or only between selected members
 - Settlement: who owes whom, with as few transfers as possible
 - Overview by category, person and month
+- Shared shopping list per group; after a receipt scan the bought entries are ticked off automatically
 - Installable on the phone's home screen (PWA)
 - Personal accounts; friends join a group via invitation link and only see their own groups
 
@@ -37,6 +38,7 @@ billbuddy/
   data/            # sample data generator
   expenses/        # groups, members and expenses
   settlement/      # splitting and debt settlement
+  shopping/        # shared shopping list, matching with scanned receipts
   api/             # REST API for the frontend
   ml/
     categorizer/   # automatic categorization
@@ -133,6 +135,15 @@ total, date and store were right every time; a drugstore receipt was complete in
 discounter receipt (28 item lines) in 2 of 4, with 26.75 of 28 items on average.
 [Evaluation report](docs/receipt-report.md) · [CRISP-DM](docs/crisp-dm.md)
 
+## Shopping list
+Tab *Einkauf*: a shopping list the whole group shares. Entries can be added, ticked off in the shop and
+cleared; while the list is open it refreshes every few seconds, so everyone sees the same state. After a
+receipt scan the server compares the items with the list (`shopping/matching.py`): "Milch" matches
+"Vollmilch 3,5%" because German compounds end with their main part, while "Butter" does not match
+"Buttermilch" and "Eis" does not match "Reis". Plural endings, missing umlauts and one misread letter are
+tolerated; synonyms ("Klopapier" / "Toilettenpapier") are not. The form shows the bought entries, and
+they are removed from the list when the expense is saved.
+
 ## How settlement works
 1. **Split:** every expense is divided among its participants (equally, by percentage or
    by income). Parts are exact to the cent: leftover cents go to the parts with the largest
@@ -171,6 +182,9 @@ and only return groups the user belongs to.
 | POST | `/api/groups/{id}/check-expense` | duplicate and outlier check before saving |
 | GET | `/api/groups/{id}/anomalies?month=2026-10` | anomalies of a month |
 | POST | `/api/groups/{id}/parse-receipt` | turn recognized receipt text into store, date, total, items |
+| GET/POST | `/api/groups/{id}/shopping-items` | shopping list / add an entry |
+| PUT/DELETE | `/api/shopping-items/{id}` | tick off or rename / delete an entry |
+| POST | `/api/groups/{id}/shopping-items/remove` | remove several entries (bought, or ticked off) |
 
 ## Quality assurance
 - **Tests:** pytest, run automatically on GitHub for every push (badge at the top).
