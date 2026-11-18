@@ -74,6 +74,12 @@ export const api = {
   // texts: the readings of one photo (a single string from a not yet updated receipt.js also works)
   parseReceipt: (groupId, texts) => request("POST", `/groups/${groupId}/parse-receipt`, { texts: [texts].flat() }),
 
+  shoppingItems: (groupId) => request("GET", `/groups/${groupId}/shopping-items`),
+  addShoppingItem: (groupId, name) => request("POST", `/groups/${groupId}/shopping-items`, { name }),
+  updateShoppingItem: (id, data) => request("PUT", `/shopping-items/${id}`, data),
+  deleteShoppingItem: (id) => request("DELETE", `/shopping-items/${id}`),
+  removeShoppingItems: (groupId, ids) => request("POST", `/groups/${groupId}/shopping-items/remove`, { ids }),
+
   settlement: (groupId) => request("GET", `/groups/${groupId}/settlement`),
   payments: (groupId) => request("GET", `/groups/${groupId}/payments`),
   createPayment: (groupId, data) => request("POST", `/groups/${groupId}/payments`, data),

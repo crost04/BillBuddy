@@ -299,6 +299,37 @@ class AnomalyOut(BaseModel):
     ratio: float | None = None
 
 
+# --- Shopping list ---
+
+
+class ShoppingItemIn(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+
+
+class ShoppingItemUpdate(BaseModel):
+    # Only the fields that are sent are changed
+    name: str | None = Field(default=None, min_length=1, max_length=100)
+    checked: bool | None = None
+
+
+class ShoppingItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    name: str
+    checked: bool
+    added_by_id: int | None
+    created_at: dt.datetime
+
+
+class RemoveShoppingItemsIn(BaseModel):
+    ids: list[int] = Field(max_length=500)
+
+
+class RemovedOut(BaseModel):
+    removed: int
+
+
 # --- Receipt scan ---
 
 

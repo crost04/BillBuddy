@@ -359,6 +359,25 @@ input:disabled { opacity: 0.7; }
 .items-check.fits { color: var(--success); }
 .item-actions { display: flex; flex-wrap: wrap; gap: 8px; padding: 0 14px 12px; }
 
+/* Shopping list: a big checkbox to tick off in the shop, who added it, delete */
+#shopping-list { margin-top: 12px; }
+.shopping-item { padding: 6px 8px 6px 14px; }
+.shopping-item label {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0;
+  padding: 6px 0;
+  font-weight: 400;
+  cursor: pointer;
+}
+.shopping-item input[type="checkbox"] { width: 24px; height: 24px; flex: none; accent-color: var(--primary); }
+.shopping-item .name { overflow-wrap: anywhere; }
+.shopping.done .name { color: var(--muted); text-decoration: line-through; }
+#clear-done { margin-top: 12px; }
+
 .cat-row { margin-bottom: 14px; }
 .cat-row:last-child { margin-bottom: 0; }
 .cat-head { display: flex; justify-content: space-between; gap: 8px; }

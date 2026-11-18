@@ -26,6 +26,7 @@ from billbuddy.api import (
     receipt_routes,
     recurring_routes,
     settlement_routes,
+    shopping_routes,
 )
 from billbuddy.auth.limiter import LoginLimiter, TooManyAttemptsError
 from billbuddy.auth.service import AuthError
@@ -82,6 +83,7 @@ def create_app(engine: Engine | None = None) -> FastAPI:
     app.include_router(recurring_routes.router)
     app.include_router(anomaly_routes.router)
     app.include_router(receipt_routes.router)
+    app.include_router(shopping_routes.router)
     # The web app itself; mounted last so the /api routes above take priority
     app.mount("/", StaticFiles(directory=FRONTEND_DIR, html=True), name="frontend")
 

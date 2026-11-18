@@ -26,6 +26,7 @@ def import_models() -> None:
     """Import every model module, so all tables are registered on Base."""
     from billbuddy.auth import models as auth_models  # noqa: F401
     from billbuddy.expenses import models as expense_models  # noqa: F401
+    from billbuddy.shopping import models as shopping_models  # noqa: F401
 
 
 def get_database_url() -> str:

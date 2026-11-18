@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session, selectinload
 from billbuddy.auth.models import User
 from billbuddy.expenses.models import Expense, Group, Member, Payment, RecurringRule
 from billbuddy.expenses.service import NotFoundError, ValidationError
+from billbuddy.shopping.models import ShoppingItem
 
 
 def user_groups(session: Session, user: User) -> list[Group]:
@@ -45,6 +46,10 @@ def require_payment(session: Session, user: User, payment_id: int) -> Payment:
 
 def require_recurring_rule(session: Session, user: User, rule_id: int) -> RecurringRule:
     return _require_in_group(session, user, RecurringRule, rule_id)
+
+
+def require_shopping_item(session: Session, user: User, item_id: int) -> ShoppingItem:
+    return _require_in_group(session, user, ShoppingItem, item_id)
 
 
 def _require_in_group(session: Session, user: User, model, object_id: int):

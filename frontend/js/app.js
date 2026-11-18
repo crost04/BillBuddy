@@ -14,12 +14,14 @@ import { renderLogin } from "./views/login.js";
 import { renderOverview } from "./views/overview.js";
 import { renderSettings } from "./views/settings.js";
 import { renderSetup } from "./views/setup.js";
+import { renderShopping } from "./views/shopping.js";
 
 const views = {
   expenses: renderExpenses,
   overview: renderOverview,
   add: renderExpenseForm,
   edit: renderExpenseForm,
+  shopping: renderShopping,
   balances: renderBalances,
   settings: renderSettings,
   setup: renderSetup,
