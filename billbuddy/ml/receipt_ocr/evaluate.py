@@ -259,10 +259,9 @@ def main() -> None:
         "## 7. Limits",
         "",
         "- Synthetic receipts are tidier than real photos (folds, shadows, faded thermal paper, tilted shots). "
-        "The real accuracy has to be measured with real receipts. Two real receipts (photographed on a table, "
-        "each in 4 photo variants) are evaluated in docs/crisp-dm.md: a discounter receipt with 28 item lines "
-        "(26.75 of 28 items found, complete in 2 of 4 variants) and a drugstore receipt with 5 item lines "
-        "(complete in all 4 variants); total, date and store were right in every variant.",
+        "The real accuracy has to be measured with real receipts: 15 real receipts from 7 shops are evaluated "
+        "in docs/crisp-dm.md (`evaluate_real.py`, data kept private). On the 5 held-back test receipts the "
+        'total was right in all 5, items F1 88.7 %, 3 of 5 complete; no receipt showed "✅" with wrong items.',
         "- Item names are kept as recognized; the evaluation matches items by amount.",
         "",
     ]

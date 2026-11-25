@@ -349,3 +349,79 @@ def test_api_needs_access_to_the_group(client, anon_client):
     assert client.post("/api/groups/999/parse-receipt", json={"text": REWE}).status_code == 404
     client.post("/api/auth/logout")
     assert anon_client.post("/api/groups/1/parse-receipt", json={"text": REWE}).status_code == 401
+
+
+# --- Rules from the first real receipts (Nov 2026); invented values, real layouts ---
+
+
+def amounts(text):
+    return [i.amount_cents for i in parse_receipt(text, TODAY).items]
+
+
+def test_price_on_the_line_below_the_name():
+    receipt = parse_receipt("Kaufland\nGartenstuhl\n2 * 7,49   14,98 A\nSumme 14,98", TODAY)
+    assert [(i.name, i.amount_cents) for i in receipt.items] == [("Gartenstuhl", 1498)]
+
+
+def test_quantity_line_with_its_own_price_belongs_to_the_name_above():
+    assert amounts("Kaufland\nGartenstuhl\n2 x 7,49   14,98 A\nSumme 14,98") == [1498]
+
+
+def test_line_total_replaces_the_unit_price_above():
+    text = "Gartenparadies\n3 x Katzenstreu 4.99\nPreis: 3 x 4.99 = 14.97 01\n1 x Blumentopf 6.49 01\nSumme: 21.46"
+    assert amounts(text) == [1497, 649]
+
+
+def test_quantity_line_above_the_item_corrects_one_digit():
+    # "2 x 0,25" fits the line below it exactly, so here quantity lines stand above their item
+    text = "Aldi Süd\n2 x 0,25\n80000123 Pfand 0,50 B\n4 x 1,29\n345678 Frischkäse 5,76 A\nSumme 5,66"
+    assert amounts(text) == [50, 516]
+
+
+def test_quantity_line_with_a_lost_count_is_tried_on_both_sides():
+    assert amounts("Aldi Süd\nKäse 2,19 A\nX 1,29\nFrischkäse 5,76 A\nSumme 7,35") == [219, 516]
+
+
+def test_quantity_line_that_fits_the_item_above_is_not_used_below():
+    # Supermarkets print it below the item: 2 x 0,59 = 1,18 belongs to the rolls, not the noodles
+    assert amounts("Rewe\nBRÖTCHEN 1,18 B\nStk x 0,59\nNUDELN 1,79 B\nSumme 2,97") == [118, 179]
+
+
+def test_savings_are_no_total():
+    text = "Gartenparadies\nBlumentopf 7,29 01\nRabatt -1,00\nGESAMTERSPARNIS: 1.00 EURO\nAmex 6,29"
+    assert parse_receipt(text, TODAY).total_cents == 629
+
+
+def test_negative_card_payment_and_a_total_below_the_items():
+    # "SUMME 2,20" (a lost "7") is impossible when the items already add up to 7,20
+    text = "dm\nShampoo 4,25 1\nZahnbürste 2,95 1\nSUMME EUR 2,20\nKARTENZAHLUNG EUR -7,20"
+    assert parse_receipt(text, TODAY).total_cents == 720
+
+
+def test_aldi_preis_line_is_no_item():
+    receipt = parse_receipt("Aldi Süd\nBrot 1,25 A\nALDI PREIS 101,25\nKartenzahlung EUR 1,25", TODAY)
+    assert (receipt.total_cents, [i.amount_cents for i in receipt.items]) == (125, [125])
+
+
+def test_item_costing_the_whole_total_is_a_misread_payment_line():
+    assert amounts("Rewe\nBrot 1,25 B\nKäse 2,00 B\nKar tersahlung EUR 3,25\nSumme 3,25") == [125, 200]
+
+
+def test_minus_inside_the_text_is_no_sign():
+    assert amounts("Aldi Süd\n123456 Frischkäse ,..4-2,09 A\nSumme 2,09") == [209]
+
+
+@pytest.mark.parametrize("ending", ["3,79 01", "3,79%"])
+def test_more_tax_code_forms(ending):
+    assert amounts(f"Rewe\nKies {ending}\nSumme 3,79") == [379]
+
+
+def test_unknown_store_from_its_web_address_at_the_top():
+    text = "| Lo go\n12345 Musterstadt\nÖffnungszeiten: gartenparadies.de\nKies 3,79 01\nSumme 3,79"
+    assert parse_receipt(text, TODAY).store == "Gartenparadies"
+
+
+def test_price_without_a_readable_name_still_counts():
+    receipt = parse_receipt("Rewe\nBrot 1,25 B\n| 0,50 B\nSumme 1,75", TODAY)
+    assert [(i.name, i.amount_cents) for i in receipt.items] == [("Brot", 125), ("?", 50)]
+    assert receipt.items_match_total

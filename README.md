@@ -130,9 +130,10 @@ The phone cuts away the table around the receipt, reads the photo up to four tim
 reads lost prices once more from the price column; the server combines the readings (total, store and date
 by majority, items from the reading that adds up to the total) and may repair up to two items from other
 readings – only if the items then add up to the total to the cent. After a scan every item can be
-corrected, and the app shows how much is still missing. Two real receipts, each in 4 photo variants:
-total, date and store were right every time; a drugstore receipt was complete in all 4 variants, a
-discounter receipt (28 item lines) in 2 of 4, with 26.75 of 28 items on average.
+corrected, and the app shows how much is still missing. Evaluated with 15 real receipts from 7 shops
+(kept private; `python -m billbuddy.ml.receipt_ocr.evaluate_real`): on the 5 receipts held back for the
+final measurement the total was right in all 5 and 43 of 52 items were found (F1 88.7 %); no receipt
+was marked "✅ die Summe passt" with wrong items.
 [Evaluation report](docs/receipt-report.md) · [CRISP-DM](docs/crisp-dm.md)
 
 ## Shopping list

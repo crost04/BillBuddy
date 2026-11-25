@@ -24,7 +24,7 @@ from dataclasses import replace
 from difflib import SequenceMatcher
 from itertools import combinations
 
-from billbuddy.ml.receipt_ocr.parser import Receipt, ReceiptItem, letters_only, ocr_normalized
+from billbuddy.ml.receipt_ocr.parser import Receipt, ReceiptItem, letters_only, ocr_normalized, without_total_lines
 
 MAX_CHANGES = 2
 # Item names in two readings count as the same line from this similarity on (0..1)
@@ -40,7 +40,8 @@ def combine(readings: list[Receipt]) -> tuple[Receipt, int | None]:
         "store": _vote([r.store for r in readings]),
         "date": _vote([r.date for r in readings]),
     }
-    candidates = [replace(r, **agreed) for r in readings]
+    # A reading that found no total of its own may contain the total line as an "item"
+    candidates = [replace(r, **agreed, items=without_total_lines(r.items, agreed["total_cents"])) for r in readings]
     best = max(range(len(candidates)), key=lambda i: _plausibility(candidates[i]))
     others = [c for i, c in enumerate(candidates) if i != best]
     return repair(candidates[best], others), best

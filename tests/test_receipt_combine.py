@@ -115,3 +115,13 @@ def test_an_ambiguous_repair_changes_nothing():
     receipt, _ = combine(readings)
     assert amounts(receipt) == [210, 300]
     assert not receipt.items_match_total
+
+
+def test_total_line_read_as_an_item_is_dropped_with_the_agreed_total():
+    readings = [
+        Receipt(total_cents=None, items=named(("Brot", 125), ("Käse", 200), ("Kar tersahlung", 325))),
+        Receipt(total_cents=325, items=named(("Brot", 125))),
+    ]
+    receipt, _ = combine(readings)
+    assert amounts(receipt) == [125, 200]
+    assert receipt.items_match_total

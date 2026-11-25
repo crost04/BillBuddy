@@ -424,6 +424,53 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
   - A finding on the way: Tesseract.js turns a canvas into an image with `canvas.toBlob()`, which the
     browser slows down to about a second per call when the page is in the background – 50 small price
     images took 36 seconds instead of one. The images are now handed over as PNG data URLs (16 ms each).
+- **Sixth iteration – evaluation with 15 real receipts (25 Nov 2026).** The user collected receipts
+  from 7 shops (discounter, drugstore, hypermarket, supermarket, garden centre, international grocery,
+  small local shop) and photographed them like in daily use. Examples below use invented values.
+  - **Method:** photos, true contents and recognized texts stay in `data/private/receipts/` (git-ignored).
+    The true contents were typed off the photos; as a check, the items of every receipt add up exactly
+    to its printed total. Each photo went through the phone's recognition (all 4 readings), and
+    `python -m billbuddy.ml.receipt_ocr.evaluate_real` evaluates the texts with the phone's procedure
+    (stop as soon as the items add up). **Before** looking at any result, the receipts were split:
+    10 for development ("dev", including the 2 receipts already used before) and 5 held back for the
+    final measurement ("test", with two shops that appear only there, to see how the rules cope with
+    unknown layouts). Rules were changed only after looking at dev receipts; test was measured once.
+  - **Findings on dev** – most losses came from layouts the parser did not know yet: the price on the
+    line below the name ("Gartenstuhl" / "2 * 7,49 … 14,98"); "Preis: 3 x 4,99 = 14,97" below the item;
+    quantity lines above the item (discounter) vs below it (supermarket); a savings line
+    ("Gesamtersparnis") taken as the total – together with an item of the same amount the app even
+    showed "✅ die Summe passt"; the discounter's total line ("ALDI PREIS") taken as an item; the card
+    payment printed with a minus; tax codes "01"; "%" read instead of the tax code; a stray "-" inside
+    the text read as a sign; a shop known only by its logo and its web address.
+  - **New rules:** a price line without a name takes the name from the line above; "= total" lines set
+    the price of the item above; on which side quantity lines stand is learned from the receipt itself
+    (the quantity lines whose count x unit price is exactly the neighbouring price), and with an
+    unreadable count both sides are tried, but not a quantity line that already fits the line on its
+    other side; savings lines are neither total nor item; card payments count as total candidates (also
+    with a minus), and a total below the items already found loses against a plausible one; an "item"
+    that costs exactly the total next to other items is a misread total line; prices without a readable
+    name are kept as "?", so the sum stays right and the user can type the name.
+  - **Measurement** (items counted by amount; "complete" = all items and the total right):
+
+    | | Dev before | Dev after | Test before | Test after |
+    |---|---|---|---|---|
+    | Total right | 7 of 10 | 9 of 10 | 5 of 5 | 5 of 5 |
+    | Store right | 9 of 10 | 10 of 10 | 3 of 5 | 3 of 5 |
+    | Items found | 91 of 110 | 98 of 110 | 41 of 52 | 43 of 52 |
+    | Items F1 | 87.5 % | 92.5 % | 87.2 % | 88.7 % |
+    | Receipts complete | 2 of 10 | 5 of 10 | 3 of 5 | 3 of 5 |
+    | "✅ passt" but wrong | 1 | 0 | 0 | 0 |
+
+  - **Interpretation:** the rules help much more on the receipts they were developed with (dev F1 +5.0
+    points) than on new ones (test +1.5 points) – the gap is the part that was fitted to the dev photos.
+    Without the held-back receipts the improvement would have been overrated. The test receipts showed
+    other problems: a shop name printed only as a large logo, a narrow font on the small shop's receipt
+    and a heavily creased receipt that loses half of its prices. On the synthetic receipts the new rules
+    are as good or better (total at 10 % noise 84.5 % → 87.5 %, receipts that add up but are wrong
+    1.5 % → 0.5 %).
+  - **Limits:** the photos arrived downscaled to 1500 x 2000 pixels (the phone takes 4032 x 3024), so the
+    recognition had less detail than in the app; 15 receipts are few, and the test receipts are now used
+    up – the next measurement needs new receipts.
 
 ### Deployment
 - "📷 Kassenbon scannen" in the expense form opens the camera; Tesseract.js (about 3 MB incl. German
@@ -439,7 +486,7 @@ Full numbers: [receipt-report.md](receipt-report.md) (regenerate with
   items can be removed or added, and a live check below the list says "✅ Die Artikel ergeben genau den
   Betrag" or how much is still missing. Text recognition will never be perfect, so fixing a scan has to
   be quick.
-- Next steps: collect more real receipts from other shops (locally, never in the repository) to
-  measure the real accuracy; two receipts are not enough to judge the image settings. Item names are
-  still taken as recognized and are sometimes garbled at the start of the line; an item's category
-  (per item instead of per receipt) is a wish of the user for later.
+- Next steps: new real receipts for a fresh test set (locally, never in the repository), ideally the
+  original photos in full resolution; shop names printed only as a logo; item names are still taken as
+  recognized and are sometimes garbled at the start of the line; an item's category (per item instead
+  of per receipt) is a wish of the user for later.
