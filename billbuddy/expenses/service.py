@@ -12,7 +12,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from billbuddy.expenses.categories import CATEGORIES
-from billbuddy.expenses.models import Expense, ExpenseShare, Group, Member, SplitMethod
+from billbuddy.expenses.models import Expense, ExpenseItem, ExpenseShare, Group, Member, SplitMethod
 
 
 class NotFoundError(LookupError):
@@ -21,6 +21,18 @@ class NotFoundError(LookupError):
 
 class ValidationError(ValueError):
     """The input breaks a rule, e.g. percentages that do not add up to 100."""
+
+
+@dataclass
+class ItemInput:
+    """An item of a scanned receipt and the person it belongs to (None = shared)."""
+
+    name: str
+    amount_cents: int
+    member_id: int | None = None
+
+
+MAX_ITEMS = 200
 
 
 @dataclass
@@ -38,6 +50,8 @@ class ExpenseInput:
     percents: dict[int, float] | None = None
     # The categorizer's suggestion shown while entering the expense (kept for evaluation)
     suggested_category: str | None = None
+    # The receipt's items; None keeps the stored ones (an edit without items), [] removes them
+    items: list[ItemInput] | None = None
 
 
 # --- Groups and members ---
@@ -130,7 +144,11 @@ def list_expenses(
     """Expenses of a group, newest first, optionally limited to start..end (inclusive)."""
     get_group(session, group_id)
     # selectinload: fetch the shares of all expenses in one extra query instead of one per expense
-    query = select(Expense).options(selectinload(Expense.shares)).where(Expense.group_id == group_id)
+    query = (
+        select(Expense)
+        .options(selectinload(Expense.shares), selectinload(Expense.items))
+        .where(Expense.group_id == group_id)
+    )
     if start:
         query = query.where(Expense.date >= start)
     if end:
@@ -187,6 +205,24 @@ def _apply(expense: Expense, group: Group, data: ExpenseInput) -> None:
         share.percent = percents.get(member.id)
         shares.append(share)
     expense.shares = shares
+    if data.items is not None:
+        expense.items = _items(data.items, members)
+
+
+def _items(items: list[ItemInput], members: dict[int, Member]) -> list[ExpenseItem]:
+    if len(items) > MAX_ITEMS:
+        raise ValidationError(f"At most {MAX_ITEMS} items")
+    result = []
+    for position, item in enumerate(items):
+        name = " ".join(item.name.split())
+        if not name or len(name) > 100:
+            raise ValidationError("Every item needs a name of at most 100 characters")
+        if item.member_id is not None and item.member_id not in members:
+            raise ValidationError("Items can only belong to members of the group")
+        result.append(
+            ExpenseItem(position=position, name=name, amount_cents=item.amount_cents, member_id=item.member_id)
+        )
+    return result
 
 
 def _percents(data: ExpenseInput, participants: list[Member]) -> dict[int, float]:

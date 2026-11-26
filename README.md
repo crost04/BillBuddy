@@ -126,6 +126,8 @@ sample data it is off by 9.6 % on average (simple extrapolation: 69.5 %). Detail
 "📷 Kassenbon scannen" in the expense form: the photo is read **on the phone** with Tesseract.js (the
 image never leaves the device), the server parses the recognized text into store, date, total and items
 and suggests a category. Items can be assigned to single people; the app turns that into the split.
+The items and who they belong to are saved with the expense ("🧾 5 Artikel" in the list), so everyone
+in the group can see later what was bought, and the assignment can still be changed.
 The phone cuts away the table around the receipt, reads the photo up to four times (two image sizes) and
 reads lost prices once more from the price column; the server combines the readings (total, store and date
 by majority, items from the reading that adds up to the total) and may repair up to two items from other
@@ -170,7 +172,7 @@ and only return groups the user belongs to.
 | POST | `/api/groups/{id}/members` | add a member |
 | PUT | `/api/members/{id}` | rename a member, set income |
 | GET/POST | `/api/groups/{id}/expenses` | list (optionally `?month=2026-10`) / add expenses |
-| GET/PUT/DELETE | `/api/expenses/{id}` | read / edit / delete an expense |
+| GET/PUT/DELETE | `/api/expenses/{id}` | read / edit / delete an expense (with its receipt items, if any) |
 | GET | `/api/groups/{id}/settlement` | balances and suggested transfers |
 | GET/POST | `/api/groups/{id}/payments` | list / record payments between members |
 | DELETE | `/api/payments/{id}` | delete a payment |

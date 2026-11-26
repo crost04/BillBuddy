@@ -94,6 +94,9 @@ class Expense(Base):
     group: Mapped[Group] = relationship(back_populates="expenses")
     payer: Mapped[Member] = relationship()
     shares: Mapped[list["ExpenseShare"]] = relationship(back_populates="expense", cascade="all, delete-orphan")
+    items: Mapped[list["ExpenseItem"]] = relationship(
+        back_populates="expense", cascade="all, delete-orphan", order_by="ExpenseItem.position"
+    )
 
     @property
     def amount(self) -> Decimal:
@@ -122,6 +125,33 @@ class ExpenseShare(Base):
 
     expense: Mapped[Expense] = relationship(back_populates="shares")
     member: Mapped[Member] = relationship()
+
+
+class ExpenseItem(Base):
+    """One item of a scanned receipt ("Shampoo 2,95"), kept with the expense, so that
+    everyone in the group can see later what was bought and who it was charged to.
+
+    The split itself is stored in the shares; the items explain it. They do not
+    have to add up to the amount: what no item covers is shared by everyone.
+    """
+
+    __tablename__ = "expense_items"
+
+    id: Mapped[int] = mapped_column(primary_key=True)
+    expense_id: Mapped[int] = mapped_column(ForeignKey("expenses.id", ondelete="CASCADE"), index=True)
+    # Order on the receipt
+    position: Mapped[int]
+    name: Mapped[str] = mapped_column(String(100))
+    # Negative for discounts and returned deposit
+    amount_cents: Mapped[int]
+    # The person the item belongs to; empty = shared by everyone taking part
+    member_id: Mapped[int | None] = mapped_column(ForeignKey("members.id", ondelete="SET NULL"))
+
+    expense: Mapped[Expense] = relationship(back_populates="items")
+
+    @property
+    def amount(self) -> Decimal:
+        return Decimal(self.amount_cents) / 100
 
 
 class Payment(Base):

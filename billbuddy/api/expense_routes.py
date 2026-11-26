@@ -128,4 +128,7 @@ def _to_input(body: ExpenseIn) -> service.ExpenseInput:
         is_fixed=body.is_fixed,
         split_method=body.split_method,
         percents=percents,
+        items=None
+        if body.items is None
+        else [service.ItemInput(i.name, to_cents(i.amount), i.member_id) for i in body.items],
     )

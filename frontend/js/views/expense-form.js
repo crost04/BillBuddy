@@ -319,31 +319,32 @@ export async function renderExpenseForm(container, id) {
     if (r.items_match_total) return `✅ ${r.items.length} Artikel gelesen – die Summe passt.`;
     if (!r.total) return "⚠️ Keine Summe gefunden – bitte den Betrag prüfen.";
     // The amount always comes from the receipt's total; the items only matter for the split
-    const fix = members.length > 1 ? " Unten kannst du Preise korrigieren und fehlende Artikel ergänzen." : "";
-    return `⚠️ Betrag laut Bon: ${formatMoney(r.total)} – bitte kurz prüfen. ${r.items.length} Artikel erkannt, zusammen ${formatMoney(r.items_sum)}.${fix}`;
+    return `⚠️ Betrag laut Bon: ${formatMoney(r.total)} – bitte kurz prüfen. ${r.items.length} Artikel erkannt, zusammen ${formatMoney(r.items_sum)}. Unten kannst du Preise korrigieren und fehlende Artikel ergänzen.`;
   }
 
   // The items can be corrected: OCR misreads single digits or loses a line, and the
-  // receipt's total tells how much is still missing
+  // receipt's total tells how much is still missing. They are saved with the expense,
+  // so everyone can see later what was bought and who it was charged to.
   function renderReceiptItems(focusIndex) {
     const box = $("#receipt-items");
-    if (!receipt?.items.length || members.length < 2) {
+    if (!receipt?.items.length) {
       box.innerHTML = "";
       return;
     }
+    const shared = members.length > 1; // choosing a person only makes sense in a group
     box.innerHTML = `
       <label>Artikel vom Kassenbon</label>
-      <p class="muted small">Stimmt ein Name oder Preis nicht? Antippen und ändern. Gehört ein Artikel nur einer Person? Dann wähle sie aus – alles andere wird geteilt.</p>
+      <p class="muted small">Stimmt ein Name oder Preis nicht? Antippen und ändern.${shared ? " Gehört ein Artikel nur einer Person? Dann wähle sie aus – alles andere wird geteilt." : ""}</p>
       <ul class="list">
         ${receipt.items.map((item, i) => `
           <li class="receipt-item" data-index="${i}">
             <input type="text" class="item-name" value="${esc(item.name)}" placeholder="Artikel" aria-label="Name von Artikel ${i + 1}">
             <button type="button" class="item-remove" aria-label="Artikel ${i + 1} entfernen">×</button>
             <input type="text" class="item-amount" inputmode="decimal" value="${formatAmountInput(item.amount)}" aria-label="Preis von Artikel ${i + 1} in €">
-            <select class="item-person" aria-label="Wer hat Artikel ${i + 1} gekauft?">
+            ${shared ? `<select class="item-person" aria-label="Wer hat Artikel ${i + 1} gekauft?">
               <option value="">Alle</option>
               ${members.map((m) => `<option value="${m.id}" ${assignments[i] === m.id ? "selected" : ""}>${esc(m.name)}</option>`).join("")}
-            </select>
+            </select>` : ""}
           </li>`).join("")}
       </ul>
       <p class="small items-check" id="items-check"></p>
@@ -368,10 +369,13 @@ export async function renderExpenseForm(container, id) {
     list.addEventListener("click", (event) => {
       if (!event.target.classList.contains("item-remove")) return;
       const i = indexOf(event.target);
+      const splitByItems = assignments.some((a) => a !== null);
       receipt.items.splice(i, 1);
       assignments.splice(i, 1);
       renderReceiptItems();
-      applyItemSplit(); // the removed item may have belonged to someone
+      // The split follows the items only if some belong to single people; otherwise
+      // a split chosen by hand (e.g. percentages of a saved expense) stays
+      if (splitByItems) applyItemSplit();
     });
     $("#add-item").addEventListener("click", () => {
       receipt.items.push({ name: "", amount: 0 });
@@ -401,7 +405,8 @@ export async function renderExpenseForm(container, id) {
       : missing > 0
         ? `⚠️ Es fehlen noch ${formatMoney(missing / 100)}: ein Preis ist falsch gelesen oder ein Artikel fehlt. Was keinem Artikel zugeordnet ist, wird unter allen aufgeteilt.`
         : `⚠️ Die Artikel sind ${formatMoney(-missing / 100)} mehr als der Betrag – ein Preis ist wohl falsch gelesen.`;
-    const status = $("#scan-status");
+    const status = $("#scan-status"); // only when adding an expense, not when editing one
+    if (!status) return;
     if (fits && !status.textContent.startsWith("✅")) status.textContent = "✅ Artikel korrigiert – die Summe passt.";
     else if (!fits && status.textContent.startsWith("✅")) status.textContent = "⚠️ Die Artikel unten ergeben noch nicht genau den Betrag.";
   }
@@ -409,6 +414,18 @@ export async function renderExpenseForm(container, id) {
   $("#amount").addEventListener("input", () => {
     if (receipt) itemsChanged();
   });
+
+  // A saved expense from a receipt: show its items and who they were charged to again.
+  // The stored split stays as it is until an item or a person is changed.
+  if (expense?.items.length) {
+    receipt = { items: expense.items.map((item) => ({ name: item.name, amount: item.amount })) };
+    assignments = expense.items.map((item) => item.member_id);
+    baseParticipants = expense.shares.map((share) => share.member_id);
+    renderReceiptItems();
+    if (assignments.some((a) => a !== null)) {
+      showItemShares(sharesFromItems(receipt.items, Math.round(expense.amount * 100), assignments, baseParticipants));
+    }
+  }
 
   // Turn the assignment of items into a percentage split of the expense
   function applyItemSplit() {
@@ -428,6 +445,11 @@ export async function renderExpenseForm(container, id) {
       percentInput(m.id).value = percents.has(m.id) ? formatAmountInput(percents.get(m.id)) : "";
     }
     updateSplit();
+    showItemShares(shares);
+  }
+
+  // "· Anna 3,31 € · Ben 1,32 €" behind the split, so it is clear what the items mean in euros
+  function showItemShares(shares) {
     $("#split-hint").textContent += ` · ${[...shares].filter(([, c]) => c > 0)
       .map(([memberId, cents]) => `${members.find((m) => m.id === memberId).name} ${formatMoney(cents / 100)}`).join(" · ")}`;
   }
@@ -466,6 +488,13 @@ export async function renderExpenseForm(container, id) {
       participants: ids.map((memberId) => ({
         member_id: memberId,
         percent: split === "percent" ? parseAmount(percentInput(memberId).value) : null,
+      })),
+      // The receipt's items and who they belong to; left out without a receipt, so
+      // the server keeps what it has
+      items: receipt?.items.map((item, i) => ({
+        name: item.name.trim() || "?",
+        amount: Math.round(item.amount * 100) / 100,
+        member_id: assignments[i] ?? null,
       })),
     };
 

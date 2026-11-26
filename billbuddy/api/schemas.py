@@ -53,6 +53,14 @@ class ParticipantIn(BaseModel):
     percent: float | None = None
 
 
+class ExpenseItemIn(BaseModel):
+    name: str = Field(min_length=1, max_length=100)
+    # Negative for discounts and returned deposit
+    amount: Decimal = Field(decimal_places=2, max_digits=10)
+    # The person the item belongs to; empty = shared by everyone taking part
+    member_id: int | None = None
+
+
 class ExpenseIn(BaseModel):
     payer_id: int
     amount: Decimal = Field(gt=0, decimal_places=2, max_digits=10)
@@ -64,6 +72,8 @@ class ExpenseIn(BaseModel):
     is_fixed: bool = False
     split_method: SplitMethod = SplitMethod.EQUAL
     participants: list[ParticipantIn] = Field(min_length=1)
+    # Items of a scanned receipt; leave out to keep the stored ones, [] removes them
+    items: list[ExpenseItemIn] | None = Field(default=None, max_length=200)
 
 
 class ShareOut(BaseModel):
@@ -71,6 +81,14 @@ class ShareOut(BaseModel):
 
     member_id: int
     percent: float | None
+
+
+class ExpenseItemOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    name: str
+    amount: float
+    member_id: int | None
 
 
 class ExpenseOut(BaseModel):
@@ -87,6 +105,7 @@ class ExpenseOut(BaseModel):
     is_fixed: bool
     split_method: SplitMethod
     shares: list[ShareOut]
+    items: list[ExpenseItemOut]
     # Set if the expense was entered by a standing order
     recurring_rule_id: int | None
     created_at: dt.datetime

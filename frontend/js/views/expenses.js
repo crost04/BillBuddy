@@ -72,6 +72,7 @@ function row(e) {
           <div class="muted small">
             ${esc(memberName(e.payer_id))} hat bezahlt${forWhom}
             ${e.recurring_rule_id ? ' <span class="badge">🔁 monatlich</span>' : e.is_fixed ? ' <span class="badge">Fix</span>' : ""}
+            ${e.items?.length ? ` <span class="badge">🧾 ${e.items.length} Artikel</span>` : ""}
           </div>
           <div class="muted small">${categoryLabel(e.category)}</div>
         </div>
